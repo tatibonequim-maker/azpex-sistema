@@ -575,17 +575,23 @@ function initApp(){
 
   document.getElementById('app-logo').textContent=isLoja?'Bonequim':'Azpex · Fábrica';
   document.getElementById('btn-cfg').style.display=isTaty?'':'none';
-  document.getElementById('btn-novo').style.display=(isTaty||isLoja&&user!=='gerente')?'':'none';
+  const canNovo=isTaty||(isLoja&&user!=='gerente');
+  document.getElementById('btn-novo').style.display=canNovo?'':'none';
   document.getElementById('btn-novo').textContent=isLoja?'+ Novo pedido':'+ Novo corte';
 
   // Section tabs — only for taty
   const stabsEl=document.getElementById('stabs');
-  if(isTaty||user==='gerente'){
+  const showBothTabs=isTaty||user==='gerente'||user==='estoque'||user==='daimartha';
+  if(showBothTabs){
     stabsEl.style.display='flex';
+    let cortesLabel='Cortes';
+    if(user==='gerente') cortesLabel='Reposições';
+    if(user==='estoque') cortesLabel='Embalar';
+    if(user==='daimartha') cortesLabel='Cortes';
     stabsEl.innerHTML=`
-      <button class="stab on" onclick="setSection('cortes',this)">${user==='gerente'?'Reposições':'Cortes'}</button>
+      <button class="stab on" onclick="setSection('cortes',this)">${cortesLabel}</button>
       <button class="stab" onclick="setSection('pedidos',this)">Pedidos</button>`;
-    section=user==='gerente'?'cortes':'cortes';
+    section='cortes';
   }else{
     stabsEl.style.display='none';
     section=isLoja?'pedidos':'cortes';
@@ -601,8 +607,18 @@ function setSection(s,el){
   section=s;
   document.querySelectorAll('.stab').forEach(b=>b.classList.remove('on'));
   el.classList.add('on');
-  document.getElementById('btn-novo').textContent=s==='pedidos'?'+ Novo pedido':'+ Novo corte';
-  document.getElementById('btn-novo').onclick=s==='pedidos'?openNovoPedido:openNovo;
+  const isLoja=['vendA','vendB','vendC','gerente'].includes(user);
+  const canNovo=user==='taty'||(isLoja&&user!=='gerente');
+  if(s==='pedidos'){
+    // vendedoras can create pedidos from fabrica side too? No - only loja users
+    document.getElementById('btn-novo').style.display=isLoja&&user!=='gerente'?'':'none';
+    document.getElementById('btn-novo').textContent='+ Novo pedido';
+    document.getElementById('btn-novo').onclick=openNovoPedido;
+  }else{
+    document.getElementById('btn-novo').style.display=user==='taty'?'':'none';
+    document.getElementById('btn-novo').textContent='+ Novo corte';
+    document.getElementById('btn-novo').onclick=openNovo;
+  }
   render();
 }
 
@@ -1248,14 +1264,13 @@ function renderPedidos(){
   if(q)list=list.filter(p=>(p.cod+p.nome+p.cor).toLowerCase().includes(q));
   if(filtro==='minha'){
     if(['vendA','vendB','vendC'].includes(user))list=list.filter(p=>p.autor===user);
-    if(user==='estoque'||user==='taty')list=list.filter(p=>p.status==='PENDENTE');
-    if(user==='daimartha')list=list.filter(p=>p.status==='APROVADO'||p.status==='PARCIAL');
+    if(user==='estoque'||user==='taty'||user==='daimartha')list=list.filter(p=>p.status==='PENDENTE'||p.status==='APROVADO'||p.status==='PARCIAL');
     if(user==='gerente')list=list.filter(p=>p.status!=='ARQUIVADO');
   }
   if(['vendA','vendB','vendC'].includes(user)&&filtro==='todos')list=list.filter(p=>p.autor===user);
   if(filtro==='pendente')list=list.filter(p=>p.status==='PENDENTE');
 
-  const canResp=user==='estoque'||user==='taty';
+  const canResp=user==='estoque'||user==='taty'||user==='daimartha';
   const canTransf=user==='daimartha';
   const canRec=user==='gerente';
 
