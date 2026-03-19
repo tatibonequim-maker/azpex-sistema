@@ -526,13 +526,20 @@ function ppk(k,side){if(pinVal.length>=4)return;pinVal+=k;updDots(side);if(pinVa
 function ppdel(side){pinVal=pinVal.slice(0,-1);updDots(side);document.getElementById(side+'perr').textContent='';}
 function updDots(side){for(let i=0;i<4;i++)document.getElementById(side+'pd'+i)?.classList.toggle('on',i<pinVal.length);}
 function checkPin(side){
-  const saved=localStorage.getItem('az_pin_'+pinUser)||DPINS[pinUser]||'0000';
-  if(pinVal===saved){
-    user=pinUser;
-    document.getElementById('login-'+side).classList.remove('open');
-    initApp();
-  }else{
-    document.getElementById(side+'perr').textContent='PIN incorreto.';
+  try{
+    const saved=localStorage.getItem('az_pin_'+pinUser)||DPINS[pinUser]||'0000';
+    if(pinVal===saved){
+      user=pinUser;
+      document.getElementById('login-'+side).classList.remove('open');
+      document.getElementById('login-'+side).style.display='none';
+      initApp();
+    }else{
+      document.getElementById(side+'perr').textContent='PIN incorreto. Tente novamente.';
+      pinVal='';updDots(side);
+    }
+  }catch(err){
+    console.error('checkPin error:',err);
+    document.getElementById(side+'perr').textContent='Erro: '+err.message;
     pinVal='';updDots(side);
   }
 }
@@ -551,6 +558,8 @@ function logout(){
 
 // ── INIT APP ──
 function initApp(){
+  try{
+  document.getElementById('portal').style.display='none';
   document.getElementById('app').style.display='';
   document.getElementById('app-user').textContent=UNAMES[user]||user;
 
@@ -579,6 +588,7 @@ function initApp(){
   populateSels();
   render();
   if(cfg.url)setTimeout(syncAll,600);
+  }catch(err){console.error('initApp error:',err);toast('Erro ao iniciar: '+err.message,'w');}
 }
 
 function setSection(s,el){
