@@ -922,7 +922,7 @@ function cardRosana(c){
       </div>`).join('')}
     <div class="pb"><div class="pf" id="pf-${c.id}" style="width:${pct}%"></div></div>
     <div class="pl" id="pl-${c.id}">${done} de ${total} descansados</div>
-    <button class="dbtn" style="background:#1D9E75;color:#fff" id="db-${c.id}" ${done<total?'disabled':''} onclick="salvarDescanso('${c.id}')">Confirmar tudo descansado ✔</button>
+    <button class="dbtn" style="background:#1D9E75;color:#fff" id="db-${c.id}" ${done<total?'disabled':''} onclick="event.stopPropagation();salvarDescanso('${c.id}')">Confirmar tudo descansado ✔</button>
   </div>`;
 }
 
@@ -1030,21 +1030,30 @@ async function salvarEncaixe(id){
 }
 
 function toggleDC(id,cor){
-  const c=cortes.find(x=>x.id===id);if(!c.checksDesc)c.checksDesc={};
-  c.checksDesc[cor]=!c.checksDesc[cor];sl();
+  const c=cortes.find(x=>x.id===id);
+  if(!c)return;
+  if(!c.checksDesc)c.checksDesc={};
+  c.checksDesc[cor]=!c.checksDesc[cor];
+  sl();
+  // Re-render the specific card
   const el=document.getElementById('cd-'+id);
-  if(el){const d=document.createElement('div');d.innerHTML=cardRosana(c);el.replaceWith(d.firstChild);}
+  if(el){
+    const tmp=document.createElement('div');
+    tmp.innerHTML=cardRosana(c);
+    const newEl=tmp.firstChild;
+    if(newEl)el.replaceWith(newEl);
+  }
 }
 async function salvarDescanso(id){
   const c=cortes.find(x=>x.id===id);
   if(!c)return;
+  c.checksDesc=c.checksDesc||{};
   c.status='TECIDO_DESCANSADO';
   c.dataDesc=new Date().toLocaleDateString('pt-BR');
   sl();
-  // Force re-render after state update
-  setTimeout(()=>render(),50);
+  render();
   toast('Tecidos descansados! Registre o nº do corte.','s');
-  await push(c._row,[['CHECKS_DESC',checksStr(c.checksDesc||{})],['DATA_DESCANSO',c.dataDesc],['STATUS','TECIDO_DESCANSADO']]);
+  await push(c._row,[['CHECKS_DESC',checksStr(c.checksDesc)],['DATA_DESCANSO',c.dataDesc],['STATUS','TECIDO_DESCANSADO']]);
 }
 async function salvarNumCorte(id){
   const num=document.getElementById('nc-'+id)?.value.trim();
