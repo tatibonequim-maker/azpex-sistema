@@ -682,7 +682,7 @@ async function syncAll(){
     const[c,l,p]=await Promise.all([apig({action:'getCortes'}),apig({action:'getListas'}),apig({action:'getPedidos'})]);
     if(Array.isArray(c)&&c.length>0){
       const fotoMap={};cortes.forEach(x=>{if(x.fotoLocal)fotoMap[x.id]=x.fotoLocal;});
-      cortes=c.map(r=>({
+      cortes=c.filter(r=>r.STATUS!=='DELETADO').map(r=>({
         id:str(r.ID),ref:str(r.REF),nome:str(r.NOME),
         data:din(str(r.DATA_ENTRADA)),tec:str(r.TECIDO),tin:str(r.TINTURARIA),
         grade:str(r.GRADE),ret:str(r.RETALHO),obs:str(r.OBS),
@@ -886,11 +886,11 @@ function renderCortes(){
 
 function corteCardHTML(c){
   if(user==='edvaldo')return cardEdvaldo(c);
+  if(user==='taty'&&(c.status==='AGUARDANDO_ENCAIXE'||c.status==='ENCAIXE_REPROVADO'))return cardEdvaldo(c);
   if(user==='rosana'&&c.status==='DESCANSAR_TECIDO')return cardRosana(c);
   if(user==='rosana'&&c.status==='TECIDO_DESCANSADO'&&!c.numCorte)return cardRosanaNC(c);
-  if((user==='daimartha'||user==='taty')&&c.status==='NO_CORTE')return cardChegou(c);
+  if((user==='daimartha'||user==='taty'||user==='carol')&&c.status==='NO_CORTE')return cardChegou(c);
   if(user==='carol'&&c.status==='AG_FOTO')return cardCarol(c);
-  if(user==='carol'&&c.status==='NO_CORTE')return cardChegou(c);
   if(user==='estoque'&&c.status==='EMBALAR')return cardEstoque(c);
   return cardBase(c);
 }
@@ -1223,6 +1223,7 @@ function openDet(id){
       <div class="mti">${c.id}${c.ref?' · '+c.ref:''}</div>
       <div style="display:flex;gap:6px">
         ${user==='taty'?`<button style="border:.5px solid var(--bd);border-radius:7px;padding:4px 8px;background:none;color:var(--mt);cursor:pointer;font-size:.71rem" onclick="openEditar('${c.id}')">✏️ Editar</button>`:''}
+        ${user==='taty'?`<button style="border:.5px solid #F09595;border-radius:7px;padding:4px 8px;background:none;color:#A32D2D;cursor:pointer;font-size:.71rem" onclick="deletarCorte('${c.id}')">🗑 Deletar</button>`:''}
         <button class="xb" onclick="cl('ov-det')">×</button>
       </div>
     </div>
@@ -1281,6 +1282,17 @@ async function arquivar(id){
   sl();cl('ov-det');render();
   toast('Recebido e arquivado!','s');
   await push(c._row,[['STATUS','ARQUIVADO']]);
+}
+
+async function deletarCorte(id){
+  if(!confirm('Tem certeza que quer deletar este corte? Esta ação não pode ser desfeita.'))return;
+  const c=cortes.find(x=>x.id===id);
+  if(!c)return;
+  cortes=cortes.filter(x=>x.id!==id);
+  sl();cl('ov-det');render();
+  toast('Corte deletado.','i');
+  // Delete from sheets - set status to DELETADO so it won't appear on sync
+  if(c._row)await push(c._row,[['STATUS','DELETADO'],['NOME','[DELETADO] '+c.nome]]);
 }
 
 // NOVO CORTE
