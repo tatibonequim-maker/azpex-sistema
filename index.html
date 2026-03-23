@@ -410,6 +410,40 @@ input,select,textarea,button{font-family:'DM Sans',sans-serif}
   </div>
 </div>
 
+<!-- MODAL DECISÃO ENVIO -->
+<div class="ov" id="ov-decisao">
+  <div class="modal">
+    <div class="mhd"><div class="mti">Decisão de envio</div><button class="xb" onclick="cl('ov-decisao')">×</button></div>
+    <div id="decisao-info" style="font-size:.82rem;color:var(--mt);margin-bottom:12px"></div>
+    <div id="decisao-cores" style="margin-bottom:12px"></div>
+    <div class="fg full" style="margin-bottom:12px">
+      <label class="fl">Observação de quantidades</label>
+      <textarea class="fi" id="decisao-obs" rows="3" placeholder="Ex: Enviar tudo / Preto 10pç G e GG / conforme tabela acima..."></textarea>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:8px">
+      <button class="bs" style="background:#1D9E75" onclick="confirmarEnvio()">✔ Confirmar envio</button>
+      <button class="bs abtn-danger" style="background:#FCEBEB;color:#A32D2D;border:.5px solid #F09595" onclick="confirmarArquivar()">✕ Não precisamos — arquivar</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL DECISAO ENVIO -->
+<div class="ov" id="ov-envio">
+  <div class="modal">
+    <div class="mhd"><div class="mti">Decisão de envio</div><button class="xb" onclick="cl('ov-envio')">×</button></div>
+    <div id="envio-info" style="font-size:.82rem;color:var(--mt);margin-bottom:12px"></div>
+    <div id="envio-cores" style="margin-bottom:12px"></div>
+    <div class="fg full" style="margin-bottom:12px">
+      <label class="fl">Observação de quantidades</label>
+      <textarea class="fi" id="envio-obs" rows="3" placeholder="Ex: Enviar tudo · Preto: 10 peças, Azul: 5 peças..."></textarea>
+    </div>
+    <div style="display:flex;gap:8px">
+      <button class="bs" style="flex:1;background:#1D9E75" onclick="confirmarEnvio()">✔ Confirmar envio</button>
+      <button class="bc" style="flex:1" onclick="cl('ov-envio')">Cancelar</button>
+    </div>
+  </div>
+</div>
+
 <!-- MODAL CONFIG -->
 <div class="ov" id="ov-cfg">
   <div class="modal">
@@ -493,7 +527,7 @@ if(!cfg.url)cfg.url=DURL;
 let cortes=JSON.parse(localStorage.getItem('az_cortes')||'[]');
 let pedidos=JSON.parse(localStorage.getItem('az_pedidos')||'[]');
 let user='',section='cortes',filtro='todos';
-let coresId=null,respId=null,corCount=0,editId=null;
+let coresId=null,respId=null,corCount=0,editId=null,decisaoId=null;
 let pinUser='',pinVal='',pinSide='';
 
 // ── PORTAL ──
@@ -1192,6 +1226,7 @@ function openDet(id){
     ${c.obs?`<div class="obs-box">Obs: ${c.obs}</div>`:''}
     ${c.encObs?`<div class="obs-box obs-bl">Obs. Edvaldo: ${c.encObs}</div>`:''}
     ${c.carolObs?`<div class="obs-box" style="background:var(--b6);color:var(--c6)">Obs. Carol: ${c.carolObs}</div>`:''}
+    ${c.giObs?`<div class="obs-box" style="background:var(--b8);color:var(--c8)">Obs. envio: ${c.giObs}</div>`:''}
     ${c.fotoLocal?`<div style="margin-top:8px"><img src="${c.fotoLocal}" style="width:100%;border-radius:9px;max-height:180px;object-fit:cover"></div>`:''}
     ${user==='taty'?calcDetalhe(c):''}
     <div class="agroup">
@@ -1550,9 +1585,9 @@ function saveGrades(){cfg.customGrades=document.getElementById('cfg-grades').val
 function op(id){document.getElementById(id)?.classList.add('open');}
 function cl(id){document.getElementById(id)?.classList.remove('open');}
 function toast(msg,type='i'){const c=document.getElementById('toasts');const t=document.createElement('div');t.className=`toast ${type}`;t.textContent=msg;c.appendChild(t);setTimeout(()=>t.remove(),3500);}
-['ov-novo','ov-det','ov-cores','ov-pedido','ov-resp','ov-cfg'].forEach(id=>{document.getElementById(id)?.addEventListener('click',e=>{if(e.target===e.currentTarget)cl(id);});});
+['ov-novo','ov-det','ov-cores','ov-pedido','ov-resp','ov-cfg','ov-decisao'].forEach(id=>{document.getElementById(id)?.addEventListener('click',e=>{if(e.target===e.currentTarget)cl(id);});});
 
-// Fix novo button for initial state
+// Fix novo button for initial state - will be overridden by initApp
 document.getElementById('btn-novo').onclick=openNovo;
 </script>
 </body>
