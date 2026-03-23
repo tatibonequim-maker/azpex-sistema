@@ -350,7 +350,7 @@ input,select,textarea,button{font-family:'DM Sans',sans-serif}
       <div class="fg"><label class="fl">Referência</label><input class="fi" id="f-ref" placeholder="ex: 2838"></div>
       <div class="fg full"><label class="fl">Nome da peça *</label><input class="fi" id="f-nome" placeholder="ex: Calça Dakota"></div>
       <div class="fg full"><label class="fl">Data entrada</label><div class="drow"><input class="fi" id="f-data" type="date" style="flex:1"><button class="hoje-b" onclick="setHoje()">Hoje</button></div></div>
-      <div class="fg full"><label class="fl">Tecido</label><select class="fsl" id="f-tec"><option value="">Selecionar...</option></select></div>
+      <div class="fg full"><label class="fl">Tecido</label><select class="fsl" id="f-tec" onchange="autoFillRolo()"><option value="">Selecionar...</option></select></div>
       <div class="fg"><label class="fl">Fornecedor</label><select class="fsl" id="f-tin"><option value="">Selecionar...</option></select></div>
       <div class="fg"><label class="fl">Grade</label><select class="fsl" id="f-grade"><option value="">Selecionar...</option></select></div>
       <div class="fg full"><label class="fl">Retalho</label><input class="fi" id="f-ret" placeholder="ex: GG"></div>
@@ -919,15 +919,19 @@ function cardBase(c){
   const total=(user==='taty'||user==='carol')&&calcTotalPecas(c);
   const canGi=['gerente','taty','carol'].includes(user)&&c.status==='AGUARDANDO_GI';
   const canDM=user==='daimartha'&&c.status==='EMBALAR';
-  return`<div class="card" onclick="openDet('${c.id}')">
-    <div style="display:flex;justify-content:space-between;margin-bottom:2px">
-      <div>${c.ref?`<div class="cref">${c.ref}</div>`:''}<div class="cid">${c.id}</div></div>
+  return`<div class="card" onclick="${canCores?`openCores('${c.id}')`:`openDet('${c.id}')`}">
+    <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:3px">
+      <div>
+        ${c.ref?`<div style="font-family:'DM Mono',monospace;font-size:.88rem;font-weight:600;color:var(--ac)">${c.ref}</div>`:''}
+        <div style="font-family:'DM Mono',monospace;font-size:.75rem;color:#555;font-weight:500">${c.id}</div>
+      </div>
       ${c.urg?'<span class="tag tur">⚡</span>':''}
     </div>
     <div class="cnome">${c.nome}</div>
+    ${c.obs?`<div style="font-size:.74rem;color:#8B4513;background:#FFF3CD;border-radius:5px;padding:3px 7px;margin-bottom:5px;line-height:1.3">⚠ ${c.obs}</div>`:''}
     <div class="ctags">
       ${c.tec?`<span class="tag tg">${c.tec}</span>`:''}
-      ${c.grade?`<span class="tag tgr">${c.grade}</span>`:''}
+      ${c.grade?`<span style="font-size:.72rem;padding:2px 8px;border-radius:20px;font-family:'DM Mono',monospace;background:#E1F5EE;color:#085041;font-weight:600">${c.grade}</span>`:''}
       ${c.numCorte?`<span class="tag" style="background:var(--b3);color:var(--c3)">${c.numCorte}</span>`:''}
       ${total?`<span class="tag" style="background:var(--al);color:var(--ac)">~${total} pç</span>`:''}
       ${c.tipo?`<span class="tag" style="background:${c.tipo==='novidade'?'var(--b6)':'var(--b2)'};color:${c.tipo==='novidade'?'var(--c6)':'var(--c2)'}">${c.tipo}</span>`:''}
@@ -935,7 +939,7 @@ function cardBase(c){
     <div class="cfoot">
       <span class="cdate">${dout(c.data)}</span>
       ${canApr?`<span style="background:var(--b2);color:var(--c2);font-size:.62rem;padding:2px 7px;border-radius:5px;font-weight:500">${c.encM}m·${c.encPct}%</span>`:''}
-      ${canCores?`<button style="background:var(--b6);color:var(--c6);border:none;border-radius:6px;padding:3px 8px;font-size:.63rem;font-weight:500;cursor:pointer" onclick="event.stopPropagation();openCores('${c.id}')">Definir cores →</button>`:''}
+      ${canCores?`<span style="background:var(--b6);color:var(--c6);font-size:.63rem;padding:2px 8px;border-radius:5px;font-weight:500">Toque para definir cores</span>`:''}
       ${canGi?`<div style="display:flex;gap:5px"><button style="background:var(--b3);color:var(--c3);border:none;border-radius:6px;padding:3px 8px;font-size:.63rem;font-weight:500;cursor:pointer" onclick="event.stopPropagation();aprovarEnvio('${c.id}')">✔ Enviar</button><button style="background:var(--b4);color:var(--c4);border:none;border-radius:6px;padding:3px 8px;font-size:.63rem;font-weight:500;cursor:pointer" onclick="event.stopPropagation();giArquivar('${c.id}')">✕ Não precisa</button></div>`:''}
       ${canDM?`<button style="background:var(--b3);color:var(--c3);border:none;border-radius:6px;padding:3px 8px;font-size:.63rem;font-weight:500;cursor:pointer" onclick="event.stopPropagation();transmissaoMire('${c.id}')">Transmissão Miré ✔</button>`:''}
     </div>
@@ -1324,6 +1328,16 @@ async function deletarCorte(id){
 }
 
 // NOVO CORTE
+function autoFillRolo(){
+  const tec=(document.getElementById('f-tec')?.value||'').toLowerCase();
+  const roloEl=document.getElementById('f-rolo');
+  if(!roloEl||roloEl.value)return;
+  const is30=tec==='montaria'||tec==='montaria light'||tec==='canelado montaria'||tec==='montaria pes'||tec.includes('montaria');
+  if(is30)roloEl.value='30';
+  else if(tec.includes('jeans'))roloEl.value='35';
+  calcPreview();
+}
+
 function openNovo(){
   editId=null;
   document.getElementById('form-ti').textContent='Novo corte';
@@ -1379,15 +1393,49 @@ async function salvarCorte(){
 // CORES
 function openCores(id){
   const c=cortes.find(x=>x.id===id);coresId=id;corCount=0;
-  document.getElementById('cores-info').innerHTML=`<strong>${c.nome}</strong> · Encaixe: ${c.encM||'—'}m · ${c.encPct||'—'}%${c.encObs?`<br><span style="font-size:.73rem">Obs: ${c.encObs}</span>`:''}`;
+  const enc=parseFloat(c.encM)||0;
+  const sizes=(c.grade||'').split(' ').filter(Boolean);
+  const rolo=parseFloat(c.rolo)||0;
+  let estimaInfo='';
+  if(enc&&rolo&&sizes.length){
+    const folhas=Math.floor(rolo/enc);
+    estimaInfo=` · ${folhas} folhas · ~${folhas*sizes.length} pç total`;
+  }
+  document.getElementById('cores-info').innerHTML=`
+    <strong>${c.nome}</strong> · Grade: ${c.grade||'—'}<br>
+    <span style="font-size:.78rem;color:var(--mt)">Encaixe: ${c.encM||'—'}m · Aproveit.: ${c.encPct||'—'}%${estimaInfo}</span>
+    ${c.encObs?`<div style="font-size:.74rem;color:var(--c2);margin-top:3px">Obs: ${c.encObs}</div>`:''}
+    <div style="font-size:.74rem;color:var(--mt);margin-top:6px">Por rolo: insira a cor e quantos rolos. A estimativa de peças aparece automaticamente.</div>`;
   const list=document.getElementById('cores-list');list.innerHTML='';
   if(c.cores?.length)c.cores.forEach(x=>addCor(x.cor,x.qtd));else addCor();
   op('ov-cores');
 }
 function addCor(cor='',qtd=''){
-  corCount++;const div=document.createElement('div');div.className='cor-row';div.id='cor-'+corCount;
-  div.innerHTML=`<input class="cor-i" placeholder="Nome da cor" value="${cor}"><input class="qtd-i" type="number" min="1" step="1" placeholder="Qtd" value="${qtd}"><button class="rmv" onclick="document.getElementById('cor-${corCount}').remove()">✕</button>`;
+  corCount++;
+  const n=corCount;
+  const div=document.createElement('div');div.className='cor-row';div.id='cor-'+n;
+  div.style.cssText='display:flex;gap:7px;align-items:center;margin-bottom:6px;flex-wrap:wrap';
+  div.innerHTML=`
+    <input class="cor-i" placeholder="Nome da cor" value="${cor}" style="flex:2;min-width:100px">
+    <input class="qtd-i" type="number" min="1" step="1" placeholder="Rolos" value="${qtd}" id="qtd-${n}" oninput="updateCorEstima(${n})">
+    <span id="estima-${n}" style="font-size:.72rem;color:var(--ac);font-weight:500;min-width:50px"></span>
+    <button class="rmv" onclick="document.getElementById('cor-${n}').remove()">✕</button>`;
   document.getElementById('cores-list').appendChild(div);
+  if(qtd)updateCorEstima(n);
+}
+
+function updateCorEstima(n){
+  const c=cortes.find(x=>x.id===coresId);
+  if(!c)return;
+  const enc=parseFloat(c.encM)||0;
+  const sizes=(c.grade||'').split(' ').filter(Boolean);
+  const rolos=parseFloat(document.getElementById('qtd-'+n)?.value)||0;
+  const el=document.getElementById('estima-'+n);
+  if(!el)return;
+  if(enc&&sizes.length&&rolos){
+    const folhas=Math.floor((parseFloat(c.rolo)||30)/enc);
+    el.textContent='~'+(folhas*sizes.length*rolos)+' pç';
+  }else{el.textContent='';}
 }
 async function salvarCores(){
   const rows=[...document.querySelectorAll('.cor-row')];
