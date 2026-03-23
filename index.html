@@ -835,11 +835,10 @@ function corteCardHTML(c){
 
 function cardBase(c){
   const canApr=user==='taty'&&c.status==='AGUARDANDO_APROVACAO';
-  const canCores=user==='taty'&&c.status==='DEFINIR_CORES';
-  const total=user==='taty'&&calcTotalPecas(c);
-  const canGi=(user==='gerente'||user==='taty')&&c.status==='SEPARAR_ENVIO';
+  const canCores=(user==='taty'||user==='carol')&&c.status==='DEFINIR_CORES';
+  const total=(user==='taty'||user==='carol')&&calcTotalPecas(c);
+  const canGi=['gerente','taty','carol'].includes(user)&&c.status==='AGUARDANDO_GI';
   const canDM=user==='daimartha'&&c.status==='EMBALAR';
-  const canRet=(user==='daimartha'||user==='estoque')&&c.status==='EMBALAR';
   return`<div class="card" onclick="openDet('${c.id}')">
     <div style="display:flex;justify-content:space-between;margin-bottom:2px">
       <div>${c.ref?`<div class="cref">${c.ref}</div>`:''}<div class="cid">${c.id}</div></div>
@@ -857,12 +856,12 @@ function cardBase(c){
       <span class="cdate">${dout(c.data)}</span>
       ${canApr?`<span style="background:var(--b2);color:var(--c2);font-size:.62rem;padding:2px 7px;border-radius:5px;font-weight:500">${c.encM}m·${c.encPct}%</span>`:''}
       ${canCores?`<button style="background:var(--b6);color:var(--c6);border:none;border-radius:6px;padding:3px 8px;font-size:.63rem;font-weight:500;cursor:pointer" onclick="event.stopPropagation();openCores('${c.id}')">Definir cores →</button>`:''}
-      ${canGi?`<div style='display:flex;gap:5px'><button style="background:var(--b3);color:var(--c3);border:none;border-radius:6px;padding:3px 8px;font-size:.63rem;font-weight:500;cursor:pointer" onclick="event.stopPropagation();aprovarEnvio('${c.id}')">✔ Enviar</button><button style="background:var(--b4);color:var(--c4);border:none;border-radius:6px;padding:3px 8px;font-size:.63rem;font-weight:500;cursor:pointer" onclick="event.stopPropagation();giArquivar('${c.id}')">✕ Não precisa</button></div>`:''}
-`:''}
+      ${canGi?`<div style="display:flex;gap:5px"><button style="background:var(--b3);color:var(--c3);border:none;border-radius:6px;padding:3px 8px;font-size:.63rem;font-weight:500;cursor:pointer" onclick="event.stopPropagation();aprovarEnvio('${c.id}')">✔ Enviar</button><button style="background:var(--b4);color:var(--c4);border:none;border-radius:6px;padding:3px 8px;font-size:.63rem;font-weight:500;cursor:pointer" onclick="event.stopPropagation();giArquivar('${c.id}')">✕ Não precisa</button></div>`:''}
       ${canDM?`<button style="background:var(--b3);color:var(--c3);border:none;border-radius:6px;padding:3px 8px;font-size:.63rem;font-weight:500;cursor:pointer" onclick="event.stopPropagation();transmissaoMire('${c.id}')">Transmissão Miré ✔</button>`:''}
     </div>
   </div>`;
 }
+
 
 function cardEdvaldo(c){
   const rep=c.status==='ENCAIXE_REPROVADO';
