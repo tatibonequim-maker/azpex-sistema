@@ -351,7 +351,7 @@ input,select,textarea,button{font-family:'DM Sans',sans-serif}
       <div class="fg full"><label class="fl">Nome da peça *</label><input class="fi" id="f-nome" placeholder="ex: Calça Dakota"></div>
       <div class="fg full"><label class="fl">Data entrada</label><div class="drow"><input class="fi" id="f-data" type="date" style="flex:1"><button class="hoje-b" onclick="setHoje()">Hoje</button></div></div>
       <div class="fg full"><label class="fl">Tecido</label><select class="fsl" id="f-tec"><option value="">Selecionar...</option></select></div>
-      <div class="fg"><label class="fl">Tinturaria</label><select class="fsl" id="f-tin"><option value="">Selecionar...</option></select></div>
+      <div class="fg"><label class="fl">Fornecedor</label><select class="fsl" id="f-tin"><option value="">Selecionar...</option></select></div>
       <div class="fg"><label class="fl">Grade</label><select class="fsl" id="f-grade"><option value="">Selecionar...</option></select></div>
       <div class="fg full"><label class="fl">Retalho</label><input class="fi" id="f-ret" placeholder="ex: GG"></div>
       <div class="fg full"><label class="fl">Comprimento do rolo (m)</label><input class="fi" id="f-rolo" type="number" step="0.5" placeholder="ex: 30" oninput="calcPreview()"></div>
@@ -385,11 +385,9 @@ input,select,textarea,button{font-family:'DM Sans',sans-serif}
     <div class="fg2">
       <div class="fg"><label class="fl">Código da peça *</label><input class="fi" id="p-cod" placeholder="ex: 0552256"></div>
       <div class="fg full"><label class="fl">Nome da peça *</label><input class="fi" id="p-nome" placeholder="ex: Calça Dakota"></div>
+      <div class="fg full"><label class="fl">Grade *</label><select class="fsl" id="p-grade-sel" onchange="buildPedidoTabela()"><option value="">Selecionar grade...</option></select></div>
     </div>
-    <div class="divr"></div>
-    <div class="sl">Cores e quantidades por tamanho *</div>
-    <div id="p-cores-list"></div>
-    <button class="add-cor" onclick="addPedidoCor()">+ Adicionar cor</button>
+    <div id="p-tabela-area" style="margin-top:10px"></div>
     <div class="divr"></div>
     <div class="fg full"><label class="fl">Observação</label><textarea class="fi" id="p-obs" rows="2" placeholder="Observações..."></textarea></div>
     <div class="fact"><button class="bc" onclick="cl('ov-pedido')">Cancelar</button><button class="bs" onclick="salvarPedido()">Enviar pedido</button></div>
@@ -473,7 +471,7 @@ const CSM={
   NO_CORTE:{l:'Corte / Oficina',c:'var(--c3)',b:'var(--b3)'},
   AG_FOTO:{l:'Ag. foto Carol',c:'var(--c6)',b:'var(--b6)'},
   FOTO_OK:{l:'Foto aprovada',c:'var(--c3)',b:'var(--b3)'},
-  AGUARDANDO_GI:{l:'Ag. decisão Gi',c:'var(--c8)',b:'var(--b8)'},
+  AGUARDANDO_GI:{l:'Ag. decisão de envio',c:'var(--c8)',b:'var(--b8)'},
   EMBALAR:{l:'Embalar / Separar',c:'var(--c7)',b:'var(--b7)'},
   PRONTO_RETIRADA:{l:'Pronto p/ retirada',c:'var(--c3)',b:'var(--b3)'},
   ARQUIVADO:{l:'Arquivado',c:'var(--mt)',b:'var(--s2)'},
@@ -768,7 +766,7 @@ function getColsCortes(){
     {s:'DEFINIR_CORES',l:'Definir cores',c:'var(--c6)'},
     {s:'NO_CORTE',l:'Corte / Oficina',c:'var(--c3)'},
     {s:'AG_FOTO',l:'Ag. foto',c:'var(--c6)'},
-    {s:'AGUARDANDO_GI',l:'Ag. decisão Gi',c:'var(--c8)'},
+    {s:'AGUARDANDO_GI',l:'Ag. decisão de envio',c:'var(--c8)'},
     {s:'EMBALAR',l:'Embalar / Separar',c:'var(--c7)'},
     {s:'PRONTO_RETIRADA',l:'Pronto p/ retirada',c:'var(--c3)'},
   ];
@@ -784,7 +782,7 @@ function getColsCortes(){
   if(user==='daimartha')return[
     {s:'NO_CORTE',l:'Corte / Oficina',c:'var(--c3)'},
     {s:'AG_FOTO',l:'Ag. foto Carol',c:'var(--c6)'},
-    {s:'AGUARDANDO_GI',l:'Ag. decisão Gi',c:'var(--c8)'},
+    {s:'AGUARDANDO_GI',l:'Ag. decisão de envio',c:'var(--c8)'},
     {s:'EMBALAR',l:'Embalar / Separar',c:'var(--c7)'},
     {s:'PRONTO_RETIRADA',l:'Pronto p/ retirada',c:'var(--c3)'},
   ];
@@ -860,6 +858,7 @@ function cardBase(c){
       ${canApr?`<span style="background:var(--b2);color:var(--c2);font-size:.62rem;padding:2px 7px;border-radius:5px;font-weight:500">${c.encM}m·${c.encPct}%</span>`:''}
       ${canCores?`<button style="background:var(--b6);color:var(--c6);border:none;border-radius:6px;padding:3px 8px;font-size:.63rem;font-weight:500;cursor:pointer" onclick="event.stopPropagation();openCores('${c.id}')">Definir cores →</button>`:''}
       ${canGi?`<div style='display:flex;gap:5px'><button style="background:var(--b3);color:var(--c3);border:none;border-radius:6px;padding:3px 8px;font-size:.63rem;font-weight:500;cursor:pointer" onclick="event.stopPropagation();aprovarEnvio('${c.id}')">✔ Enviar</button><button style="background:var(--b4);color:var(--c4);border:none;border-radius:6px;padding:3px 8px;font-size:.63rem;font-weight:500;cursor:pointer" onclick="event.stopPropagation();giArquivar('${c.id}')">✕ Não precisa</button></div>`:''}
+`:''}
       ${canDM?`<button style="background:var(--b3);color:var(--c3);border:none;border-radius:6px;padding:3px 8px;font-size:.63rem;font-weight:500;cursor:pointer" onclick="event.stopPropagation();transmissaoMire('${c.id}')">Transmissão Miré ✔</button>`:''}
     </div>
   </div>`;
@@ -1056,10 +1055,16 @@ async function salvarDescanso(id){
   await push(c._row,[['CHECKS_DESC',checksStr(c.checksDesc)],['DATA_DESCANSO',c.dataDesc],['STATUS','TECIDO_DESCANSADO']]);
 }
 async function salvarNumCorte(id){
-  const num=document.getElementById('nc-'+id)?.value.trim();
+  const el=document.getElementById('nc-'+id);
+  const num=el?.value.trim();
   if(!num){toast('Preencha o número','w');return;}
-  const c=cortes.find(x=>x.id===id);c.numCorte=num;c.status='NO_CORTE';
-  sl();render();toast(`Corte ${num} registrado!`,'s');
+  const c=cortes.find(x=>x.id===id);
+  if(!c)return;
+  c.numCorte=num;
+  c.status='NO_CORTE';
+  sl();
+  render();
+  toast('Corte '+num+' registrado!','s');
   await push(c._row,[['NUM_CORTE',num],['STATUS','NO_CORTE']]);
 }
 
@@ -1068,7 +1073,7 @@ async function marcarChegada(id,tipo){
   c.tipo=tipo;
   if(tipo==='reposicao'){
     c.status='AGUARDANDO_GI';
-    toast('Reposição → aguardando decisão da Gi','s');
+    toast('Reposição → aguardando decisão de envio','s');
     await push(c._row,[['TIPO_CHEGADA','reposicao'],['STATUS','AGUARDANDO_GI']]);
   }else{
     c.status='AG_FOTO';
@@ -1169,14 +1174,22 @@ function openDet(id){
     <div class="spills">${steps.map((s,i)=>`<div class="spill ${i<iStep?'done':i===iStep?'active':''}">${csi(s).l}</div>`).join('')}</div>
     <div class="df"><span class="dk">Data entrada</span><span class="dv">${dout(c.data)}</span></div>
     <div class="df"><span class="dk">Tecido</span><span class="dv">${c.tec||'—'}</span></div>
-    <div class="df"><span class="dk">Tinturaria</span><span class="dv">${c.tin||'—'}</span></div>
+    <div class="df"><span class="dk">Fornecedor</span><span class="dv">${c.tin||'—'}</span></div>
     <div class="df"><span class="dk">Grade</span><span class="dv">${c.grade||'—'}</span></div>
     <div class="df"><span class="dk">Retalho</span><span class="dv">${c.ret||'—'}</span></div>
     ${c.rolo?`<div class="df"><span class="dk">Rolo</span><span class="dv">${c.rolo}m</span></div>`:''}
     ${c.encM?`<div class="df"><span class="dk">Encaixe</span><span class="dv">${c.encM}m</span></div>`:''}
     ${c.encPct?`<div class="df"><span class="dk">Aproveitamento</span><span class="dv">${c.encPct}%</span></div>`:''}
     ${c.numCorte?`<div class="df"><span class="dk">Nº corte</span><span class="dv">${c.numCorte}</span></div>`:''}
-    ${c.cores?.length?`<div style="margin-top:8px"><div class="sl">Cores</div>${c.cores.map(x=>`<div class="df"><span class="dk">${x.cor}</span><span class="dv">${x.qtd} rolo(s)</span></div>`).join('')}</div>`:''}
+    ${c.cores?.length?`<div style="margin-top:8px"><div class="sl">Cores e estimativa de peças</div>${(()=>{
+      const enc=parseFloat(c.encM)||0;
+      const sizes=(c.grade||'').split(' ').filter(Boolean);
+      const folhas=enc&&c.rolo?Math.floor(parseFloat(c.rolo)/enc):0;
+      return c.cores.map(x=>{
+        const pecas=folhas?folhas*sizes.length:null;
+        return`<div class="df"><span class="dk">${x.cor} · ${x.qtd} rolo(s)</span><span class="dv">${pecas?'~'+pecas+' pç':''}</span></div>`;
+      }).join('');
+    })()}</div>`:''}
     ${c.obs?`<div class="obs-box">Obs: ${c.obs}</div>`:''}
     ${c.encObs?`<div class="obs-box obs-bl">Obs. Edvaldo: ${c.encObs}</div>`:''}
     ${c.carolObs?`<div class="obs-box" style="background:var(--b6);color:var(--c6)">Obs. Carol: ${c.carolObs}</div>`:''}
@@ -1190,7 +1203,7 @@ function openDet(id){
       ${(user==='taty'||user==='daimartha')&&c.status==='NO_CORTE'?`
         <button class="abtn" style="background:var(--b2);color:var(--c2)" onclick="cl('ov-det');marcarChegada('${c.id}','reposicao')">📦 Reposição — separar envio</button>
         <button class="abtn" style="background:var(--b6);color:var(--c6)" onclick="cl('ov-det');marcarChegada('${c.id}','novidade')">✨ Novidade — avisar Carol</button>`:''}
-      ${user==='gerente'&&c.status==='AGUARDANDO_GI'&&c.tipo==='reposicao'?`<div style='display:flex;flex-direction:column;gap:7px'><button class="abtn" style="background:var(--b3);color:var(--c3)" onclick="cl('ov-det');aprovarEnvio('${c.id}')">✔ Sim, enviar para loja</button><button class="abtn abtn-danger" onclick="cl('ov-det');giArquivar('${c.id}')">✕ Não precisamos — arquivar</button></div>`:''}
+      ${(['gerente','taty','carol'].includes(user))&&c.status==='AGUARDANDO_GI'?`<div style='display:flex;flex-direction:column;gap:7px'><button class="abtn" style="background:var(--b3);color:var(--c3)" onclick="cl('ov-det');aprovarEnvio('${c.id}')">✔ Sim, enviar para loja</button><button class="abtn abtn-danger" onclick="cl('ov-det');giArquivar('${c.id}')">✕ Não precisamos — arquivar</button></div>`:''}
       ${user==='daimartha'&&c.status==='EMBALAR'?`<button class="abtn" style="background:var(--b3);color:var(--c3)" onclick="cl('ov-det');transmissaoMire('${c.id}')">✔ Transmissão Miré feita</button>`:''}
       ${user==='gerente'&&c.status==='PRONTO_RETIRADA'?`<button class="abtn" style="background:var(--b3);color:var(--c3)" onclick="cl('ov-det');arquivar('${c.id}')">✔ Recebido — arquivar</button>`:''}
       ${cfg.wedv&&c.status==='AGUARDANDO_ENCAIXE'?`<a href="https://wa.me/${cfg.wedv}?text=${encodeURIComponent('📐 Azpex\n*'+c.id+' — '+c.nome+'*\nAguarda encaixe.\nGrade: '+c.grade)}" target="_blank" style="text-decoration:none"><button class="abtn abtn-wpp">📱 Avisar Edvaldo</button></a>`:''}
@@ -1310,8 +1323,8 @@ function renderPedidos(){
       </div>
       <div style="font-weight:600;font-size:.88rem;margin-bottom:4px">${p.nome}</div>
       <div style="font-size:.78rem;color:var(--mt);margin-bottom:6px">Cor: <strong>${p.cor}</strong> · ${UNAMES[p.autor]||p.autor}</div>
-      <div class="grade-chips">
-        ${(p.cores||[]).map(x=>`<span class="gchip">${x.cor}: ${Object.entries(x.qtds||{}).map(([t,q])=>t+'×'+q).join(', ')}</span>`).join('')}
+      <div style="margin-top:4px;font-size:.77rem;color:var(--mt)">
+        ${(p.cores||[]).map(x=>`<div style="margin-bottom:2px"><strong style="color:var(--tx)">${x.cor}</strong> — ${Object.entries(x.qtds||{}).map(([t,q])=>`${t}:${q}`).join(' · ')}</div>`).join('')}
       </div>
       <div style="display:flex;justify-content:flex-end;gap:7px;margin-top:6px">
         ${canResp&&p.status==='PENDENTE'?`<button class="bs" style="font-size:.73rem;padding:5px 11px" onclick="event.stopPropagation();openResp('${p.id}')">Responder →</button>`:''}
@@ -1325,66 +1338,113 @@ function renderPedidos(){
 
 function openNovoPedido(){
   ['p-cod','p-nome','p-obs'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});
-  document.getElementById('p-cores-list').innerHTML='';
-  pedCorCount=0;
-  addPedidoCor();
+  const gsel=document.getElementById('p-grade-sel');
+  if(gsel){gsel.innerHTML='<option value="">Selecionar grade...</option>'+getGrades().map(g=>`<option>${g}</option>`).join('');gsel.value='';}
+  document.getElementById('p-tabela-area').innerHTML='';
+  pedCorCount=1;pedGradeSizes=[];
   op('ov-pedido');
 }
 let pedCorCount=0;
-function addPedidoCor(){
-  pedCorCount++;
-  const div=document.createElement('div');
-  div.id='pcor-'+pedCorCount;
-  div.style.cssText='background:var(--s2);border:.5px solid var(--bd);border-radius:9px;padding:10px;margin-bottom:8px';
-  div.innerHTML=`
-    <div style="display:flex;gap:7px;align-items:center;margin-bottom:8px">
-      <input class="cor-i" placeholder="Cor (ex: Preto)" style="flex:1;font-size:16px" id="pcor-nome-${pedCorCount}">
-      <button class="rmv" onclick="document.getElementById('pcor-${pedCorCount}').remove()">✕</button>
+let pedGradeSizes=[];
+
+function buildPedidoTabela(){
+  const grade=document.getElementById('p-grade-sel').value;
+  pedGradeSizes=grade.split(' ').filter(Boolean);
+  const area=document.getElementById('p-tabela-area');
+  if(!pedGradeSizes.length){area.innerHTML='';return;}
+  pedCorCount=1;
+  renderPedidoTabela();
+}
+
+function renderPedidoTabela(){
+  const area=document.getElementById('p-tabela-area');
+  if(!pedGradeSizes.length){area.innerHTML='';return;}
+  // Build table
+  let rows='';
+  for(let i=1;i<=pedCorCount;i++){
+    rows+=`<tr>
+      <td style="padding:4px 5px"><input style="width:100%;background:var(--s2);border:.5px solid var(--bd);border-radius:6px;padding:5px 7px;font-size:15px;color:var(--tx);outline:none" id="pcor-${i}" placeholder="Cor..."></td>
+      ${pedGradeSizes.map(s=>`<td style="padding:4px 5px;text-align:center"><input style="width:48px;background:var(--s2);border:.5px solid var(--bd);border-radius:6px;padding:5px 4px;font-size:15px;color:var(--tx);outline:none;text-align:center" id="pq-${i}-${s}" type="number" min="0" step="1" placeholder="0"></td>`).join('')}
+      <td style="padding:4px 5px"><button onclick="removePedidoRow(${i})" style="background:none;border:none;color:var(--mt);cursor:pointer;font-size:.9rem">✕</button></td>
+    </tr>`;
+  }
+  area.innerHTML=`
+    <div class="sl">Quantidades por cor e tamanho</div>
+    <div style="overflow-x:auto">
+      <table style="width:100%;border-collapse:collapse;min-width:300px">
+        <thead>
+          <tr>
+            <th style="padding:5px 5px;text-align:left;font-size:.65rem;text-transform:uppercase;letter-spacing:.6px;color:var(--mt);font-weight:500;white-space:nowrap">Cor</th>
+            ${pedGradeSizes.map(s=>`<th style="padding:5px 5px;text-align:center;font-size:.65rem;text-transform:uppercase;letter-spacing:.6px;color:var(--mt);font-weight:500;font-family:'DM Mono',monospace">${s}</th>`).join('')}
+            <th></th>
+          </tr>
+        </thead>
+        <tbody id="p-tabela-body">${rows}</tbody>
+      </table>
     </div>
-    <div class="sl">Quantidade por tamanho</div>
-    <div id="pcor-grades-${pedCorCount}"></div>
-    <select style="width:100%;background:var(--sf);border:.5px solid var(--bd);border-radius:7px;padding:6px 9px;font-size:16px;color:var(--tx);outline:none;margin-top:4px" onchange="buildPedidoCorGrade(${pedCorCount},this.value)">
-      <option value="">+ Selecionar grade...</option>
-      ${getGrades().map(g=>`<option>${g}</option>`).join('')}
-    </select>`;
-  document.getElementById('p-cores-list').appendChild(div);
+    <button onclick="addPedidoRow()" style="margin-top:8px;background:none;border:1px dashed var(--bd);border-radius:8px;color:var(--mt);padding:6px;width:100%;font-size:.76rem;cursor:pointer">+ Adicionar cor</button>`;
 }
-function buildPedidoCorGrade(n,grade){
-  const sizes=grade.split(' ').filter(Boolean);
-  const el=document.getElementById('pcor-grades-'+n);
-  if(!el||!sizes.length)return;
-  el.innerHTML=sizes.map(s=>`
-    <div style="display:flex;gap:8px;align-items:center;margin-bottom:5px">
-      <span style="font-family:'DM Mono',monospace;font-size:.8rem;font-weight:500;min-width:32px">${s}</span>
-      <input style="width:65px;background:var(--sf);border:.5px solid var(--bd);border-radius:6px;padding:5px 8px;font-size:16px;text-align:center;outline:none" id="pq-${n}-${s}" type="number" min="0" step="1" value="1">
-      <span style="font-size:.7rem;color:var(--mt)">pç</span>
-    </div>`).join('');
+
+function addPedidoRow(){
+  pedCorCount++;
+  renderPedidoTabela();
+  // Restore existing values
 }
+
+function removePedidoRow(i){
+  if(pedCorCount<=1)return;
+  // Collect current values
+  const vals=[];
+  for(let r=1;r<=pedCorCount;r++){
+    if(r===i)continue;
+    const cor=document.getElementById('pcor-'+r)?.value||'';
+    const qtds={};
+    pedGradeSizes.forEach(s=>{qtds[s]=document.getElementById('pq-'+r+'-'+s)?.value||'';});
+    vals.push({cor,qtds});
+  }
+  pedCorCount--;
+  renderPedidoTabela();
+  // Restore values
+  vals.forEach((v,idx)=>{
+    const n=idx+1;
+    const el=document.getElementById('pcor-'+n);
+    if(el)el.value=v.cor;
+    pedGradeSizes.forEach(s=>{
+      const qel=document.getElementById('pq-'+n+'-'+s);
+      if(qel)qel.value=v.qtds[s]||'';
+    });
+  });
+}
+
+function addPedidoCor(){}
 function buildPedidoGrade(){}
 function salvarPedido(){
   const cod=document.getElementById('p-cod').value.trim();
   const nome=document.getElementById('p-nome').value.trim();
   if(!cod||!nome){toast('Preencha código e nome','w');return;}
-  // Collect cores
+  if(!pedGradeSizes.length){toast('Selecione a grade','w');return;}
+  // Collect from table
   const coresList=[];
-  document.querySelectorAll('[id^="pcor-"]:not([id*="-nome-"]):not([id*="-grades-"])').forEach(div=>{
-    const n=div.id.split('-')[1];
-    if(!n||isNaN(n))return;
-    const corNome=document.getElementById('pcor-nome-'+n)?.value.trim();
-    if(!corNome)return;
+  for(let i=1;i<=pedCorCount;i++){
+    const cor=document.getElementById('pcor-'+i)?.value.trim();
+    if(!cor)continue;
     const qtds={};
-    div.querySelectorAll('input[id^="pq-'+n+'-"]').forEach(inp=>{
-      const tam=inp.id.split('-').slice(2).join('-');
-      if(parseInt(inp.value)>0)qtds[tam]=inp.value;
+    let hasQtd=false;
+    pedGradeSizes.forEach(s=>{
+      const v=document.getElementById('pq-'+i+'-'+s)?.value;
+      if(v&&parseInt(v)>0){qtds[s]=v;hasQtd=true;}
     });
-    if(corNome)coresList.push({cor:corNome,qtds});
-  });
-  if(!coresList.length){toast('Adicione pelo menos uma cor','w');return;}
-  const p={id:'PED-'+String(pedidos.length+1).padStart(3,'0'),ts:Date.now(),
-    dataStr:new Date().toLocaleDateString('pt-BR'),cod,nome,
+    if(cor&&hasQtd)coresList.push({cor,qtds});
+  }
+  if(!coresList.length){toast('Preencha pelo menos uma cor com quantidade','w');return;}
+  const p={
+    id:'PED-'+String(pedidos.length+1).padStart(3,'0'),
+    ts:Date.now(),
+    dataStr:new Date().toLocaleDateString('pt-BR'),
+    cod,nome,grade:pedGradeSizes.join(' '),
     cores:coresList,
-    obs:document.getElementById('p-obs').value.trim(),autor:user,
-    status:'PENDENTE',respObs:'',respCores:{},respondidoPor:'',
+    obs:document.getElementById('p-obs').value.trim(),
+    autor:user,status:'PENDENTE',respObs:'',respCores:{},respondidoPor:'',
   };
   pedidos.unshift(p);sl();cl('ov-pedido');render();toast('Pedido enviado!','s');
 }
@@ -1425,17 +1485,25 @@ function openResp(id){
   document.getElementById('resp-ti').textContent=`${p.cod} — ${p.nome}`;
   document.getElementById('resp-info').textContent=`Cor: ${p.cor} · ${UNAMES[p.autor]}`;
   document.getElementById('resp-obs').value='';
-  document.getElementById('resp-grades').innerHTML=(p.cores||[]).map(x=>`
-    <div style="background:var(--s2);border-radius:8px;padding:8px 10px;margin-bottom:8px">
-      <div style="font-weight:500;font-size:.83rem;margin-bottom:6px">${x.cor}</div>
-      ${Object.entries(x.qtds||{}).map(([t,q])=>`
-        <div style="display:flex;gap:8px;align-items:center;margin-bottom:5px;flex-wrap:wrap">
-          <span style="font-family:'DM Mono',monospace;font-size:.79rem;font-weight:500;min-width:32px">${t}</span>
-          <span style="font-size:.71rem;color:var(--mt)">Pedido: ${q}</span>
-          <input style="width:62px;background:var(--sf);border:.5px solid var(--bd);border-radius:6px;padding:5px 8px;font-size:16px;color:var(--tx);outline:none;text-align:center" id="rq-${x.cor}-${t}" type="number" min="0" step="1" value="${q}">
-          <span style="font-size:.71rem;color:var(--mt)">encontrado</span>
-        </div>`).join('')}
-    </div>`).join('');
+  const sizes2=(p.grade||'').split(' ').filter(Boolean);
+  document.getElementById('resp-grades').innerHTML=`
+    <div style="overflow-x:auto;margin-bottom:8px">
+      <table style="width:100%;border-collapse:collapse">
+        <thead><tr>
+          <th style="padding:5px;text-align:left;font-size:.63rem;text-transform:uppercase;letter-spacing:.5px;color:var(--mt);font-weight:500">Cor</th>
+          ${sizes2.map(s=>`<th style="padding:5px;text-align:center;font-size:.63rem;font-family:'DM Mono',monospace;color:var(--mt)">${s}<br><span style="font-size:.58rem">ped / enc</span></th>`).join('')}
+        </tr></thead>
+        <tbody>
+          ${(p.cores||[]).map(x=>`<tr>
+            <td style="padding:5px;font-weight:500;font-size:.82rem">${x.cor}</td>
+            ${sizes2.map(s=>`<td style="padding:5px;text-align:center">
+              <div style="font-size:.7rem;color:var(--mt);margin-bottom:2px">${x.qtds?.[s]||'—'}</div>
+              <input style="width:46px;background:var(--s2);border:.5px solid var(--bd);border-radius:5px;padding:4px;font-size:14px;text-align:center;outline:none" id="rq-${x.cor}-${s}" type="number" min="0" step="1" value="${x.qtds?.[s]||0}">
+            </td>`).join('')}
+          </tr>`).join('')}
+        </tbody>
+      </table>
+    </div>`;
   op('ov-resp');
 }
 function responderPedido(tipo){
