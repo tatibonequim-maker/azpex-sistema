@@ -327,7 +327,7 @@ input,select,textarea,button{font-family:'DM Sans',sans-serif}
     <div class="hbtns">
       <button class="hbtn" onclick="syncAll()">↻</button>
       <button class="hbtn" onclick="openCfg()" id="btn-cfg" style="display:none">Config</button>
-      <button class="hbtn hi" id="btn-novo" style="display:none" onclick="openNovo()">+ Novo</button>
+      <button class="hbtn hi" id="btn-novo" style="display:none">+ Novo</button>
       <button class="hbtn out" onclick="logout()">Sair</button>
     </div>
   </div>
@@ -649,7 +649,7 @@ function setSection(s,el){
   }else{
     document.getElementById('btn-novo').style.display=user==='taty'?'':'none';
     document.getElementById('btn-novo').textContent='+ Novo corte';
-    document.getElementById('btn-novo').onclick=openNovo;
+    // btn-novo onclick set in initApp
   }
   render();
 }
@@ -1588,7 +1588,7 @@ function toast(msg,type='i'){const c=document.getElementById('toasts');const t=d
 ['ov-novo','ov-det','ov-cores','ov-pedido','ov-resp','ov-cfg','ov-decisao'].forEach(id=>{document.getElementById(id)?.addEventListener('click',e=>{if(e.target===e.currentTarget)cl(id);});});
 
 // Fix novo button for initial state - will be overridden by initApp
-document.getElementById('btn-novo').onclick=openNovo;
+// btn-novo onclick set in initApp
 </script>
 </body>
 </html>
