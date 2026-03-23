@@ -604,17 +604,29 @@ function initApp(){
 
   const isTaty=user==='taty';
   const isLoja=['vendA','vendB','vendC','gerente'].includes(user);
-  const isFab=!isLoja;
+  const isVend=['vendA','vendB','vendC'].includes(user);
+  const isCarol=user==='carol';
 
   document.getElementById('app-logo').textContent=isLoja?'Bonequim':'Azpex · Fábrica';
   document.getElementById('btn-cfg').style.display=isTaty?'':'none';
-  const canNovo=isTaty||(isLoja&&user!=='gerente');
-  document.getElementById('btn-novo').style.display=canNovo?'':'none';
-  document.getElementById('btn-novo').textContent=isLoja?'+ Novo pedido':'+ Novo corte';
 
-  // Section tabs — only for taty
+  // Botão novo — só Taty cria cortes; vendedoras e Carol criam pedidos
+  const btnNovo=document.getElementById('btn-novo');
+  if(isTaty){
+    btnNovo.style.display='';
+    btnNovo.textContent='+ Novo corte';
+    btnNovo.onclick=openNovo;
+  } else if(isVend||isCarol){
+    btnNovo.style.display='';
+    btnNovo.textContent='+ Novo pedido';
+    btnNovo.onclick=openNovoPedido;
+  } else {
+    btnNovo.style.display='none';
+  }
+
+  // Abas
   const stabsEl=document.getElementById('stabs');
-  const showBothTabs=isTaty||user==='gerente'||user==='estoque'||user==='daimartha'||user==='carol';
+  const showBothTabs=isTaty||user==='gerente'||user==='estoque'||user==='daimartha'||isCarol;
   if(showBothTabs){
     stabsEl.style.display='flex';
     let cortesLabel='Cortes';
@@ -632,7 +644,7 @@ function initApp(){
   populateSels();
   render();
   if(cfg.url)setTimeout(syncAll,600);
-  }catch(err){console.error('initApp error:',err);toast('Erro ao iniciar: '+err.message,'w');}
+  }catch(err){console.error('initApp error:',err);toast('Erro: '+err.message,'w');}
 }
 
 function setSection(s,el){
@@ -660,13 +672,14 @@ function setF(f,el){filtro=f;document.querySelectorAll('.fb').forEach(b=>b.class
 async function apig(p){const r=await fetch('/api/proxy?'+new URLSearchParams(p));return r.json();}
 async function apip(b){const r=await fetch('/api/proxy',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(b)});return r.json();}
 async function push(row,campos){if(!cfg.url||!row)return;try{await apip({action:'atualizarCampos',row,campos});}catch(e){}}
+async function push2(row,campos){if(!cfg.url||!row)return;try{await apip({action:'atualizarPedido',row,campos});}catch(e){}}
 async function pushNew(dados){if(!cfg.url)return null;try{return await apip({action:'adicionarPeca',dados});}catch(e){return null;}}
 
 async function syncAll(){
   if(!cfg.url){toast('Configure o URL primeiro','w');return;}
   toast('Sincronizando...','i');
   try{
-    const[c,l]=await Promise.all([apig({action:'getCortes'}),apig({action:'getListas'})]);
+    const[c,l,p]=await Promise.all([apig({action:'getCortes'}),apig({action:'getListas'}),apig({action:'getPedidos'})]);
     if(Array.isArray(c)&&c.length>0){
       const fotoMap={};cortes.forEach(x=>{if(x.fotoLocal)fotoMap[x.id]=x.fotoLocal;});
       cortes=c.map(r=>({
@@ -679,15 +692,30 @@ async function syncAll(){
         cores:parseCores(str(r.CORES)),
         checksDesc:parseChecks(str(r.CHECKS_DESC)),
         numCorte:str(r.NUM_CORTE),dataDesc:str(r.DATA_DESCANSO),
-        tipo:str(r.TIPO_CHEGADA),carolObs:str(r.CAROL_OBS),
+        tipo:str(r.TIPO_CHEGADA),carolObs:str(r.CAROL_OBS),giObs:str(r.GI_OBS),
         status:mapStatus(str(r.STATUS)),_row:r._row,
         fotoLocal:fotoMap[str(r.ID)]||'',
       }));
-      sl();render();toast('Sincronizado ✔','s');
+    }
+    if(Array.isArray(p)&&p.length>0){
+      pedidos=p.map(r=>({
+        id:str(r.ID),ts:new Date(str(r.DATA)||Date.now()).getTime(),
+        dataStr:str(r.DATA),autor:str(r.AUTOR),
+        cod:str(r.COD),nome:str(r.NOME),grade:str(r.GRADE),
+        cores:safeJSON(str(r.CORES),[]),
+        obs:str(r.OBS),status:str(r.STATUS)||'PENDENTE',
+        respObs:str(r.RESP_OBS),
+        respCores:safeJSON(str(r.RESP_CORES),{}),
+        respondidoPor:str(r.RESPONDIDO_POR),
+        _row:r._row,
+      }));
     }
     if(l&&l.tecidos){localStorage.setItem('az_listas',JSON.stringify(l));populateSels();}
-  }catch(e){toast('Erro ao sincronizar','w');}
+    sl();render();toast('Sincronizado ✔','s');
+  }catch(e){console.error(e);toast('Erro ao sincronizar','w');}
 }
+
+function safeJSON(s,def){try{return s?JSON.parse(s):def;}catch(e){return def;}}
 
 function mapStatus(s){
   const m={
@@ -1481,6 +1509,12 @@ function salvarPedido(){
     autor:user,status:'PENDENTE',respObs:'',respCores:{},respondidoPor:'',
   };
   pedidos.unshift(p);sl();cl('ov-pedido');render();toast('Pedido enviado!','s');
+  // Save to sheets
+  if(cfg.url){
+    apip({action:'adicionarPedido',pedido:{autor:p.autor,cod:p.cod,nome:p.nome,grade:p.grade,cores:p.cores,obs:p.obs}})
+      .then(r=>{if(r?.ok)setTimeout(syncAll,800);})
+      .catch(e=>console.error(e));
+  }
 }
 function openDetPedido(id){
   const p=pedidos.find(x=>x.id===id);if(!p)return;
@@ -1553,12 +1587,17 @@ function responderPedido(tipo){
   p.status=tipo==='aprovado'?'APROVADO':tipo==='parcial'?'PARCIAL':'RECUSADO';
   p.respondidoPor=user;sl();cl('ov-resp');render();
   toast({aprovado:'✔ Aprovado!',parcial:'⚡ Aprovado parcialmente',recusado:'Não disponível'}[tipo],'s');
+  if(cfg.url&&p._row){
+    push2(p._row,[['STATUS',p.status],['RESP_OBS',p.respObs],['RESP_CORES',JSON.stringify(p.respCores)],['RESPONDIDO_POR',p.respondidoPor]]);
+  }
 }
 function confirmarTransf(id){
   const p=pedidos.find(x=>x.id===id);p.status='TRANSFERIDO';sl();cl('ov-det');render();toast('Transferência feita!','s');
+  if(cfg.url&&p._row)push2(p._row,[['STATUS','TRANSFERIDO']]);
 }
 function receberPedido(id){
   const p=pedidos.find(x=>x.id===id);p.status='ARQUIVADO';sl();cl('ov-det');render();toast('Recebido e arquivado!','s');
+  if(cfg.url&&p._row)push2(p._row,[['STATUS','ARQUIVADO']]);
 }
 
 // ── CFG ──
