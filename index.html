@@ -643,7 +643,11 @@ function initApp(){
 
   populateSels();
   render();
-  if(cfg.url)setTimeout(syncAll,600);
+  if(cfg.url){
+    setTimeout(syncAll,600);
+    // Auto-sync every 30 seconds
+    setInterval(()=>{if(cfg.url)syncAll(true);},30000);
+  }
   }catch(err){console.error('initApp error:',err);toast('Erro: '+err.message,'w');}
 }
 
@@ -671,13 +675,25 @@ function setF(f,el){filtro=f;document.querySelectorAll('.fb').forEach(b=>b.class
 // ── API ──
 async function apig(p){const r=await fetch('/api/proxy?'+new URLSearchParams(p));return r.json();}
 async function apip(b){const r=await fetch('/api/proxy',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(b)});return r.json();}
-async function push(row,campos){if(!cfg.url||!row)return;try{await apip({action:'atualizarCampos',row,campos});}catch(e){}}
-async function push2(row,campos){if(!cfg.url||!row)return;try{await apip({action:'atualizarPedido',row,campos});}catch(e){}}
+async function push(row,campos){
+  if(!cfg.url||!row)return;
+  try{
+    await apip({action:'atualizarCampos',row,campos});
+    setTimeout(()=>{if(cfg.url)syncAll(true);},1500);
+  }catch(e){console.error('push error:',e);}
+}
+async function push2(row,campos){
+  if(!cfg.url||!row)return;
+  try{
+    await apip({action:'atualizarPedido',row,campos});
+    setTimeout(()=>{if(cfg.url)syncAll(true);},1500);
+  }catch(e){console.error('push2 error:',e);}
+}
 async function pushNew(dados){if(!cfg.url)return null;try{return await apip({action:'adicionarPeca',dados});}catch(e){return null;}}
 
-async function syncAll(){
-  if(!cfg.url){toast('Configure o URL primeiro','w');return;}
-  toast('Sincronizando...','i');
+async function syncAll(silent){
+  if(!cfg.url){if(!silent)toast('Configure o URL primeiro','w');return;}
+  if(!silent)toast('Sincronizando...','i');
   try{
     const[c,l,p]=await Promise.all([apig({action:'getCortes'}),apig({action:'getListas'}),apig({action:'getPedidos'})]);
     if(Array.isArray(c)&&c.length>0){
@@ -711,8 +727,8 @@ async function syncAll(){
       }));
     }
     if(l&&l.tecidos){localStorage.setItem('az_listas',JSON.stringify(l));populateSels();}
-    sl();render();toast('Sincronizado ✔','s');
-  }catch(e){console.error(e);toast('Erro ao sincronizar','w');}
+    sl();render();if(!silent)toast('Sincronizado ✔','s');
+  }catch(e){console.error(e);if(!silent)toast('Erro ao sincronizar','w');}
 }
 
 function safeJSON(s,def){try{return s?JSON.parse(s):def;}catch(e){return def;}}
@@ -823,9 +839,11 @@ function getVisCortes(){
 function getColsCortes(){
   if(user==='taty')return[
     {s:'AGUARDANDO_ENCAIXE',l:'Ag. encaixe',c:'var(--c1)'},
-    {s:'AGUARDANDO_APROVACAO',l:'Aprovar encaixe',c:'var(--c2)'},
+    {s:'AGUARDANDO_APROVACAO',l:'Ag. aprovação',c:'var(--c2)'},
     {s:'ENCAIXE_REPROVADO',l:'Reprovado',c:'var(--c4)'},
     {s:'DEFINIR_CORES',l:'Definir cores',c:'var(--c6)'},
+    {s:'DESCANSAR_TECIDO',l:'Descansar tecido',c:'var(--c5)'},
+    {s:'TECIDO_DESCANSADO',l:'Tecido descansado',c:'var(--c3)'},
     {s:'NO_CORTE',l:'Corte / Oficina',c:'var(--c3)'},
     {s:'AG_FOTO',l:'Ag. foto',c:'var(--c6)'},
     {s:'AGUARDANDO_GI',l:'Ag. decisão de envio',c:'var(--c8)'},
@@ -887,8 +905,8 @@ function renderCortes(){
 function corteCardHTML(c){
   if(user==='edvaldo')return cardEdvaldo(c);
   if(user==='taty'&&(c.status==='AGUARDANDO_ENCAIXE'||c.status==='ENCAIXE_REPROVADO'))return cardEdvaldo(c);
-  if(user==='rosana'&&c.status==='DESCANSAR_TECIDO')return cardRosana(c);
-  if(user==='rosana'&&c.status==='TECIDO_DESCANSADO'&&!c.numCorte)return cardRosanaNC(c);
+  if((user==='rosana'||user==='taty')&&c.status==='DESCANSAR_TECIDO')return cardRosana(c);
+  if((user==='rosana'||user==='taty')&&c.status==='TECIDO_DESCANSADO'&&!c.numCorte)return cardRosanaNC(c);
   if((user==='daimartha'||user==='taty'||user==='carol')&&c.status==='NO_CORTE')return cardChegou(c);
   if(user==='carol'&&c.status==='AG_FOTO')return cardCarol(c);
   if(user==='estoque'&&c.status==='EMBALAR')return cardEstoque(c);
@@ -947,7 +965,9 @@ function cardEdvaldo(c){
     </div>
     <div id="calc-${c.id}" style="margin-bottom:8px"></div>
     <textarea class="eobs" id="eo-${c.id}" rows="2" placeholder="Observação">${rep?'':c.encObs||''}</textarea>
-    <button class="ebtn" onclick="salvarEncaixe('${c.id}')">Enviar para aprovação →</button>
+    <button class="ebtn" onclick="salvarEncaixe('${c.id}')" style="background:${user==='taty'?'var(--ac)':'var(--c2)'}">
+      ${user==='taty'?'Salvar e aprovar encaixe ✔':'Enviar para aprovação →'}
+    </button>
   </div>`;
 }
 
@@ -1085,8 +1105,16 @@ async function salvarEncaixe(id){
   if(!m||!pct){toast('Preencha comprimento e aproveitamento','w');return;}
   const c=cortes.find(x=>x.id===id);
   c.encM=m;c.encPct=pct;c.encObs=document.getElementById('eo-'+id)?.value.trim()||'';
-  c.status='AGUARDANDO_APROVACAO';sl();render();toast('Encaixe enviado!','s');
-  await push(c._row,[['ENCAIXE_M',m],['RENDIMENTO',pct],['OBS_CAD',c.encObs],['STATUS','AGUARDANDO_APROVACAO']]);
+  if(user==='taty'){
+    // Taty fills AND approves in one step
+    c.status='DEFINIR_CORES';
+    sl();render();toast('Encaixe salvo e aprovado! Defina as cores.','s');
+    await push(c._row,[['ENCAIXE_M',m],['RENDIMENTO',pct],['OBS_CAD',c.encObs],['STATUS','DEFINIR_CORES']]);
+  } else {
+    c.status='AGUARDANDO_APROVACAO';
+    sl();render();toast('Encaixe enviado para aprovação!','s');
+    await push(c._row,[['ENCAIXE_M',m],['RENDIMENTO',pct],['OBS_CAD',c.encObs],['STATUS','AGUARDANDO_APROVACAO']]);
+  }
 }
 
 function toggleDC(id,cor){
@@ -1344,7 +1372,7 @@ async function salvarCorte(){
     if(idx>-1){const o=cortes[idx];['status','encM','encPct','encObs','cores','checksDesc','numCorte','dataDesc','tipo','carolObs','fotoLocal','_row'].forEach(k=>{obj[k]=o[k];});cortes[idx]=obj;}
   }else cortes.unshift(obj);
   sl();cl('ov-novo');render();toast(editId?'✏️ Atualizado!':'✅ Criado!','s');
-  if(!editId){const r=await pushNew({REF:obj.ref,NOME:obj.nome,DATA_ENTRADA:dout(obj.data).replace(/—/,''),TECIDO:obj.tec,TINTURARIA:obj.tin,GRADE:obj.grade,RETALHO:obj.ret,OBS:obj.obs,ROLO:obj.rolo,URGENTE:obj.urg?'sim':'nao'});if(r?.ok)setTimeout(syncAll,800);}
+  if(!editId){const r=await pushNew({REF:obj.ref,NOME:obj.nome,DATA_ENTRADA:dout(obj.data).replace(/—/,''),TECIDO:obj.tec,TINTURARIA:obj.tin,GRADE:obj.grade,RETALHO:obj.ret,OBS:obj.obs,ROLO:obj.rolo,URGENTE:obj.urg?'sim':'nao'});if(r?.ok)setTimeout(()=>syncAll(true),800);}
   else await push(obj._row,[['TECIDO',obj.tec],['TINTURARIA',obj.tin],['GRADE',obj.grade],['RETALHO',obj.ret],['OBS',obj.obs],['ROLO',obj.rolo],['URGENTE',obj.urg?'sim':'nao']]);
 }
 
@@ -1524,7 +1552,7 @@ function salvarPedido(){
   // Save to sheets
   if(cfg.url){
     apip({action:'adicionarPedido',pedido:{autor:p.autor,cod:p.cod,nome:p.nome,grade:p.grade,cores:p.cores,obs:p.obs}})
-      .then(r=>{if(r?.ok)setTimeout(syncAll,800);})
+      .then(r=>{if(r?.ok)setTimeout(()=>syncAll(true),800);})
       .catch(e=>console.error(e));
   }
 }
