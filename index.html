@@ -374,7 +374,11 @@ input,select,textarea,button{font-family:'DM Sans',sans-serif}
     <div class="sl">Cor e quantidade de rolos</div>
     <div id="cores-list"></div>
     <button class="add-cor" onclick="addCor()">+ Adicionar cor</button>
-    <div class="fact"><button class="bc" onclick="cl('ov-cores')">Cancelar</button><button class="bs" onclick="salvarCores()">Enviar para Rosana</button></div>
+    <div class="fact">
+      <button class="bc" onclick="cl('ov-cores')">Cancelar</button>
+      <button class="bs" style="background:#1D9E75" onclick="salvarCores()">Enviar para Rosana</button>
+    </div>
+    <div id="cores-wpp-btns" style="margin-top:8px;display:flex;flex-direction:column;gap:6px"></div>
   </div>
 </div>
 
@@ -480,14 +484,7 @@ input,select,textarea,button{font-family:'DM Sans',sans-serif}
     <div class="cfg-sec">
       <div class="cfg-l">Grades personalizadas</div>
       <textarea class="fi" id="cfg-grades" rows="2" placeholder="Ex: XP, XG, PP P M G GG XG"></textarea>
-      <button class="cfg-sv" style="margin-top:7px" onclick="saveGrades()">Salvar grades</button>
-    </div>
-  </div>
-</div>
-
-<div class="toasts" id="toasts"></div>
-
-<script>
+      <button class="cfg-s
 // ── CONSTANTS ──
 const DURL='https://script.google.com/macros/s/AKfycbxPBTjdEM04daObzVy7j1qV4qkQjn1-4WUav0mKMuvWp6v6O3YI1Pwjh0G2mdcF7GDh/exec';
 const DPINS={taty:'1234',edvaldo:'5678',rosana:'9012',daimartha:'3456',carol:'2468',estoque:'1357',vendA:'1111',vendB:'2222',vendC:'3333',gerente:'4444'};
@@ -840,7 +837,6 @@ function getColsCortes(){
   if(user==='taty')return[
     {s:'AGUARDANDO_ENCAIXE',l:'Ag. encaixe',c:'var(--c1)'},
     {s:'AGUARDANDO_APROVACAO',l:'Ag. aprovação',c:'var(--c2)'},
-    {s:'ENCAIXE_REPROVADO',l:'Reprovado',c:'var(--c4)'},
     {s:'DEFINIR_CORES',l:'Definir cores',c:'var(--c6)'},
     {s:'DESCANSAR_TECIDO',l:'Descansar tecido',c:'var(--c5)'},
     {s:'TECIDO_DESCANSADO',l:'Tecido descansado',c:'var(--c3)'},
@@ -1013,7 +1009,11 @@ function cardRosana(c){
 function cardRosanaNC(c){
   return`<div class="card-r" id="cn-${c.id}">
     <div style="display:flex;justify-content:space-between;margin-bottom:4px">
-      <div>${c.ref?`<div class="cref">${c.ref}</div>`:''}<div class="cid">${c.id}</div></div>
+      <div>
+        ${c.ref?`<div style="font-family:'DM Mono',monospace;font-size:.88rem;font-weight:600;color:var(--ac)">${c.ref}</div>`:''}
+        <div style="font-family:'DM Mono',monospace;font-size:.75rem;color:#555;font-weight:500">${c.id}</div>
+      </div>
+      <button onclick="openDet('${c.id}')" style="background:none;border:.5px solid var(--bd);border-radius:6px;padding:3px 7px;font-size:.68rem;color:var(--mt);cursor:pointer">Ver detalhes</button>
     </div>
     <div class="cnome">${c.nome}</div>
     <div style="font-size:.75rem;color:var(--c3);font-weight:500;margin-bottom:6px">✔ Tecidos descansados</div>
@@ -1301,8 +1301,8 @@ function openDet(id){
       ${(['gerente','taty','carol'].includes(user))&&c.status==='AGUARDANDO_GI'?`<div style='display:flex;flex-direction:column;gap:7px'><button class="abtn" style="background:var(--b3);color:var(--c3)" onclick="cl('ov-det');aprovarEnvio('${c.id}')">✔ Sim, enviar para loja</button><button class="abtn abtn-danger" onclick="cl('ov-det');giArquivar('${c.id}')">✕ Não precisamos — arquivar</button></div>`:''}
       ${user==='daimartha'&&c.status==='EMBALAR'?`<button class="abtn" style="background:var(--b3);color:var(--c3)" onclick="cl('ov-det');transmissaoMire('${c.id}')">✔ Transmissão Miré feita</button>`:''}
       ${user==='gerente'&&c.status==='PRONTO_RETIRADA'?`<button class="abtn" style="background:var(--b3);color:var(--c3)" onclick="cl('ov-det');arquivar('${c.id}')">✔ Recebido — arquivar</button>`:''}
-      ${cfg.wedv&&c.status==='AGUARDANDO_ENCAIXE'?`<a href="https://wa.me/${cfg.wedv}?text=${encodeURIComponent('📐 Azpex\n*'+c.id+' — '+c.nome+'*\nAguarda encaixe.\nGrade: '+c.grade)}" target="_blank" style="text-decoration:none"><button class="abtn abtn-wpp">📱 Avisar Edvaldo</button></a>`:''}
-      ${cfg.wros&&c.status==='DEFINIR_CORES'?`<a href="https://wa.me/${cfg.wros}?text=${encodeURIComponent('✂️ Azpex\n*'+c.id+' — '+c.nome+'*\nLiber. para descanso.\nCores: '+(c.cores||[]).map(x=>x.cor+' '+x.qtd+'x').join(', '))}" target="_blank" style="text-decoration:none"><button class="abtn abtn-wpp">📱 Avisar Rosana</button></a>`:''}
+      ${cfg.wedv&&c.status==='AGUARDANDO_ENCAIXE'?`<a href="https://wa.me/${cfg.wedv}?text=${encodeURIComponent('📐 Azpex\n*'+c.id+' — '+c.nome+'*\nRef: '+c.ref+'\nAguarda encaixe.\nTecido: '+c.tec+' · Grade: '+c.grade+(c.urg?'\n⚡ URGENTE':''))}" target="_blank" style="text-decoration:none"><button class="abtn abtn-wpp">📱 Avisar Edvaldo</button></a>`:''}
+      ${cfg.wros&&(c.status==='DESCANSAR_TECIDO'||c.status==='DEFINIR_CORES')?`<a href="https://wa.me/${cfg.wros}?text=${encodeURIComponent('✂️ Azpex\n*'+c.id+' — '+c.nome+'*\nRef: '+c.ref+'\nLiber. para descanso.\nCores:\n'+(c.cores||[]).map(x=>'• '+x.cor+' — '+x.qtd+' rolo(s)').join('\n')+(c.urg?'\n⚡ URGENTE':''))}" target="_blank" style="text-decoration:none"><button class="abtn abtn-wpp">📱 Avisar Rosana</button></a>`:''}
     </div>`;
   op('ov-det');
 }
@@ -1401,13 +1401,34 @@ function openCores(id){
     const folhas=Math.floor(rolo/enc);
     estimaInfo=` · ${folhas} folhas · ~${folhas*sizes.length} pç total`;
   }
+  let estimaHTML='';
+  if(enc&&rolo&&sizes.length){
+    const folhas=Math.floor(rolo/enc);
+    estimaHTML=`<div class="calc-box" style="margin:8px 0">
+      <div class="calc-ti">Estimativa de corte</div>
+      <div class="calc-row"><span class="calc-k">Folhas</span><span class="calc-v">${folhas}</span></div>
+      ${sizes.map(s=>`<div class="calc-row"><span class="calc-k">Tam. ${s}</span><span class="calc-v">${folhas} pç</span></div>`).join('')}
+      <div class="calc-row"><span class="calc-k">Total</span><span class="calc-v">${folhas*sizes.length} peças</span></div>
+    </div>`;
+  }
   document.getElementById('cores-info').innerHTML=`
     <strong>${c.nome}</strong> · Grade: ${c.grade||'—'}<br>
-    <span style="font-size:.78rem;color:var(--mt)">Encaixe: ${c.encM||'—'}m · Aproveit.: ${c.encPct||'—'}%${estimaInfo}</span>
+    <span style="font-size:.78rem;color:var(--mt)">Encaixe: ${c.encM||'—'}m · Aproveit.: ${c.encPct||'—'}%</span>
     ${c.encObs?`<div style="font-size:.74rem;color:var(--c2);margin-top:3px">Obs: ${c.encObs}</div>`:''}
-    <div style="font-size:.74rem;color:var(--mt);margin-top:6px">Por rolo: insira a cor e quantos rolos. A estimativa de peças aparece automaticamente.</div>`;
+    ${estimaHTML}
+    <div style="font-size:.74rem;color:var(--mt);margin-top:4px">Insira a cor e quantos rolos. A estimativa por cor aparece automaticamente.</div>`;
   const list=document.getElementById('cores-list');list.innerHTML='';
   if(c.cores?.length)c.cores.forEach(x=>addCor(x.cor,x.qtd));else addCor();
+  // WhatsApp buttons
+  const wppDiv=document.getElementById('cores-wpp-btns');
+  if(wppDiv){
+    const msgs=[];
+    if(cfg.wros){
+      const msg=encodeURIComponent('✂️ Azpex\n*'+c.nome+'*\nGrade: '+c.grade+(c.numCorte?' · Corte: '+c.numCorte:'')+'\nCores para descansar serão definidas agora.');
+      msgs.push(`<a href="https://wa.me/${cfg.wros}?text=${msg}" target="_blank" style="text-decoration:none"><button class="abtn abtn-wpp" style="width:100%;padding:8px;border-radius:8px">📱 Avisar Rosana</button></a>`);
+    }
+    wppDiv.innerHTML=msgs.join('');
+  }
   op('ov-cores');
 }
 function addCor(cor='',qtd=''){
@@ -1713,6 +1734,10 @@ function op(id){document.getElementById(id)?.classList.add('open');}
 function cl(id){document.getElementById(id)?.classList.remove('open');}
 function toast(msg,type='i'){const c=document.getElementById('toasts');const t=document.createElement('div');t.className=`toast ${type}`;t.textContent=msg;c.appendChild(t);setTimeout(()=>t.remove(),3500);}
 ['ov-novo','ov-det','ov-cores','ov-pedido','ov-resp','ov-cfg','ov-decisao'].forEach(id=>{document.getElementById(id)?.addEventListener('click',e=>{if(e.target===e.currentTarget)cl(id);});});
+
+// Fix novo button for initial state - will be overridden by initApp
+// btn-novo onclick set in initApp
+f(e.target===e.currentTarget)cl(id);});});
 
 // Fix novo button for initial state - will be overridden by initApp
 // btn-novo onclick set in initApp
