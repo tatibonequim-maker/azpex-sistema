@@ -933,16 +933,16 @@ function cardBase(c){
     <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:3px">
       <div>
         ${c.ref?`<div style="font-family:'DM Mono',monospace;font-size:.88rem;font-weight:600;color:var(--ac)">${c.ref}</div>`:''}
-        <div style="font-family:'DM Mono',monospace;font-size:.75rem;color:#555;font-weight:500">${c.id}</div>
+        <div style="font-family:'DM Mono',monospace;font-size:.88rem;font-weight:500;color:#555">${c.id}</div>
       </div>
       ${c.urg?'<span class="tag tur">⚡</span>':''}
     </div>
     <div class="cnome">${c.nome}</div>
-    ${c.obs?`<div style="font-size:.74rem;color:#8B4513;background:#FFF3CD;border-radius:5px;padding:3px 7px;margin-bottom:5px;line-height:1.3">⚠ ${c.obs}</div>`:''}
+    ${(c.obs||c.encObs)?`<div style="font-size:.73rem;color:#8B4513;background:#FFF3CD;border-radius:5px;padding:3px 7px;margin-bottom:5px;line-height:1.3">⚠ ${[c.obs,c.encObs].filter(Boolean).join(' · ')}</div>`:''}
     <div class="ctags">
       ${c.tec?`<span class="tag tg">${c.tec}</span>`:''}
-      ${c.grade?`<span style="font-size:.72rem;padding:2px 8px;border-radius:20px;font-family:'DM Mono',monospace;background:#E1F5EE;color:#085041;font-weight:600">${c.grade}</span>`:''}
-      ${c.numCorte?`<span class="tag" style="background:var(--b3);color:var(--c3)">${c.numCorte}</span>`:''}
+      ${c.grade?`<span style="font-size:.78rem;padding:3px 9px;border-radius:20px;font-family:'DM Mono',monospace;background:#E1F5EE;color:#085041;font-weight:600">${c.grade}</span>`:''}
+      ${c.numCorte?`<span style="font-size:.78rem;padding:3px 9px;border-radius:20px;font-family:'DM Mono',monospace;background:var(--b3);color:var(--c3);font-weight:600">OP: ${c.numCorte}</span>`:''}
       ${total?`<span class="tag" style="background:var(--al);color:var(--ac)">~${total} pç</span>`:''}
       ${c.tipo?`<span class="tag" style="background:${c.tipo==='novidade'?'var(--b6)':'var(--b2)'};color:${c.tipo==='novidade'?'var(--c6)':'var(--c2)'}">${c.tipo}</span>`:''}
     </div>
@@ -1031,10 +1031,14 @@ function cardRosana(c){
   const pct=total?Math.round(done/total*100):0;
   return`<div class="card-r" id="cd-${c.id}">
     <div style="display:flex;justify-content:space-between;margin-bottom:4px">
-      <div>${c.ref?`<div class="cref">${c.ref}</div>`:''}<div class="cid">${c.id}</div></div>
+      <div>
+        ${c.ref?`<div style="font-family:'DM Mono',monospace;font-size:.88rem;font-weight:600;color:var(--ac)">${c.ref}</div>`:''}
+        <div style="font-family:'DM Mono',monospace;font-size:.88rem;font-weight:500;color:#555">${c.id}</div>
+      </div>
       ${c.urg?'<span class="tag tur">⚡</span>':''}
     </div>
     <div class="cnome">${c.nome}</div>
+    ${(c.obs||c.encObs)?`<div style="font-size:.73rem;color:#8B4513;background:#FFF3CD;border-radius:5px;padding:3px 7px;margin-bottom:5px">⚠ ${[c.obs,c.encObs].filter(Boolean).join(' · ')}</div>`:''}
     <div class="ctags">${c.grade?`<span style="font-size:.78rem;padding:3px 9px;border-radius:20px;font-family:'DM Mono',monospace;background:#E1F5EE;color:#085041;font-weight:600">${c.grade}</span>`:''}</div>
     ${(c.cores||[]).map(x=>`
       <div class="ci ${checks[x.cor]?'done':''}" onclick="toggleDC('${c.id}','${x.cor}')">
@@ -1052,11 +1056,12 @@ function cardRosanaNC(c){
     <div style="display:flex;justify-content:space-between;margin-bottom:4px">
       <div>
         ${c.ref?`<div style="font-family:'DM Mono',monospace;font-size:.88rem;font-weight:600;color:var(--ac)">${c.ref}</div>`:''}
-        <div style="font-family:'DM Mono',monospace;font-size:.75rem;color:#555;font-weight:500">${c.id}</div>
+        <div style="font-family:'DM Mono',monospace;font-size:.88rem;font-weight:500;color:#555">${c.id}</div>
       </div>
       <button onclick="openDet('${c.id}')" style="background:none;border:.5px solid var(--bd);border-radius:6px;padding:3px 7px;font-size:.68rem;color:var(--mt);cursor:pointer">Ver detalhes</button>
     </div>
     <div class="cnome">${c.nome}</div>
+    ${(c.obs||c.encObs)?`<div style="font-size:.73rem;color:#8B4513;background:#FFF3CD;border-radius:5px;padding:3px 7px;margin-bottom:5px">⚠ ${[c.obs,c.encObs].filter(Boolean).join(' · ')}</div>`:''}
     <div style="font-size:.75rem;color:var(--c3);font-weight:500;margin-bottom:6px">✔ Tecidos descansados</div>
     <div style="font-size:.72rem;color:var(--mt);margin-bottom:4px">Nº do corte:</div>
     <div style="display:flex;gap:5px;align-items:center">
@@ -1069,10 +1074,14 @@ function cardRosanaNC(c){
 function cardChegou(c){
   return`<div class="card-arr" id="carr-${c.id}">
     <div style="display:flex;justify-content:space-between;margin-bottom:4px">
-      <div>${c.ref?`<div class="cref">${c.ref}</div>`:''}<div class="cid">${c.id}</div></div>
-      ${c.numCorte?`<span class="tag" style="background:var(--b3);color:var(--c3)">${c.numCorte}</span>`:''}
+      <div>
+        ${c.ref?`<div style="font-family:'DM Mono',monospace;font-size:.88rem;font-weight:600;color:var(--ac)">${c.ref}</div>`:''}
+        <div style="font-family:'DM Mono',monospace;font-size:.88rem;font-weight:500;color:#555">${c.id}</div>
+      </div>
+      ${c.numCorte?`<span style="font-size:.78rem;padding:3px 9px;border-radius:20px;font-family:'DM Mono',monospace;background:var(--b3);color:var(--c3);font-weight:600">OP: ${c.numCorte}</span>`:''}
     </div>
     <div class="cnome">${c.nome}</div>
+    ${(c.obs||c.encObs)?`<div style="font-size:.73rem;color:#8B4513;background:#FFF3CD;border-radius:5px;padding:3px 7px;margin-bottom:5px">⚠ ${[c.obs,c.encObs].filter(Boolean).join(' · ')}</div>`:''}
     <div class="ctags">${c.grade?`<span style="font-size:.78rem;padding:3px 9px;border-radius:20px;font-family:'DM Mono',monospace;background:#E1F5EE;color:#085041;font-weight:600">${c.grade}</span>`:''}</div>
     <div style="font-size:.76rem;color:var(--mt);margin-bottom:6px">Chegou da oficina?</div>
     <div class="arr-btns">
@@ -1198,7 +1207,7 @@ async function salvarNumCorte(id){
   c.status='NO_CORTE';
   sl();
   render();
-  toast('Corte '+num+' registrado!','s');
+  toast('OP '+num+' registrado!','s');
   await push(c._row,[['NUM_CORTE',num],['STATUS','NO_CORTE']]);
 }
 
@@ -1447,19 +1456,20 @@ function openCores(id){
   const sizes=(c.grade||'').split(' ').filter(Boolean);
   const rolo=parseFloat(c.rolo)||0;
   let estimaInfo='';
-  if(enc&&rolo&&sizes.length){
-    const folhas=Math.floor(rolo/enc);
-    estimaInfo=` · ${folhas} folhas · ~${folhas*sizes.length} pç total`;
-  }
   let estimaHTML='';
   if(enc&&rolo&&sizes.length){
     const folhas=Math.floor(rolo/enc);
+    const total=folhas*sizes.length;
     estimaHTML=`<div class="calc-box" style="margin:8px 0">
       <div class="calc-ti">Estimativa de corte</div>
+      <div class="calc-row"><span class="calc-k">Rolo</span><span class="calc-v">${rolo}m</span></div>
+      <div class="calc-row"><span class="calc-k">Encaixe</span><span class="calc-v">${enc}m</span></div>
       <div class="calc-row"><span class="calc-k">Folhas</span><span class="calc-v">${folhas}</span></div>
       ${sizes.map(s=>`<div class="calc-row"><span class="calc-k">Tam. ${s}</span><span class="calc-v">${folhas} pç</span></div>`).join('')}
-      <div class="calc-row"><span class="calc-k">Total</span><span class="calc-v">${folhas*sizes.length} peças</span></div>
+      <div class="calc-row"><span class="calc-k">Total</span><span class="calc-v">${total} peças</span></div>
     </div>`;
+  } else if(!enc){
+    estimaHTML=`<div style="font-size:.76rem;color:var(--mt);background:var(--s2);border-radius:7px;padding:8px;margin:6px 0">Preencha o comprimento do encaixe para ver a estimativa de folhas</div>`;
   }
   document.getElementById('cores-info').innerHTML=`
     <strong>${c.nome}</strong> · Grade: ${c.grade||'—'}<br>
