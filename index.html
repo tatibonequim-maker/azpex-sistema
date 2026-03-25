@@ -239,9 +239,6 @@ input,select,textarea,button{font-family:'DM Sans',sans-serif}
 </head>
 <body>
 
-<!-- TOASTS -->
-<div class="toasts" id="toasts"></div>
-
 <!-- PORTAL -->
 <div class="portal" id="portal">
   <div class="portal-box">
@@ -417,6 +414,40 @@ input,select,textarea,button{font-family:'DM Sans',sans-serif}
   </div>
 </div>
 
+<!-- MODAL DECISÃO ENVIO -->
+<div class="ov" id="ov-decisao">
+  <div class="modal">
+    <div class="mhd"><div class="mti">Decisão de envio</div><button class="xb" onclick="cl('ov-decisao')">×</button></div>
+    <div id="decisao-info" style="font-size:.82rem;color:var(--mt);margin-bottom:12px"></div>
+    <div id="decisao-cores" style="margin-bottom:12px"></div>
+    <div class="fg full" style="margin-bottom:12px">
+      <label class="fl">Observação de quantidades</label>
+      <textarea class="fi" id="decisao-obs" rows="3" placeholder="Ex: Enviar tudo / Preto 10pç G e GG / conforme tabela acima..."></textarea>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:8px">
+      <button class="bs" style="background:#1D9E75" onclick="confirmarEnvio()">✔ Confirmar envio</button>
+      <button class="bs abtn-danger" style="background:#FCEBEB;color:#A32D2D;border:.5px solid #F09595" onclick="confirmarArquivar()">✕ Não precisamos — arquivar</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL DECISAO ENVIO -->
+<div class="ov" id="ov-envio">
+  <div class="modal">
+    <div class="mhd"><div class="mti">Decisão de envio</div><button class="xb" onclick="cl('ov-envio')">×</button></div>
+    <div id="envio-info" style="font-size:.82rem;color:var(--mt);margin-bottom:12px"></div>
+    <div id="envio-cores" style="margin-bottom:12px"></div>
+    <div class="fg full" style="margin-bottom:12px">
+      <label class="fl">Observação de quantidades</label>
+      <textarea class="fi" id="envio-obs" rows="3" placeholder="Ex: Enviar tudo · Preto: 10 peças, Azul: 5 peças..."></textarea>
+    </div>
+    <div style="display:flex;gap:8px">
+      <button class="bs" style="flex:1;background:#1D9E75" onclick="confirmarEnvio()">✔ Confirmar envio</button>
+      <button class="bc" style="flex:1" onclick="cl('ov-envio')">Cancelar</button>
+    </div>
+  </div>
+</div>
+
 <!-- MODAL CONFIG -->
 <div class="ov" id="ov-cfg">
   <div class="modal">
@@ -453,10 +484,12 @@ input,select,textarea,button{font-family:'DM Sans',sans-serif}
     <div class="cfg-sec">
       <div class="cfg-l">Grades personalizadas</div>
       <textarea class="fi" id="cfg-grades" rows="2" placeholder="Ex: XP, XG, PP P M G GG XG"></textarea>
-      <button class="cfg-sv" style="margin-top:7px" onclick="saveGrades()">Salvar grades</button>
+      <button class="cfg-sv" onclick="saveGrades()">Salvar grades</button>
     </div>
   </div>
 </div>
+
+<div class="toasts" id="toasts"></div>
 
 <script>
 // ── CONSTANTS ──
@@ -465,6 +498,7 @@ const DPINS={taty:'1234',edvaldo:'5678',rosana:'9012',daimartha:'3456',carol:'24
 const GRADES_DEF=['PP','P','M','G','GG','PP P','P M','M G','G GG','PP P M','P M G','M G GG','PP P M G','P M G GG','PP P M G GG'];
 const UNAMES={taty:'Cinthia / Taty',edvaldo:'Edvaldo',rosana:'Rosana',daimartha:'Dai / Martha',carol:'Carol',estoque:'Estoque',vendA:'Vendedora A',vendB:'Vendedora B',vendC:'Vendedora C',gerente:'Gi — Bonequim'};
 
+// Cortes status
 const CSM={
   AGUARDANDO_ENCAIXE:{l:'Ag. encaixe',c:'var(--c1)',b:'var(--b1)'},
   AGUARDANDO_APROVACAO:{l:'Ag. aprovação',c:'var(--c2)',b:'var(--b2)'},
@@ -482,6 +516,7 @@ const CSM={
 };
 function csi(s){return CSM[s]||{l:s,c:'var(--mt)',b:'var(--s2)'};}
 
+// Pedidos status
 const PSM={
   PENDENTE:{l:'Pendente',c:'var(--c1)',b:'var(--b1)'},
   APROVADO:{l:'Aprovado',c:'var(--c3)',b:'var(--b3)'},
@@ -496,9 +531,8 @@ if(!cfg.url)cfg.url=DURL;
 let cortes=JSON.parse(localStorage.getItem('az_cortes')||'[]');
 let pedidos=JSON.parse(localStorage.getItem('az_pedidos')||'[]');
 let user='',section='cortes',filtro='todos';
-let coresId=null,respId=null,corCount=0,editId=null;
+let coresId=null,respId=null,corCount=0,editId=null,decisaoId=null;
 let pinUser='',pinVal='',pinSide='';
-let pedCorCount=0,pedGradeSizes=[];
 
 // ── PORTAL ──
 function openLogin(side){
@@ -525,109 +559,99 @@ function backUsers(side){
   document.getElementById('lusers-'+side).style.display='flex';
   document.getElementById('pin-area-'+side).classList.remove('show');
 }
-function ppk(k,side){
-  if(pinVal.length>=4)return;
-  pinVal+=k;
-  updDots(side);
-  if(pinVal.length===4)setTimeout(()=>checkPin(side),120);
-}
-function ppdel(side){
-  pinVal=pinVal.slice(0,-1);
-  updDots(side);
-  document.getElementById(side+'perr').textContent='';
-}
-function updDots(side){
-  for(let i=0;i<4;i++){
-    const el=document.getElementById(side+'pd'+i);
-    if(el)el.classList.toggle('on',i<pinVal.length);
-  }
-}
+function ppk(k,side){if(pinVal.length>=4)return;pinVal+=k;updDots(side);if(pinVal.length===4)setTimeout(()=>checkPin(side),120);}
+function ppdel(side){pinVal=pinVal.slice(0,-1);updDots(side);document.getElementById(side+'perr').textContent='';}
+function updDots(side){for(let i=0;i<4;i++)document.getElementById(side+'pd'+i)?.classList.toggle('on',i<pinVal.length);}
 function checkPin(side){
+  const s=side||pinSide||'f';
   try{
     const saved=localStorage.getItem('az_pin_'+pinUser)||DPINS[pinUser]||'0000';
     if(pinVal===saved){
       user=pinUser;
+      // Hide all logins
       document.getElementById('login-fabrica').style.display='none';
       document.getElementById('login-loja').style.display='none';
       document.getElementById('login-fabrica').classList.remove('open');
       document.getElementById('login-loja').classList.remove('open');
       initApp();
     }else{
-      const errEl=document.getElementById(side+'perr');
+      const errEl=document.getElementById(s+'perr');
       if(errEl)errEl.textContent='PIN incorreto. Tente novamente.';
-      pinVal='';updDots(side);
+      pinVal='';updDots(s);
     }
   }catch(err){
     console.error('checkPin error:',err);
-    const errEl=document.getElementById(side+'perr');
+    const errEl=document.getElementById(s+'perr');
     if(errEl)errEl.textContent='Erro interno. Tente novamente.';
-    pinVal='';updDots(side);
+    pinVal='';updDots(s);
   }
 }
 function logout(){
   user='';
   document.getElementById('app').style.display='none';
   document.getElementById('portal').style.display='flex';
+  // reset logins
   ['fabrica','loja'].forEach(s=>{
     const el=document.getElementById('login-'+s);
     el.classList.remove('open');
-    el.style.display='';
     document.getElementById('lusers-'+s).style.display='flex';
     document.getElementById('pin-area-'+s).classList.remove('show');
   });
-  pinUser='';pinVal='';pinSide='';
 }
 
 // ── INIT APP ──
 function initApp(){
   try{
-    document.getElementById('portal').style.display='none';
-    document.getElementById('app').style.display='';
-    document.getElementById('app-user').textContent=UNAMES[user]||user;
+  document.getElementById('portal').style.display='none';
+  document.getElementById('app').style.display='';
+  document.getElementById('app-user').textContent=UNAMES[user]||user;
 
-    const isTaty=user==='taty';
-    const isLoja=['vendA','vendB','vendC','gerente'].includes(user);
-    const isVend=['vendA','vendB','vendC'].includes(user);
-    const isCarol=user==='carol';
+  const isTaty=user==='taty';
+  const isLoja=['vendA','vendB','vendC','gerente'].includes(user);
+  const isVend=['vendA','vendB','vendC'].includes(user);
+  const isCarol=user==='carol';
 
-    document.getElementById('app-logo').textContent=isLoja?'Bonequim':'Azpex · Fábrica';
-    document.getElementById('btn-cfg').style.display=isTaty?'':'none';
+  document.getElementById('app-logo').textContent=isLoja?'Bonequim':'Azpex · Fábrica';
+  document.getElementById('btn-cfg').style.display=isTaty?'':'none';
 
-    const btnNovo=document.getElementById('btn-novo');
-    if(isTaty){
-      btnNovo.style.display='';
-      btnNovo.textContent='+ Novo corte';
-      btnNovo.onclick=openNovo;
-    }else if(isVend||isCarol){
-      btnNovo.style.display='';
-      btnNovo.textContent='+ Novo pedido';
-      btnNovo.onclick=openNovoPedido;
-    }else{
-      btnNovo.style.display='none';
-    }
+  // Botão novo — só Taty cria cortes; vendedoras e Carol criam pedidos
+  const btnNovo=document.getElementById('btn-novo');
+  if(isTaty){
+    btnNovo.style.display='';
+    btnNovo.textContent='+ Novo corte';
+    btnNovo.onclick=openNovo;
+  } else if(isVend||isCarol){
+    btnNovo.style.display='';
+    btnNovo.textContent='+ Novo pedido';
+    btnNovo.onclick=openNovoPedido;
+  } else {
+    btnNovo.style.display='none';
+  }
 
-    const stabsEl=document.getElementById('stabs');
-    const showBothTabs=isTaty||user==='gerente'||user==='estoque'||user==='daimartha'||isCarol;
-    if(showBothTabs){
-      stabsEl.style.display='flex';
-      let cortesLabel='Cortes';
-      if(user==='gerente')cortesLabel='Reposições';
-      if(user==='estoque')cortesLabel='Embalar';
-      stabsEl.innerHTML=`
-        <button class="stab on" onclick="setSection('cortes',this)">${cortesLabel}</button>
-        <button class="stab" onclick="setSection('pedidos',this)">Pedidos</button>`;
-      section='cortes';
-    }else{
-      stabsEl.style.display='none';
-      section=isLoja?'pedidos':'cortes';
-    }
+  // Abas
+  const stabsEl=document.getElementById('stabs');
+  const showBothTabs=isTaty||user==='gerente'||user==='estoque'||user==='daimartha'||isCarol;
+  if(showBothTabs){
+    stabsEl.style.display='flex';
+    let cortesLabel='Cortes';
+    if(user==='gerente') cortesLabel='Reposições';
+    if(user==='estoque') cortesLabel='Embalar';
+    stabsEl.innerHTML=`
+      <button class="stab on" onclick="setSection('cortes',this)">${cortesLabel}</button>
+      <button class="stab" onclick="setSection('pedidos',this)">Pedidos</button>`;
+    section='cortes';
+  }else{
+    stabsEl.style.display='none';
+    section=isLoja?'pedidos':'cortes';
+  }
 
-    populateSels();
-    render();
-    if(cfg.url){
-      setTimeout(syncAll,600);
-      setInterval(()=>{if(cfg.url)syncAll(true);},30000);
-    }
+  populateSels();
+  render();
+  if(cfg.url){
+    setTimeout(syncAll,600);
+    // Auto-sync every 30 seconds
+    setInterval(()=>{if(cfg.url)syncAll(true);},30000);
+  }
   }catch(err){console.error('initApp error:',err);toast('Erro: '+err.message,'w');}
 }
 
@@ -636,37 +660,25 @@ function setSection(s,el){
   document.querySelectorAll('.stab').forEach(b=>b.classList.remove('on'));
   el.classList.add('on');
   const isLoja=['vendA','vendB','vendC','gerente'].includes(user);
+  const canNovo=user==='taty'||(isLoja&&user!=='gerente');
   if(s==='pedidos'){
     const canPed=(isLoja&&user!=='gerente')||user==='carol';
-    const btnNovo=document.getElementById('btn-novo');
-    btnNovo.style.display=canPed?'':'none';
-    btnNovo.textContent='+ Novo pedido';
-    btnNovo.onclick=openNovoPedido;
+    document.getElementById('btn-novo').style.display=canPed?'':'none';
+    document.getElementById('btn-novo').textContent='+ Novo pedido';
+    document.getElementById('btn-novo').onclick=openNovoPedido;
   }else{
-    const btnNovo=document.getElementById('btn-novo');
-    btnNovo.style.display=user==='taty'?'':'none';
-    btnNovo.textContent='+ Novo corte';
-    btnNovo.onclick=openNovo;
+    document.getElementById('btn-novo').style.display=user==='taty'?'':'none';
+    document.getElementById('btn-novo').textContent='+ Novo corte';
+    // btn-novo onclick set in initApp
   }
   render();
 }
 
-function setF(f,el){
-  filtro=f;
-  document.querySelectorAll('.fb').forEach(b=>b.classList.remove('on'));
-  el.classList.add('on');
-  render();
-}
+function setF(f,el){filtro=f;document.querySelectorAll('.fb').forEach(b=>b.classList.remove('on'));el.classList.add('on');render();}
 
 // ── API ──
-async function apig(p){
-  const r=await fetch('/api/proxy?'+new URLSearchParams(p));
-  return r.json();
-}
-async function apip(b){
-  const r=await fetch('/api/proxy',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(b)});
-  return r.json();
-}
+async function apig(p){const r=await fetch('/api/proxy?'+new URLSearchParams(p));return r.json();}
+async function apip(b){const r=await fetch('/api/proxy',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(b)});return r.json();}
 async function push(row,campos){
   if(!cfg.url||!row)return;
   try{
@@ -681,10 +693,7 @@ async function push2(row,campos){
     setTimeout(()=>{if(cfg.url)syncAll(true);},1500);
   }catch(e){console.error('push2 error:',e);}
 }
-async function pushNew(dados){
-  if(!cfg.url)return null;
-  try{return await apip({action:'adicionarPeca',dados});}catch(e){return null;}
-}
+async function pushNew(dados){if(!cfg.url)return null;try{return await apip({action:'adicionarPeca',dados});}catch(e){return null;}}
 
 async function syncAll(silent){
   if(!cfg.url){if(!silent)toast('Configure o URL primeiro','w');return;}
@@ -692,8 +701,7 @@ async function syncAll(silent){
   try{
     const[c,l,p]=await Promise.all([apig({action:'getCortes'}),apig({action:'getListas'}),apig({action:'getPedidos'})]);
     if(Array.isArray(c)&&c.length>0){
-      const fotoMap={};
-      cortes.forEach(x=>{if(x.fotoLocal)fotoMap[x.id]=x.fotoLocal;});
+      const fotoMap={};cortes.forEach(x=>{if(x.fotoLocal)fotoMap[x.id]=x.fotoLocal;});
       cortes=c.filter(r=>r.STATUS!=='DELETADO').map(r=>({
         id:str(r.ID),ref:str(r.REF),nome:str(r.NOME),
         data:din(str(r.DATA_ENTRADA)),tec:str(r.TECIDO),tin:str(r.TINTURARIA),
@@ -703,7 +711,7 @@ async function syncAll(silent){
         encM:str(r.ENCAIXE_M),encPct:str(r.RENDIMENTO)||str(r['RENDIMENTO_%']),encObs:str(r.OBS_CAD),
         cores:parseCores(str(r.CORES)),
         checksDesc:parseChecks(str(r.CHECKS_DESC)),
-        numCorte:str(r.NUM_CORTE),dataDesc:str(r.DATA_DESCANSO),
+        numCorte:str(r.NUM_CORTE),dataDesc:str(r.DATA_DESCANSO),impresso:str(r.IMPRESSO)||'',
         tipo:str(r.TIPO_CHEGADA),carolObs:str(r.CAROL_OBS),giObs:str(r.GI_OBS),
         status:mapStatus(str(r.STATUS)),_row:r._row,
         fotoLocal:fotoMap[str(r.ID)]||'',
@@ -738,9 +746,10 @@ function mapStatus(s){
     'ENCAIXE_REPROVADO':'ENCAIXE_REPROVADO','TECIDO_DESCANSADO':'TECIDO_DESCANSADO',
     'PRONTO PARA CORTAR':'TECIDO_DESCANSADO','NO_CORTE':'NO_CORTE',
     'AG_FOTO':'AG_FOTO','FOTO_OK':'FOTO_OK',
-    'SEPARAR_ENVIO':'AGUARDANDO_GI','AGUARDANDO_GI':'AGUARDANDO_GI',
-    'EMBALAR':'EMBALAR','PRONTO_RETIRADA':'PRONTO_RETIRADA',
-    'ARQUIVADO':'ARQUIVADO','CHEGOU_OFICINA':'NO_CORTE',
+    'SEPARAR_ENVIO':'AGUARDANDO_GI',
+    'AGUARDANDO_GI':'AGUARDANDO_GI','EMBALAR':'EMBALAR',
+    'PRONTO_RETIRADA':'PRONTO_RETIRADA','ARQUIVADO':'ARQUIVADO',
+    'CHEGOU_OFICINA':'NO_CORTE',
   };
   return m[(s||'').trim()]||'AGUARDANDO_ENCAIXE';
 }
@@ -751,39 +760,13 @@ function str(v){
   if(s.match(/^\d{4}-\d{2}-\d{2}T/))return'';
   return s;
 }
-function parseCores(s){
-  if(!s)return[];
-  return s.split(',').map(x=>{
-    const p=x.trim().split(':');
-    return{cor:p[0]?.trim()||'',qtd:p[1]?.trim()||'1'};
-  }).filter(c=>c.cor);
-}
+function parseCores(s){if(!s)return[];return s.split(',').map(x=>{const p=x.trim().split(':');return{cor:p[0]?.trim()||'',qtd:p[1]?.trim()||'1'};}).filter(c=>c.cor);}
 function coresStr(a){return a.map(c=>`${c.cor}:${c.qtd}`).join(', ');}
-function parseChecks(s){
-  if(!s)return{};
-  const o={};
-  s.split(',').forEach(x=>{
-    const p=x.split(':');
-    if(p[0])o[p[0].trim()]=p[1]?.trim()==='1';
-  });
-  return o;
-}
+function parseChecks(s){if(!s)return{};const o={};s.split(',').forEach(x=>{const p=x.split(':');if(p[0])o[p[0].trim()]=p[1]?.trim()==='1';});return o;}
 function checksStr(o){return Object.entries(o).map(([k,v])=>`${k}:${v?1:0}`).join(',');}
-function din(s){
-  if(!s)return'';
-  if(s.includes('T'))return s.split('T')[0];
-  if(s.includes('/'))return s.split('/').reverse().join('-');
-  return s;
-}
-function dout(s){
-  if(!s)return'—';
-  if(s.includes('-')){const p=s.split('-');return`${p[2]}/${p[1]}/${p[0]}`;}
-  return s;
-}
-function sl(){
-  localStorage.setItem('az_cortes',JSON.stringify(cortes));
-  localStorage.setItem('az_pedidos',JSON.stringify(pedidos));
-}
+function din(s){if(!s)return'';if(s.includes('T'))return s.split('T')[0];if(s.includes('/'))return s.split('/').reverse().join('-');return s;}
+function dout(s){if(!s)return'—';if(s.includes('-')){const p=s.split('-');return`${p[2]}/${p[1]}/${p[0]}`;}return s;}
+function sl(){localStorage.setItem('az_cortes',JSON.stringify(cortes));localStorage.setItem('az_pedidos',JSON.stringify(pedidos));}
 
 function getGrades(){
   const custom=(cfg.customGrades||'').split(',').map(s=>s.trim()).filter(Boolean);
@@ -795,12 +778,9 @@ function populateSels(){
   const tecs=stored.tecidos?.length?stored.tecidos:['Montaria','Montaria Light','Canelado Montaria','Visco Caneladinho','Canelado 70','Canelado Visco','New Light','Fluity','Flamê','Jeans','Viscose','Cirrê','Moletinho'];
   const tins=stored.tinturarias?.length?stored.tinturarias:['GUARA','MAR','N/A'];
   const grades=getGrades();
-  ['f-tec'].forEach(id=>{const el=document.getElementById(id);if(el)el.innerHTML='<option value="">Selecionar...</option>'+tecs.map(t=>`<option>${t}</option>`).join('');});
+  ['f-tec','p-tec'].forEach(id=>{const el=document.getElementById(id);if(el)el.innerHTML='<option value="">Selecionar...</option>'+tecs.map(t=>`<option>${t}</option>`).join('');});
   ['f-tin'].forEach(id=>{const el=document.getElementById(id);if(el)el.innerHTML='<option value="">Selecionar...</option>'+tins.map(t=>`<option>${t}</option>`).join('');});
-  ['f-grade'].forEach(id=>{const el=document.getElementById(id);if(el)el.innerHTML='<option value="">Selecionar...</option>'+grades.map(g=>`<option>${g}</option>`).join('');});
-  // Pedido grade select
-  const pgs=document.getElementById('p-grade-sel');
-  if(pgs)pgs.innerHTML='<option value="">Selecionar grade...</option>'+grades.map(g=>`<option>${g}</option>`).join('');
+  ['f-grade','p-grade'].forEach(id=>{const el=document.getElementById(id);if(el)el.innerHTML='<option value="">Selecionar...</option>'+grades.map(g=>`<option>${g}</option>`).join('');});
 }
 
 // ── CALC ──
@@ -814,7 +794,8 @@ function calcDetalhe(c){
   if(!c.rolo||!c.grade)return'';
   const enc=parseFloat(c.encM)||0;
   const sizes=c.grade.split(' ').filter(Boolean);
-  if(!sizes.length||!enc)return'';
+  if(!sizes.length)return'';
+  if(!enc)return'';
   const folhas=Math.floor(parseFloat(c.rolo)/enc);
   const total=folhas*sizes.length;
   return`<div class="calc-box"><div class="calc-ti">Estimativa de corte</div>
@@ -854,6 +835,7 @@ function getVisCortes(){
     if(user==='carol')list=list.filter(c=>c.status==='AG_FOTO'||c.status==='FOTO_OK');
     if(user==='estoque')list=list.filter(c=>c.status==='EMBALAR');
   }
+  // Gi only sees reposicao (not novidades)
   if(user==='gerente'&&section==='cortes')list=list.filter(c=>c.tipo!=='novidade'||c.status==='PRONTO_RETIRADA'||c.status==='ARQUIVADO');
   return list;
 }
@@ -874,6 +856,7 @@ function getColsCortes(){
   if(user==='edvaldo')return[
     {s:'AGUARDANDO_ENCAIXE',l:'Fila de encaixe',c:'var(--c1)'},
     {s:'ENCAIXE_REPROVADO',l:'Reprovado — refazer',c:'var(--c4)'},
+    {s:'__TODOS__',l:'Todos os cortes',c:'var(--mt)'},
   ];
   if(user==='rosana')return[
     {s:'DESCANSAR_TECIDO',l:'Para descansar',c:'var(--c5)'},
@@ -893,6 +876,7 @@ function getColsCortes(){
     {s:'DEFINIR_CORES',l:'Definir cores',c:'var(--c6)'},
     {s:'NO_CORTE',l:'Corte / Oficina',c:'var(--c3)'},
     {s:'AG_FOTO',l:'Ag. foto',c:'var(--c6)'},
+    {s:'SEPARAR_ENVIO',l:'Separar',c:'var(--c8)'},
     {s:'EMBALAR',l:'Embalar',c:'var(--c7)'},
     {s:'PRONTO_RETIRADA',l:'Pronto p/ retirada',c:'var(--c3)'},
   ];
@@ -909,16 +893,20 @@ function getColsCortes(){
 }
 
 function renderCortes(){
-  const cols=getColsCortes();
-  const vis=getVisCortes();
-  const grouped={};
-  cols.forEach(c=>{grouped[c.s]=[];});
+  const cols=getColsCortes();const vis=getVisCortes();
+  const grouped={};cols.forEach(c=>{grouped[c.s]=[];});
   vis.forEach(c=>{if(grouped[c.status]!==undefined)grouped[c.status].push(c);});
+  // Build __TODOS__ virtual column for Edvaldo
+  const TODOS_STATUS=['AGUARDANDO_ENCAIXE','ENCAIXE_REPROVADO','AGUARDANDO_APROVACAO','DEFINIR_CORES','DESCANSAR_TECIDO','TECIDO_DESCANSADO','NO_CORTE'];
+  const todosItems=vis.filter(c=>TODOS_STATUS.includes(c.status));
+  grouped['__TODOS__']=todosItems;
+
   document.getElementById('main-content').innerHTML=`<div class="board">${cols.map(col=>{
     const items=grouped[col.s]||[];
+    const cardFn=col.s==='__TODOS__'?cardEdvaldoInfo:corteCardHTML;
     return`<div class="col"><div class="col-top" style="background:${col.c}"></div>
       <div class="col-hd"><span class="col-ti">${col.l}</span><span class="col-cn">${items.length}</span></div>
-      <div class="col-bd">${items.length?items.map(c=>corteCardHTML(c)).join(''):'<div class="empty">Vazio</div>'}</div>
+      <div class="col-bd">${items.length?items.map(c=>cardFn(c)).join(''):'<div class="empty">Vazio</div>'}</div>
     </div>`;
   }).join('')}</div>`;
   renderStats();
@@ -968,8 +956,37 @@ function cardBase(c){
   </div>`;
 }
 
+
+function cardEdvaldoInfo(c){
+  const info=CSM[c.status]||{l:c.status,c:'var(--mt)',b:'var(--s2)'};
+  return`<div class="card" onclick="openDet('${c.id}')">
+    <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:3px">
+      <div>
+        ${c.ref?`<div style="font-family:'DM Mono',monospace;font-size:.88rem;font-weight:600;color:var(--ac)">${c.ref}</div>`:''}
+        <div style="font-family:'DM Mono',monospace;font-size:.75rem;color:#555">${c.id}</div>
+      </div>
+      <span style="font-size:.62rem;padding:2px 7px;border-radius:20px;font-weight:500;background:${info.b};color:${info.c}">${info.l}</span>
+    </div>
+    <div class="cnome">${c.nome}</div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:4px;margin:6px 0;font-size:.76rem">
+      <div><span style="color:var(--mt)">Tecido: </span><strong>${c.tec||'—'}</strong></div>
+      <div><span style="color:var(--mt)">Grade: </span><strong>${c.grade||'—'}</strong></div>
+      <div><span style="color:var(--mt)">Encaixe: </span><strong>${c.encM?c.encM+'m':'—'}</strong></div>
+      <div><span style="color:var(--mt)">Aproveit.: </span><strong>${c.encPct?c.encPct+'%':'—'}</strong></div>
+      <div><span style="color:var(--mt)">Retalho: </span><strong>${c.ret||'—'}</strong></div>
+    </div>
+    ${c.obs?`<div style="font-size:.73rem;color:#8B4513;background:#FFF3CD;border-radius:5px;padding:3px 7px;margin-bottom:5px">⚠ ${c.obs}</div>`:''}
+    <button onclick="event.stopPropagation();marcarImpresso('${c.id}')"
+      style="width:100%;padding:7px;border-radius:7px;border:none;font-size:.78rem;font-weight:600;cursor:pointer;margin-top:4px;
+      background:${c.impresso==='sim'?'var(--b3)':'var(--s2)'};color:${c.impresso==='sim'?'var(--c3)':'var(--mt)'}">
+      ${c.impresso==='sim'?'✔ Impresso':'Marcar como impresso'}
+    </button>
+  </div>`;
+}
+
 function cardEdvaldo(c){
   const rep=c.status==='ENCAIXE_REPROVADO';
+  const rolo=c.rolo||0;
   return`<div class="card-e" id="ce-${c.id}">
     <div style="display:flex;justify-content:space-between;margin-bottom:4px">
       <div>${c.ref?`<div class="cref">${c.ref}</div>`:''}<div class="cid">${c.id}</div></div>
@@ -979,7 +996,7 @@ function cardEdvaldo(c){
     <div class="cnome">${c.nome}</div>
     <div class="ctags">
       ${c.tec?`<span class="tag tg">${c.tec}</span>`:''}
-      ${c.tin?`<span class="tag tgr">${c.tin}</span>`:''}
+      ${c.tin?`<span style="font-size:.78rem;padding:3px 9px;border-radius:20px;font-family:'DM Mono',monospace;background:#E1F5EE;color:#085041;font-weight:600">${c.tin}</span>`:''}
       ${c.grade?`<span class="tag" style="background:var(--s2);color:var(--mt)">${c.grade}</span>`:''}
     </div>
     ${rep&&c.encObs?`<div class="obs-box obs-bl" style="margin-bottom:8px;font-size:.74rem">Motivo: ${c.encObs}</div>`:''}
@@ -1018,7 +1035,7 @@ function cardRosana(c){
       ${c.urg?'<span class="tag tur">⚡</span>':''}
     </div>
     <div class="cnome">${c.nome}</div>
-    <div class="ctags">${c.grade?`<span class="tag tgr">${c.grade}</span>`:''}</div>
+    <div class="ctags">${c.grade?`<span style="font-size:.78rem;padding:3px 9px;border-radius:20px;font-family:'DM Mono',monospace;background:#E1F5EE;color:#085041;font-weight:600">${c.grade}</span>`:''}</div>
     ${(c.cores||[]).map(x=>`
       <div class="ci ${checks[x.cor]?'done':''}" onclick="toggleDC('${c.id}','${x.cor}')">
         <div class="ci-l"><div class="ci-c">${x.cor}</div><div class="ci-q">${x.qtd} rolo(s)</div></div>
@@ -1056,7 +1073,7 @@ function cardChegou(c){
       ${c.numCorte?`<span class="tag" style="background:var(--b3);color:var(--c3)">${c.numCorte}</span>`:''}
     </div>
     <div class="cnome">${c.nome}</div>
-    <div class="ctags">${c.grade?`<span class="tag tgr">${c.grade}</span>`:''}</div>
+    <div class="ctags">${c.grade?`<span style="font-size:.78rem;padding:3px 9px;border-radius:20px;font-family:'DM Mono',monospace;background:#E1F5EE;color:#085041;font-weight:600">${c.grade}</span>`:''}</div>
     <div style="font-size:.76rem;color:var(--mt);margin-bottom:6px">Chegou da oficina?</div>
     <div class="arr-btns">
       <button class="arr-btn" style="background:var(--b2);color:var(--c2)" onclick="marcarChegada('${c.id}','reposicao')">📦 Reposição</button>
@@ -1074,7 +1091,7 @@ function cardCarol(c){
     </div>
     <div class="cnome">${c.nome}</div>
     <div class="ctags">
-      ${c.grade?`<span class="tag tgr">${c.grade}</span>`:''}
+      ${c.grade?`<span style="font-size:.78rem;padding:3px 9px;border-radius:20px;font-family:'DM Mono',monospace;background:#E1F5EE;color:#085041;font-weight:600">${c.grade}</span>`:''}
       ${total?`<span class="tag" style="background:var(--al);color:var(--ac)">~${total} pç</span>`:''}
     </div>
     ${c.fotoLocal?`<div style="margin:8px 0"><img src="${c.fotoLocal}" style="width:100%;border-radius:8px;max-height:130px;object-fit:cover"></div>`:''}
@@ -1096,7 +1113,7 @@ function cardEstoque(c){
     </div>
     <div class="cnome">${c.nome}</div>
     <div class="ctags">
-      ${c.grade?`<span class="tag tgr">${c.grade}</span>`:''}
+      ${c.grade?`<span style="font-size:.78rem;padding:3px 9px;border-radius:20px;font-family:'DM Mono',monospace;background:#E1F5EE;color:#085041;font-weight:600">${c.grade}</span>`:''}
       ${total?`<span class="tag" style="background:var(--al);color:var(--ac)">~${total} pç</span>`:''}
       ${c.tipo?`<span class="tag" style="background:${c.tipo==='novidade'?'var(--b6)':'var(--b2)'};color:${c.tipo==='novidade'?'var(--c6)':'var(--c2)'}">${c.tipo}</span>`:''}
     </div>
@@ -1104,13 +1121,14 @@ function cardEstoque(c){
   </div>`;
 }
 
-// ── STATS ──
+// ── STATS CORTES ──
 function renderStats(){
   if(section==='pedidos'){renderStatsPedidos();return;}
   const sts=[
     {s:'AGUARDANDO_ENCAIXE',l:'Encaixe'},{s:'AGUARDANDO_APROVACAO',l:'Aprovação'},
     {s:'DEFINIR_CORES',l:'Cores'},{s:'NO_CORTE',l:'Corte/Ofic.'},
-    {s:'AG_FOTO',l:'Ag. foto'},{s:'EMBALAR',l:'Embalar'},{s:'PRONTO_RETIRADA',l:'Retirada'},
+    {s:'AG_FOTO',l:'Ag. foto'},{s:'SEPARAR_ENVIO',l:'Separar'},
+    {s:'EMBALAR',l:'Embalar'},{s:'PRONTO_RETIRADA',l:'Retirada'},
   ];
   document.getElementById('stats').innerHTML=sts.map(({s,l})=>{
     const info=csi(s);const n=cortes.filter(c=>c.status===s).length;
@@ -1133,10 +1151,11 @@ async function salvarEncaixe(id){
   const c=cortes.find(x=>x.id===id);
   c.encM=m;c.encPct=pct;c.encObs=document.getElementById('eo-'+id)?.value.trim()||'';
   if(user==='taty'){
+    // Taty fills AND approves in one step
     c.status='DEFINIR_CORES';
     sl();render();toast('Encaixe salvo e aprovado! Defina as cores.','s');
     await push(c._row,[['ENCAIXE_M',m],['RENDIMENTO',pct],['OBS_CAD',c.encObs],['STATUS','DEFINIR_CORES']]);
-  }else{
+  } else {
     c.status='AGUARDANDO_APROVACAO';
     sl();render();toast('Encaixe enviado para aprovação!','s');
     await push(c._row,[['ENCAIXE_M',m],['RENDIMENTO',pct],['OBS_CAD',c.encObs],['STATUS','AGUARDANDO_APROVACAO']]);
@@ -1144,10 +1163,12 @@ async function salvarEncaixe(id){
 }
 
 function toggleDC(id,cor){
-  const c=cortes.find(x=>x.id===id);if(!c)return;
+  const c=cortes.find(x=>x.id===id);
+  if(!c)return;
   if(!c.checksDesc)c.checksDesc={};
   c.checksDesc[cor]=!c.checksDesc[cor];
   sl();
+  // Re-render the specific card
   const el=document.getElementById('cd-'+id);
   if(el){
     const tmp=document.createElement('div');
@@ -1157,22 +1178,30 @@ function toggleDC(id,cor){
   }
 }
 async function salvarDescanso(id){
-  const c=cortes.find(x=>x.id===id);if(!c)return;
+  const c=cortes.find(x=>x.id===id);
+  if(!c)return;
   c.checksDesc=c.checksDesc||{};
   c.status='TECIDO_DESCANSADO';
   c.dataDesc=new Date().toLocaleDateString('pt-BR');
-  sl();render();toast('Tecidos descansados! Registre o nº do corte.','s');
+  sl();
+  render();
+  toast('Tecidos descansados! Registre o nº do corte.','s');
   await push(c._row,[['CHECKS_DESC',checksStr(c.checksDesc)],['DATA_DESCANSO',c.dataDesc],['STATUS','TECIDO_DESCANSADO']]);
 }
 async function salvarNumCorte(id){
   const el=document.getElementById('nc-'+id);
   const num=el?.value.trim();
   if(!num){toast('Preencha o número','w');return;}
-  const c=cortes.find(x=>x.id===id);if(!c)return;
-  c.numCorte=num;c.status='NO_CORTE';
-  sl();render();toast('Corte '+num+' registrado!','s');
+  const c=cortes.find(x=>x.id===id);
+  if(!c)return;
+  c.numCorte=num;
+  c.status='NO_CORTE';
+  sl();
+  render();
+  toast('Corte '+num+' registrado!','s');
   await push(c._row,[['NUM_CORTE',num],['STATUS','NO_CORTE']]);
 }
+
 async function marcarChegada(id,tipo){
   const c=cortes.find(x=>x.id===id);
   c.tipo=tipo;
@@ -1191,6 +1220,7 @@ async function marcarChegada(id,tipo){
   }
   sl();render();
 }
+
 function salvarFotoCarol(id,input){
   const file=input.files[0];if(!file)return;
   const reader=new FileReader();
@@ -1202,6 +1232,7 @@ function salvarFotoCarol(id,input){
   };
   reader.readAsDataURL(file);
 }
+
 async function carolAprovar(id){
   const c=cortes.find(x=>x.id===id);
   const obs=document.getElementById('cobs-'+id)?.value.trim()||'';
@@ -1213,22 +1244,28 @@ async function carolAprovar(id){
     window.open(`https://wa.me/${cfg.wdm}?text=${encodeURIComponent(msg)}`,'_blank');
   }
 }
+
 async function aprovarEnvio(id){
   const c=cortes.find(x=>x.id===id);c.status='EMBALAR';
   sl();render();toast('Aprovado! Indo para embalar.','s');
   await push(c._row,[['STATUS','EMBALAR']]);
 }
+
 async function giArquivar(id){
-  const c=cortes.find(x=>x.id===id);if(!c)return;
+  const c=cortes.find(x=>x.id===id);
+  if(!c)return;
   c.status='ARQUIVADO';
-  sl();cl('ov-det');render();toast('Arquivado.','i');
+  sl();cl('ov-det');render();
+  toast('Arquivado.','i');
   await push(c._row,[['STATUS','ARQUIVADO']]);
 }
+
 async function estoqueSeparou(id){
   const c=cortes.find(x=>x.id===id);c.status='PRONTO_RETIRADA';
   sl();render();toast('Separado! Pronto para retirada.','s');
   await push(c._row,[['STATUS','PRONTO_RETIRADA']]);
 }
+
 async function transmissaoMire(id){
   const c=cortes.find(x=>x.id===id);c.status='PRONTO_RETIRADA';
   sl();render();toast('Transmissão Miré feita! Pronto para retirada.','s');
@@ -1238,6 +1275,7 @@ async function transmissaoMire(id){
     window.open(`https://wa.me/${cfg.wgi}?text=${encodeURIComponent(msg)}`,'_blank');
   }
 }
+
 async function aprovar(id){
   const c=cortes.find(x=>x.id===id);c.status='DEFINIR_CORES';sl();cl('ov-det');render();
   toast('Encaixe aprovado!','s');await push(c._row,[['STATUS','DEFINIR_CORES']]);
@@ -1246,24 +1284,12 @@ async function reprovar(id){
   const c=cortes.find(x=>x.id===id);c.status='ENCAIXE_REPROVADO';sl();cl('ov-det');render();
   toast('Reprovado — voltou para Edvaldo','w');await push(c._row,[['STATUS','ENCAIXE_REPROVADO']]);
 }
-async function arquivar(id){
-  const c=cortes.find(x=>x.id===id);if(!c)return;
-  c.status='ARQUIVADO';sl();cl('ov-det');render();
-  toast('Recebido e arquivado!','s');await push(c._row,[['STATUS','ARQUIVADO']]);
-}
-async function deletarCorte(id){
-  if(!confirm('Tem certeza que quer deletar este corte?'))return;
-  const c=cortes.find(x=>x.id===id);if(!c)return;
-  cortes=cortes.filter(x=>x.id!==id);
-  sl();cl('ov-det');render();toast('Corte deletado.','i');
-  if(c._row)await push(c._row,[['STATUS','DELETADO'],['NOME','[DELETADO] '+c.nome]]);
-}
 
 // DETALHE CORTE
 function openDet(id){
   const c=cortes.find(x=>x.id===id);if(!c)return;
   const info=csi(c.status);
-  const steps=['AGUARDANDO_ENCAIXE','AGUARDANDO_APROVACAO','DEFINIR_CORES','DESCANSAR_TECIDO','TECIDO_DESCANSADO','NO_CORTE','AG_FOTO','EMBALAR','PRONTO_RETIRADA'];
+  const steps=['AGUARDANDO_ENCAIXE','AGUARDANDO_APROVACAO','DEFINIR_CORES','DESCANSAR_TECIDO','TECIDO_DESCANSADO','NO_CORTE','AG_FOTO','SEPARAR_ENVIO','EMBALAR','PRONTO_RETIRADA'];
   const iStep=steps.indexOf(c.status);
   document.getElementById('det-c').innerHTML=`
     <div class="mhd">
@@ -1290,6 +1316,15 @@ function openDet(id){
     ${c.encM?`<div class="df"><span class="dk">Encaixe</span><span class="dv">${c.encM}m</span></div>`:''}
     ${c.encPct?`<div class="df"><span class="dk">Aproveitamento</span><span class="dv">${c.encPct}%</span></div>`:''}
     ${c.numCorte?`<div class="df"><span class="dk">Nº corte</span><span class="dv">${c.numCorte}</span></div>`:''}
+    ${c.cores?.length?`<div style="margin-top:8px"><div class="sl">Cores e estimativa de peças</div>${(()=>{
+      const enc=parseFloat(c.encM)||0;
+      const sizes=(c.grade||'').split(' ').filter(Boolean);
+      const folhas=enc&&c.rolo?Math.floor(parseFloat(c.rolo)/enc):0;
+      return c.cores.map(x=>{
+        const pecas=folhas?folhas*sizes.length:null;
+        return`<div class="df"><span class="dk">${x.cor} · ${x.qtd} rolo(s)</span><span class="dv">${pecas?'~'+pecas+' pç':''}</span></div>`;
+      }).join('');
+    })()}</div>`:''}
     ${c.obs?`<div class="obs-box">Obs: ${c.obs}</div>`:''}
     ${c.encObs?`<div class="obs-box obs-bl">Obs. Edvaldo: ${c.encObs}</div>`:''}
     ${c.carolObs?`<div class="obs-box" style="background:var(--b6);color:var(--c6)">Obs. Carol: ${c.carolObs}</div>`:''}
@@ -1304,9 +1339,7 @@ function openDet(id){
       ${(user==='taty'||user==='daimartha')&&c.status==='NO_CORTE'?`
         <button class="abtn" style="background:var(--b2);color:var(--c2)" onclick="cl('ov-det');marcarChegada('${c.id}','reposicao')">📦 Reposição — separar envio</button>
         <button class="abtn" style="background:var(--b6);color:var(--c6)" onclick="cl('ov-det');marcarChegada('${c.id}','novidade')">✨ Novidade — avisar Carol</button>`:''}
-      ${(['gerente','taty','carol'].includes(user))&&c.status==='AGUARDANDO_GI'?`
-        <button class="abtn" style="background:var(--b3);color:var(--c3)" onclick="cl('ov-det');aprovarEnvio('${c.id}')">✔ Sim, enviar para loja</button>
-        <button class="abtn abtn-danger" onclick="cl('ov-det');giArquivar('${c.id}')">✕ Não precisamos — arquivar</button>`:''}
+      ${(['gerente','taty','carol'].includes(user))&&c.status==='AGUARDANDO_GI'?`<div style='display:flex;flex-direction:column;gap:7px'><button class="abtn" style="background:var(--b3);color:var(--c3)" onclick="cl('ov-det');aprovarEnvio('${c.id}')">✔ Sim, enviar para loja</button><button class="abtn abtn-danger" onclick="cl('ov-det');giArquivar('${c.id}')">✕ Não precisamos — arquivar</button></div>`:''}
       ${user==='daimartha'&&c.status==='EMBALAR'?`<button class="abtn" style="background:var(--b3);color:var(--c3)" onclick="cl('ov-det');transmissaoMire('${c.id}')">✔ Transmissão Miré feita</button>`:''}
       ${user==='gerente'&&c.status==='PRONTO_RETIRADA'?`<button class="abtn" style="background:var(--b3);color:var(--c3)" onclick="cl('ov-det');arquivar('${c.id}')">✔ Recebido — arquivar</button>`:''}
       ${cfg.wedv&&c.status==='AGUARDANDO_ENCAIXE'?`<a href="https://wa.me/${cfg.wedv}?text=${encodeURIComponent('📐 Azpex\n*'+c.id+' — '+c.nome+'*\nRef: '+c.ref+'\nAguarda encaixe.\nTecido: '+c.tec+' · Grade: '+c.grade+(c.urg?'\n⚡ URGENTE':''))}" target="_blank" style="text-decoration:none"><button class="abtn abtn-wpp">📱 Avisar Edvaldo</button></a>`:''}
@@ -1315,15 +1348,46 @@ function openDet(id){
   op('ov-det');
 }
 
+async function marcarImpresso(id){
+  const c=cortes.find(x=>x.id===id);
+  if(!c)return;
+  c.impresso=c.impresso==='sim'?'nao':'sim';
+  sl();render();
+  toast(c.impresso==='sim'?'✔ Marcado como impresso':'Desmarcado','s');
+  await push(c._row,[['IMPRESSO',c.impresso]]);
+}
+
+async function arquivar(id){
+  const c=cortes.find(x=>x.id===id);
+  if(!c)return;
+  c.status='ARQUIVADO';
+  sl();cl('ov-det');render();
+  toast('Recebido e arquivado!','s');
+  await push(c._row,[['STATUS','ARQUIVADO']]);
+}
+
+async function deletarCorte(id){
+  if(!confirm('Tem certeza que quer deletar este corte? Esta ação não pode ser desfeita.'))return;
+  const c=cortes.find(x=>x.id===id);
+  if(!c)return;
+  cortes=cortes.filter(x=>x.id!==id);
+  sl();cl('ov-det');render();
+  toast('Corte deletado.','i');
+  // Delete from sheets - set status to DELETADO so it won't appear on sync
+  if(c._row)await push(c._row,[['STATUS','DELETADO'],['NOME','[DELETADO] '+c.nome]]);
+}
+
 // NOVO CORTE
 function autoFillRolo(){
   const tec=(document.getElementById('f-tec')?.value||'').toLowerCase();
   const roloEl=document.getElementById('f-rolo');
   if(!roloEl||roloEl.value)return;
-  if(tec.includes('montaria'))roloEl.value='30';
+  const is30=tec==='montaria'||tec==='montaria light'||tec==='canelado montaria'||tec==='montaria pes'||tec.includes('montaria');
+  if(is30)roloEl.value='30';
   else if(tec.includes('jeans'))roloEl.value='35';
   calcPreview();
 }
+
 function openNovo(){
   editId=null;
   document.getElementById('form-ti').textContent='Novo corte';
@@ -1369,19 +1433,11 @@ async function salvarCorte(){
   };
   if(editId){
     const idx=cortes.findIndex(x=>x.id===editId);
-    if(idx>-1){
-      const o=cortes[idx];
-      ['status','encM','encPct','encObs','cores','checksDesc','numCorte','dataDesc','tipo','carolObs','fotoLocal','_row'].forEach(k=>{obj[k]=o[k];});
-      cortes[idx]=obj;
-    }
+    if(idx>-1){const o=cortes[idx];['status','encM','encPct','encObs','cores','checksDesc','numCorte','dataDesc','tipo','carolObs','fotoLocal','_row'].forEach(k=>{obj[k]=o[k];});cortes[idx]=obj;}
   }else cortes.unshift(obj);
   sl();cl('ov-novo');render();toast(editId?'✏️ Atualizado!':'✅ Criado!','s');
-  if(!editId){
-    const r=await pushNew({REF:obj.ref,NOME:obj.nome,DATA_ENTRADA:dout(obj.data).replace(/—/,''),TECIDO:obj.tec,TINTURARIA:obj.tin,GRADE:obj.grade,RETALHO:obj.ret,OBS:obj.obs,ROLO:obj.rolo,URGENTE:obj.urg?'sim':'nao'});
-    if(r?.ok)setTimeout(()=>syncAll(true),800);
-  }else{
-    await push(obj._row,[['TECIDO',obj.tec],['TINTURARIA',obj.tin],['GRADE',obj.grade],['RETALHO',obj.ret],['OBS',obj.obs],['ROLO',obj.rolo],['URGENTE',obj.urg?'sim':'nao']]);
-  }
+  if(!editId){const r=await pushNew({REF:obj.ref,NOME:obj.nome,DATA_ENTRADA:dout(obj.data).replace(/—/,''),TECIDO:obj.tec,TINTURARIA:obj.tin,GRADE:obj.grade,RETALHO:obj.ret,OBS:obj.obs,ROLO:obj.rolo,URGENTE:obj.urg?'sim':'nao'});if(r?.ok)setTimeout(()=>syncAll(true),800);}
+  else await push(obj._row,[['TECIDO',obj.tec],['TINTURARIA',obj.tin],['GRADE',obj.grade],['RETALHO',obj.ret],['OBS',obj.obs],['ROLO',obj.rolo],['URGENTE',obj.urg?'sim':'nao']]);
 }
 
 // CORES
@@ -1390,6 +1446,11 @@ function openCores(id){
   const enc=parseFloat(c.encM)||0;
   const sizes=(c.grade||'').split(' ').filter(Boolean);
   const rolo=parseFloat(c.rolo)||0;
+  let estimaInfo='';
+  if(enc&&rolo&&sizes.length){
+    const folhas=Math.floor(rolo/enc);
+    estimaInfo=` · ${folhas} folhas · ~${folhas*sizes.length} pç total`;
+  }
   let estimaHTML='';
   if(enc&&rolo&&sizes.length){
     const folhas=Math.floor(rolo/enc);
@@ -1404,21 +1465,26 @@ function openCores(id){
     <strong>${c.nome}</strong> · Grade: ${c.grade||'—'}<br>
     <span style="font-size:.78rem;color:var(--mt)">Encaixe: ${c.encM||'—'}m · Aproveit.: ${c.encPct||'—'}%</span>
     ${c.encObs?`<div style="font-size:.74rem;color:var(--c2);margin-top:3px">Obs: ${c.encObs}</div>`:''}
-    ${estimaHTML}`;
+    ${estimaHTML}
+    <div style="font-size:.74rem;color:var(--mt);margin-top:4px">Insira a cor e quantos rolos. A estimativa por cor aparece automaticamente.</div>`;
   const list=document.getElementById('cores-list');list.innerHTML='';
   if(c.cores?.length)c.cores.forEach(x=>addCor(x.cor,x.qtd));else addCor();
+  // WhatsApp buttons
   const wppDiv=document.getElementById('cores-wpp-btns');
-  if(wppDiv&&cfg.wros){
-    const msg=encodeURIComponent('✂️ Azpex\n*'+c.nome+'*\nGrade: '+c.grade+(c.numCorte?' · Corte: '+c.numCorte:'')+'\nCores para descansar serão definidas agora.');
-    wppDiv.innerHTML=`<a href="https://wa.me/${cfg.wros}?text=${msg}" target="_blank" style="text-decoration:none"><button class="abtn abtn-wpp" style="width:100%;padding:8px;border-radius:8px">📱 Avisar Rosana</button></a>`;
-  }else if(wppDiv){wppDiv.innerHTML='';}
+  if(wppDiv){
+    const msgs=[];
+    if(cfg.wros){
+      const msg=encodeURIComponent('✂️ Azpex\n*'+c.nome+'*\nGrade: '+c.grade+(c.numCorte?' · Corte: '+c.numCorte:'')+'\nCores para descansar serão definidas agora.');
+      msgs.push(`<a href="https://wa.me/${cfg.wros}?text=${msg}" target="_blank" style="text-decoration:none"><button class="abtn abtn-wpp" style="width:100%;padding:8px;border-radius:8px">📱 Avisar Rosana</button></a>`);
+    }
+    wppDiv.innerHTML=msgs.join('');
+  }
   op('ov-cores');
 }
 function addCor(cor='',qtd=''){
   corCount++;
   const n=corCount;
-  const div=document.createElement('div');
-  div.className='cor-row';div.id='cor-'+n;
+  const div=document.createElement('div');div.className='cor-row';div.id='cor-'+n;
   div.style.cssText='display:flex;gap:7px;align-items:center;margin-bottom:6px;flex-wrap:wrap';
   div.innerHTML=`
     <input class="cor-i" placeholder="Nome da cor" value="${cor}" style="flex:2;min-width:100px">
@@ -1428,12 +1494,15 @@ function addCor(cor='',qtd=''){
   document.getElementById('cores-list').appendChild(div);
   if(qtd)updateCorEstima(n);
 }
+
 function updateCorEstima(n){
-  const c=cortes.find(x=>x.id===coresId);if(!c)return;
+  const c=cortes.find(x=>x.id===coresId);
+  if(!c)return;
   const enc=parseFloat(c.encM)||0;
   const sizes=(c.grade||'').split(' ').filter(Boolean);
   const rolos=parseFloat(document.getElementById('qtd-'+n)?.value)||0;
-  const el=document.getElementById('estima-'+n);if(!el)return;
+  const el=document.getElementById('estima-'+n);
+  if(!el)return;
   if(enc&&sizes.length&&rolos){
     const folhas=Math.floor((parseFloat(c.rolo)||30)/enc);
     el.textContent='~'+(folhas*sizes.length*rolos)+' pç';
@@ -1453,16 +1522,19 @@ function renderPedidos(){
   const isLoja=['vendA','vendB','vendC','gerente'].includes(user);
   let list=[...pedidos].sort((a,b)=>b.ts-a.ts);
   const q=(document.getElementById('srch')?.value||'').toLowerCase();
-  if(q)list=list.filter(p=>(p.cod+p.nome+(p.cor||'')).toLowerCase().includes(q));
-  if(['vendA','vendB','vendC'].includes(user)&&filtro==='todos')list=list.filter(p=>p.autor===user);
+  if(q)list=list.filter(p=>(p.cod+p.nome+p.cor).toLowerCase().includes(q));
   if(filtro==='minha'){
     if(['vendA','vendB','vendC'].includes(user))list=list.filter(p=>p.autor===user);
     if(user==='estoque'||user==='taty'||user==='daimartha')list=list.filter(p=>p.status==='PENDENTE'||p.status==='APROVADO'||p.status==='PARCIAL');
     if(user==='gerente')list=list.filter(p=>p.status!=='ARQUIVADO');
   }
+  if(['vendA','vendB','vendC'].includes(user)&&filtro==='todos')list=list.filter(p=>p.autor===user);
+  if(filtro==='pendente')list=list.filter(p=>p.status==='PENDENTE');
+
   const canResp=user==='estoque'||user==='taty'||user==='daimartha'||user==='carol';
   const canTransf=user==='daimartha';
   const canRec=user==='gerente';
+
   document.getElementById('main-content').innerHTML=`<div style="padding:0 16px 28px">${list.length?list.map(p=>{
     const info=psi(p.status);
     return`<div class="pcard" onclick="openDetPedido('${p.id}')">
@@ -1471,7 +1543,7 @@ function renderPedidos(){
         <span class="sbadge" style="background:${info.b};color:${info.c}">${info.l}</span>
       </div>
       <div style="font-weight:600;font-size:.88rem;margin-bottom:4px">${p.nome}</div>
-      <div style="font-size:.78rem;color:var(--mt);margin-bottom:6px">${UNAMES[p.autor]||p.autor}</div>
+      <div style="font-size:.78rem;color:var(--mt);margin-bottom:6px">Cor: <strong>${p.cor}</strong> · ${UNAMES[p.autor]||p.autor}</div>
       <div style="margin-top:4px;font-size:.77rem;color:var(--mt)">
         ${(p.cores||[]).map(x=>`<div style="margin-bottom:2px"><strong style="color:var(--tx)">${x.cor}</strong> — ${Object.entries(x.qtds||{}).map(([t,q])=>`${t}:${q}`).join(' · ')}</div>`).join('')}
       </div>
@@ -1493,10 +1565,14 @@ function openNovoPedido(){
   pedCorCount=1;pedGradeSizes=[];
   op('ov-pedido');
 }
+let pedCorCount=0;
+let pedGradeSizes=[];
 
 function buildPedidoTabela(){
   const grade=document.getElementById('p-grade-sel').value;
   pedGradeSizes=grade.split(' ').filter(Boolean);
+  const area=document.getElementById('p-tabela-area');
+  if(!pedGradeSizes.length){area.innerHTML='';return;}
   pedCorCount=1;
   renderPedidoTabela();
 }
@@ -1504,6 +1580,7 @@ function buildPedidoTabela(){
 function renderPedidoTabela(){
   const area=document.getElementById('p-tabela-area');
   if(!pedGradeSizes.length){area.innerHTML='';return;}
+  // Build table
   let rows='';
   for(let i=1;i<=pedCorCount;i++){
     rows+=`<tr>
@@ -1516,37 +1593,28 @@ function renderPedidoTabela(){
     <div class="sl">Quantidades por cor e tamanho</div>
     <div style="overflow-x:auto">
       <table style="width:100%;border-collapse:collapse;min-width:300px">
-        <thead><tr>
-          <th style="padding:5px;text-align:left;font-size:.65rem;text-transform:uppercase;letter-spacing:.6px;color:var(--mt);font-weight:500">Cor</th>
-          ${pedGradeSizes.map(s=>`<th style="padding:5px;text-align:center;font-size:.65rem;font-family:'DM Mono',monospace;color:var(--mt)">${s}</th>`).join('')}
-          <th></th>
-        </tr></thead>
-        <tbody>${rows}</tbody>
+        <thead>
+          <tr>
+            <th style="padding:5px 5px;text-align:left;font-size:.65rem;text-transform:uppercase;letter-spacing:.6px;color:var(--mt);font-weight:500;white-space:nowrap">Cor</th>
+            ${pedGradeSizes.map(s=>`<th style="padding:5px 5px;text-align:center;font-size:.65rem;text-transform:uppercase;letter-spacing:.6px;color:var(--mt);font-weight:500;font-family:'DM Mono',monospace">${s}</th>`).join('')}
+            <th></th>
+          </tr>
+        </thead>
+        <tbody id="p-tabela-body">${rows}</tbody>
       </table>
     </div>
     <button onclick="addPedidoRow()" style="margin-top:8px;background:none;border:1px dashed var(--bd);border-radius:8px;color:var(--mt);padding:6px;width:100%;font-size:.76rem;cursor:pointer">+ Adicionar cor</button>`;
 }
 
 function addPedidoRow(){
-  // Save current values
-  const vals=[];
-  for(let r=1;r<=pedCorCount;r++){
-    const cor=document.getElementById('pcor-'+r)?.value||'';
-    const qtds={};
-    pedGradeSizes.forEach(s=>{qtds[s]=document.getElementById('pq-'+r+'-'+s)?.value||'';});
-    vals.push({cor,qtds});
-  }
   pedCorCount++;
   renderPedidoTabela();
-  vals.forEach((v,idx)=>{
-    const n=idx+1;
-    const el=document.getElementById('pcor-'+n);if(el)el.value=v.cor;
-    pedGradeSizes.forEach(s=>{const qel=document.getElementById('pq-'+n+'-'+s);if(qel)qel.value=v.qtds[s]||'';});
-  });
+  // Restore existing values
 }
 
 function removePedidoRow(i){
   if(pedCorCount<=1)return;
+  // Collect current values
   const vals=[];
   for(let r=1;r<=pedCorCount;r++){
     if(r===i)continue;
@@ -1557,23 +1625,32 @@ function removePedidoRow(i){
   }
   pedCorCount--;
   renderPedidoTabela();
+  // Restore values
   vals.forEach((v,idx)=>{
     const n=idx+1;
-    const el=document.getElementById('pcor-'+n);if(el)el.value=v.cor;
-    pedGradeSizes.forEach(s=>{const qel=document.getElementById('pq-'+n+'-'+s);if(qel)qel.value=v.qtds[s]||'';});
+    const el=document.getElementById('pcor-'+n);
+    if(el)el.value=v.cor;
+    pedGradeSizes.forEach(s=>{
+      const qel=document.getElementById('pq-'+n+'-'+s);
+      if(qel)qel.value=v.qtds[s]||'';
+    });
   });
 }
 
+function addPedidoCor(){}
+function buildPedidoGrade(){}
 function salvarPedido(){
   const cod=document.getElementById('p-cod').value.trim();
   const nome=document.getElementById('p-nome').value.trim();
   if(!cod||!nome){toast('Preencha código e nome','w');return;}
   if(!pedGradeSizes.length){toast('Selecione a grade','w');return;}
+  // Collect from table
   const coresList=[];
   for(let i=1;i<=pedCorCount;i++){
     const cor=document.getElementById('pcor-'+i)?.value.trim();
     if(!cor)continue;
-    const qtds={};let hasQtd=false;
+    const qtds={};
+    let hasQtd=false;
     pedGradeSizes.forEach(s=>{
       const v=document.getElementById('pq-'+i+'-'+s)?.value;
       if(v&&parseInt(v)>0){qtds[s]=v;hasQtd=true;}
@@ -1583,19 +1660,21 @@ function salvarPedido(){
   if(!coresList.length){toast('Preencha pelo menos uma cor com quantidade','w');return;}
   const p={
     id:'PED-'+String(pedidos.length+1).padStart(3,'0'),
-    ts:Date.now(),dataStr:new Date().toLocaleDateString('pt-BR'),
+    ts:Date.now(),
+    dataStr:new Date().toLocaleDateString('pt-BR'),
     cod,nome,grade:pedGradeSizes.join(' '),
-    cores:coresList,obs:document.getElementById('p-obs').value.trim(),
+    cores:coresList,
+    obs:document.getElementById('p-obs').value.trim(),
     autor:user,status:'PENDENTE',respObs:'',respCores:{},respondidoPor:'',
   };
   pedidos.unshift(p);sl();cl('ov-pedido');render();toast('Pedido enviado!','s');
+  // Save to sheets
   if(cfg.url){
     apip({action:'adicionarPedido',pedido:{autor:p.autor,cod:p.cod,nome:p.nome,grade:p.grade,cores:p.cores,obs:p.obs}})
       .then(r=>{if(r?.ok)setTimeout(()=>syncAll(true),800);})
       .catch(e=>console.error(e));
   }
 }
-
 function openDetPedido(id){
   const p=pedidos.find(x=>x.id===id);if(!p)return;
   const info=psi(p.status);
@@ -1609,7 +1688,7 @@ function openDetPedido(id){
       <span style="background:${info.b};color:${info.c};font-size:.7rem;padding:3px 8px;border-radius:20px;font-weight:500">${info.l}</span>
     </div>
     <div class="df"><span class="dk">Código</span><span class="dv">${p.cod}</span></div>
-    <div class="df"><span class="dk">Grade</span><span class="dv">${p.grade||'—'}</span></div>
+    <div class="df"><span class="dk">Cor</span><span class="dv">${p.cor}</span></div>
     <div class="df"><span class="dk">Data</span><span class="dv">${p.dataStr}</span></div>
     <div class="df"><span class="dk">Solicitado por</span><span class="dv">${UNAMES[p.autor]||p.autor}</span></div>
     ${p.respondidoPor?`<div class="df"><span class="dk">Respondido por</span><span class="dv">${UNAMES[p.respondidoPor]||p.respondidoPor}</span></div>`:''}
@@ -1628,11 +1707,10 @@ function openDetPedido(id){
     </div>`;
   op('ov-det');
 }
-
 function openResp(id){
   const p=pedidos.find(x=>x.id===id);respId=id;
   document.getElementById('resp-ti').textContent=`${p.cod} — ${p.nome}`;
-  document.getElementById('resp-info').textContent=`${UNAMES[p.autor]||p.autor} · Grade: ${p.grade}`;
+  document.getElementById('resp-info').textContent=`Cor: ${p.cor} · ${UNAMES[p.autor]}`;
   document.getElementById('resp-obs').value='';
   const sizes2=(p.grade||'').split(' ').filter(Boolean);
   document.getElementById('resp-grades').innerHTML=`
@@ -1640,7 +1718,7 @@ function openResp(id){
       <table style="width:100%;border-collapse:collapse">
         <thead><tr>
           <th style="padding:5px;text-align:left;font-size:.63rem;text-transform:uppercase;letter-spacing:.5px;color:var(--mt);font-weight:500">Cor</th>
-          ${sizes2.map(s=>`<th style="padding:5px;text-align:center;font-size:.63rem;font-family:'DM Mono',monospace;color:var(--mt)">${s}<br><span style="font-size:.58rem">ped/enc</span></th>`).join('')}
+          ${sizes2.map(s=>`<th style="padding:5px;text-align:center;font-size:.63rem;font-family:'DM Mono',monospace;color:var(--mt)">${s}<br><span style="font-size:.58rem">ped / enc</span></th>`).join('')}
         </tr></thead>
         <tbody>
           ${(p.cores||[]).map(x=>`<tr>
@@ -1655,7 +1733,6 @@ function openResp(id){
     </div>`;
   op('ov-resp');
 }
-
 function responderPedido(tipo){
   const p=pedidos.find(x=>x.id===respId);
   const rc={};
@@ -1700,28 +1777,19 @@ function savePins(){
   Object.entries(map).forEach(([k,u])=>{const v=document.getElementById('cfg-'+k)?.value.trim();if(v&&v.length===4)localStorage.setItem('az_pin_'+u,v);});
   toast('PINs salvos!','s');
 }
-function saveGrades(){
-  cfg.customGrades=document.getElementById('cfg-grades').value.trim();
-  localStorage.setItem('az_cfg',JSON.stringify(cfg));populateSels();toast('Grades atualizadas!','s');
-}
+function saveGrades(){cfg.customGrades=document.getElementById('cfg-grades').value.trim();localStorage.setItem('az_cfg',JSON.stringify(cfg));populateSels();toast('Grades atualizadas!','s');}
 
 // ── UTILS ──
 function op(id){document.getElementById(id)?.classList.add('open');}
 function cl(id){document.getElementById(id)?.classList.remove('open');}
-function toast(msg,type='i'){
-  const c=document.getElementById('toasts');
-  const t=document.createElement('div');
-  t.className=`toast ${type}`;
-  t.textContent=msg;
-  c.appendChild(t);
-  setTimeout(()=>t.remove(),3500);
-}
+function toast(msg,type='i'){const c=document.getElementById('toasts');const t=document.createElement('div');t.className=`toast ${type}`;t.textContent=msg;c.appendChild(t);setTimeout(()=>t.remove(),3500);}
+['ov-novo','ov-det','ov-cores','ov-pedido','ov-resp','ov-cfg','ov-decisao','ov-envio'].forEach(id=>{document.getElementById(id)?.addEventListener('click',e=>{if(e.target===e.currentTarget)cl(id);});});
 
-// Close overlays on backdrop click
-['ov-novo','ov-det','ov-cores','ov-pedido','ov-resp','ov-cfg'].forEach(id=>{
-  const el=document.getElementById(id);
-  if(el)el.addEventListener('click',e=>{if(e.target===e.currentTarget)cl(id);});
-});
+// Fix novo button for initial state - will be overridden by initApp
+// btn-novo onclick set in initApp
+
+// Fix novo button for initial state - will be overridden by initApp
+// btn-novo onclick set in initApp
 </script>
 </body>
 </html>
