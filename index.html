@@ -708,7 +708,7 @@ async function syncAll(silent){
         grade:str(r.GRADE),ret:str(r.RETALHO),obs:str(r.OBS),
         urg:str(r.URGENTE).toLowerCase()==='sim',
         rolo:parseFloat(r.ROLO)||0,
-        encM:str(r.ENCAIXE_M),encPct:str(r.RENDIMENTO)||str(r['RENDIMENTO_%']),encObs:str(r.OBS_CAD),
+        encM:strNum(r.ENCAIXE_M),encPct:strNum(r.RENDIMENTO)||strNum(r['RENDIMENTO_%']),encObs:str(r.OBS_CAD),
         cores:parseCores(str(r.CORES)),
         checksDesc:parseChecks(str(r.CHECKS_DESC)),
         numCorte:str(r.NUM_CORTE),dataDesc:str(r.DATA_DESCANSO),impresso:str(r.IMPRESSO)||'',
@@ -758,6 +758,19 @@ function str(v){
   if(v===null||v===undefined)return'';
   const s=v.toString().trim();
   if(s.match(/^\d{4}-\d{2}-\d{2}T/))return'';
+  if(s==='nan'||s==='NaN'||s==='undefined')return'';
+  return s;
+}
+
+function strNum(v){
+  // Like str() but also rejects date-like numbers
+  if(v===null||v===undefined)return'';
+  const s=v.toString().trim();
+  if(s.match(/^\d{4}-\d{2}-\d{2}/))return''; // date format
+  if(s==='nan'||s==='NaN')return'';
+  // If it's a huge number that looks like a date serial, reject
+  const n=parseFloat(s);
+  if(!isNaN(n)&&n>40000&&n<50000)return''; // Excel date serial range
   return s;
 }
 function parseCores(s){if(!s)return[];return s.split(',').map(x=>{const p=x.trim().split(':');return{cor:p[0]?.trim()||'',qtd:p[1]?.trim()||'1'};}).filter(c=>c.cor);}
@@ -941,6 +954,7 @@ function cardBase(c){
     ${(c.obs||c.encObs)?`<div style="font-size:.73rem;color:#8B4513;background:#FFF3CD;border-radius:5px;padding:3px 7px;margin-bottom:5px;line-height:1.3">⚠ ${[c.obs,c.encObs].filter(Boolean).join(' · ')}</div>`:''}
     <div class="ctags">
       ${c.tec?`<span class="tag tg">${c.tec}</span>`:''}
+      ${c.tin?`<span style="font-size:.72rem;padding:2px 7px;border-radius:20px;background:#F1EFE8;color:#5F5E5A">${c.tin}</span>`:''}
       ${c.grade?`<span style="font-size:.78rem;padding:3px 9px;border-radius:20px;font-family:'DM Mono',monospace;background:#E1F5EE;color:#085041;font-weight:600">${c.grade}</span>`:''}
       ${c.numCorte?`<span style="font-size:.78rem;padding:3px 9px;border-radius:20px;font-family:'DM Mono',monospace;background:var(--b3);color:var(--c3);font-weight:600">OP: ${c.numCorte}</span>`:''}
       ${total?`<span class="tag" style="background:var(--al);color:var(--ac)">~${total} pç</span>`:''}
@@ -970,10 +984,11 @@ function cardEdvaldoInfo(c){
     <div class="cnome">${c.nome}</div>
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:4px;margin:6px 0;font-size:.76rem">
       <div><span style="color:var(--mt)">Tecido: </span><strong>${c.tec||'—'}</strong></div>
+      <div><span style="color:var(--mt)">Fornecedor: </span><strong>${c.tin||'—'}</strong></div>
       <div><span style="color:var(--mt)">Grade: </span><strong>${c.grade||'—'}</strong></div>
+      <div><span style="color:var(--mt)">Retalho: </span><strong>${c.ret||'—'}</strong></div>
       <div><span style="color:var(--mt)">Encaixe: </span><strong>${c.encM?c.encM+'m':'—'}</strong></div>
       <div><span style="color:var(--mt)">Aproveit.: </span><strong>${c.encPct?c.encPct+'%':'—'}</strong></div>
-      <div><span style="color:var(--mt)">Retalho: </span><strong>${c.ret||'—'}</strong></div>
     </div>
     ${c.obs?`<div style="font-size:.73rem;color:#8B4513;background:#FFF3CD;border-radius:5px;padding:3px 7px;margin-bottom:5px">⚠ ${c.obs}</div>`:''}
     <button onclick="event.stopPropagation();marcarImpresso('${c.id}')"
@@ -1422,6 +1437,18 @@ function openEditar(id){
   document.getElementById('f-rolo').value=c.rolo||'';
   document.getElementById('f-urg').value=c.urg?'sim':'nao';
   document.getElementById('calc-preview').innerHTML='';
+  // Pre-select grade in dropdown
+  const gsel=document.getElementById('f-grade');
+  if(gsel){
+    let found=false;
+    for(let i=0;i<gsel.options.length;i++){
+      if(gsel.options[i].value===c.grade){gsel.selectedIndex=i;found=true;break;}
+    }
+    if(!found&&c.grade){
+      const opt=document.createElement('option');opt.value=c.grade;opt.text=c.grade;
+      gsel.appendChild(opt);gsel.value=c.grade;
+    }
+  }
   op('ov-novo');
 }
 function setHoje(){document.getElementById('f-data').value=new Date().toISOString().split('T')[0];}
@@ -1442,7 +1469,13 @@ async function salvarCorte(){
   };
   if(editId){
     const idx=cortes.findIndex(x=>x.id===editId);
-    if(idx>-1){const o=cortes[idx];['status','encM','encPct','encObs','cores','checksDesc','numCorte','dataDesc','tipo','carolObs','fotoLocal','_row'].forEach(k=>{obj[k]=o[k];});cortes[idx]=obj;}
+    if(idx>-1){
+      const o=cortes[idx];
+      // Preserve all fields that are not in the edit form
+      ['status','encM','encPct','encObs','cores','checksDesc','numCorte','dataDesc',
+       'tipo','carolObs','giObs','fotoLocal','impresso','_row'].forEach(k=>{obj[k]=o[k];});
+      cortes[idx]=obj;
+    }
   }else cortes.unshift(obj);
   sl();cl('ov-novo');render();toast(editId?'✏️ Atualizado!':'✅ Criado!','s');
   if(!editId){const r=await pushNew({REF:obj.ref,NOME:obj.nome,DATA_ENTRADA:dout(obj.data).replace(/—/,''),TECIDO:obj.tec,TINTURARIA:obj.tin,GRADE:obj.grade,RETALHO:obj.ret,OBS:obj.obs,ROLO:obj.rolo,URGENTE:obj.urg?'sim':'nao'});if(r?.ok)setTimeout(()=>syncAll(true),800);}
