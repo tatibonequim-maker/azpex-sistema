@@ -683,7 +683,7 @@ async function push(row,campos){
   if(!cfg.url||!row)return;
   try{
     await apip({action:'atualizarCampos',row,campos});
-    setTimeout(()=>{if(cfg.url)syncAll(true);},1500);
+    setTimeout(()=>{if(cfg.url)syncAll(true);},3000);
   }catch(e){console.error('push error:',e);}
 }
 async function push2(row,campos){
@@ -1173,16 +1173,27 @@ async function salvarEncaixe(id){
   const pct=document.getElementById('ep-'+id)?.value;
   if(!m||!pct){toast('Preencha comprimento e aproveitamento','w');return;}
   const c=cortes.find(x=>x.id===id);
+  if(!c)return;
   c.encM=m;c.encPct=pct;c.encObs=document.getElementById('eo-'+id)?.value.trim()||'';
   if(user==='taty'){
-    // Taty fills AND approves in one step
     c.status='DEFINIR_CORES';
-    sl();render();toast('Encaixe salvo e aprovado! Defina as cores.','s');
-    await push(c._row,[['ENCAIXE_M',m],['RENDIMENTO',pct],['OBS_CAD',c.encObs],['STATUS','DEFINIR_CORES']]);
+    sl();render();
+    toast('Salvando...','i');
+    if(c._row){
+      await apip({action:'atualizarCampos',row:c._row,campos:[['ENCAIXE_M',m],['RENDIMENTO',pct],['OBS_CAD',c.encObs],['STATUS','DEFINIR_CORES']]});
+      toast('Encaixe salvo! Defina as cores.','s');
+      setTimeout(()=>syncAll(true),2000);
+    } else {
+      toast('Encaixe salvo localmente (sem conexão com planilha)','s');
+    }
   } else {
     c.status='AGUARDANDO_APROVACAO';
-    sl();render();toast('Encaixe enviado para aprovação!','s');
-    await push(c._row,[['ENCAIXE_M',m],['RENDIMENTO',pct],['OBS_CAD',c.encObs],['STATUS','AGUARDANDO_APROVACAO']]);
+    sl();render();
+    toast('Encaixe enviado para aprovação!','s');
+    if(c._row){
+      await apip({action:'atualizarCampos',row:c._row,campos:[['ENCAIXE_M',m],['RENDIMENTO',pct],['OBS_CAD',c.encObs],['STATUS','AGUARDANDO_APROVACAO']]});
+      setTimeout(()=>syncAll(true),2000);
+    }
   }
 }
 
