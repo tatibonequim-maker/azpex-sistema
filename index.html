@@ -942,7 +942,7 @@ function cardBase(c){
   const total=(user==='taty'||user==='carol')&&calcTotalPecas(c);
   const canGi=['gerente','taty','carol'].includes(user)&&c.status==='AGUARDANDO_GI';
   const canDM=user==='daimartha'&&c.status==='EMBALAR';
-  return`<div class="card" onclick="${canCores?`openCores('${c.id}')`:`openDet('${c.id}')`}">
+  return`<div class="card" onclick="event.stopPropagation();${canCores?`openCores('${c.id}')`:`openDet('${c.id}')`}">
     <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:3px">
       <div>
         ${c.ref?`<div style="font-family:'DM Mono',monospace;font-size:.88rem;font-weight:600;color:var(--ac)">${c.ref}</div>`:''}
@@ -1484,7 +1484,9 @@ async function salvarCorte(){
 
 // CORES
 function openCores(id){
-  const c=cortes.find(x=>x.id===id);coresId=id;corCount=0;
+  coresId=id;corCount=0;
+  const c=cortes.find(x=>x.id===id);
+  if(!c){console.error('openCores: corte nao encontrado',id);return;}
   const enc=parseFloat(c.encM)||0;
   const sizes=(c.grade||'').split(' ').filter(Boolean);
   const rolo=parseFloat(c.rolo)||0;
