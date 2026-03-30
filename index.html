@@ -1,255 +1,470 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Azpex · Bonequim</title>
-    <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Syne:wght@700;800&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
-    <style>
-        :root {
-            --bg: #f5f4f0; --sf: #fff; --s2: #f8f7f3; --bd: #e0dfd8; --bd2: #cccbc4;
-            --tx: #1a1a1a; --mt: #888780; --ac: #0C4D53; --al: #E1F5EE; --wpp: #25D366;
-            --c1: #EF9F27; --b1: #FAEEDA; --c2: #378ADD; --b2: #E6F1FB;
-            --c3: #1D9E75; --b3: #E1F5EE; --c4: #E24B4A; --b4: #FCEBEB;
-            --c5: #7B5EA7; --b5: #EEEDFE; --c6: #D4537E; --b6: #FBEAF0;
-        }
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Azpex · Bonequim</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Syne:wght@700;800&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#f5f4f0;--sf:#fff;--s2:#f8f7f3;--bd:#e0dfd8;--bd2:#cccbc4;
+  --tx:#1a1a1a;--mt:#888780;--ac:#0C4D53;--al:#E1F5EE;--wpp:#25D366;
+  --c1:#EF9F27;--b1:#FAEEDA;--c2:#378ADD;--b2:#E6F1FB;
+  --c3:#1D9E75;--b3:#E1F5EE;--c4:#E24B4A;--b4:#FCEBEB;
+  --c5:#7B5EA7;--b5:#EEEDFE;--c6:#D4537E;--b6:#FBEAF0;
+  --c7:#0C4D53;--b7:#E1F5EE;--c8:#B8860B;--b8:#FFF8DC;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--bg);color:var(--tx);font-family:'DM Sans',sans-serif;min-height:100vh}
+input,select,textarea,button{font-family:'DM Sans',sans-serif}
 
-        * { box-sizing: border-box; margin: 0; padding: 0; }
-        body { background: var(--bg); color: var(--tx); font-family: 'DM Sans', sans-serif; min-height: 100vh; overflow-x: hidden; }
+/* ── PORTAL ── */
+.portal{position:fixed;inset:0;background:var(--bg);z-index:600;display:flex;align-items:center;justify-content:center;padding:20px}
+.portal-box{width:100%;max-width:360px;text-align:center}
+.portal-logo{font-family:'Syne',sans-serif;font-size:1.4rem;font-weight:800;color:var(--ac);margin-bottom:4px}
+.portal-sub{font-size:.82rem;color:var(--mt);margin-bottom:32px}
+.portal-btns{display:flex;flex-direction:column;gap:12px}
+.portal-btn{padding:18px;border-radius:14px;border:.5px solid var(--bd);background:var(--sf);cursor:pointer;text-align:left;display:flex;align-items:center;gap:14px;transition:all .18s}
+.portal-btn:hover{border-color:var(--ac);background:var(--al)}
+.portal-icon{width:46px;height:46px;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:1.3rem;flex-shrink:0}
+.portal-label{font-family:'Syne',sans-serif;font-size:1rem;font-weight:700}
+.portal-desc{font-size:.76rem;color:var(--mt);margin-top:2px}
 
-        /* --- PORTAL & LOGIN --- */
-        .portal, .login { position: fixed; inset: 0; background: var(--bg); z-index: 600; display: flex; align-items: center; justify-content: center; padding: 20px; }
-        .lbox { background: var(--sf); border: .5px solid var(--bd); border-radius: 16px; padding: 24px 20px; width: 100%; max-width: 340px; text-align: center; box-shadow: 0 10px 25px rgba(0,0,0,0.05); }
-        .portal-logo { font-family: 'Syne', sans-serif; font-size: 1.5rem; font-weight: 800; color: var(--ac); margin-bottom: 20px; }
-        .portal-btn { width: 100%; padding: 16px; border-radius: 12px; border: .5px solid var(--bd); background: var(--sf); cursor: pointer; display: flex; align-items: center; gap: 12px; margin-bottom: 10px; transition: 0.2s; }
-        .portal-btn:hover { border-color: var(--ac); background: var(--al); }
-        
-        .pin-area { display: none; flex-direction: column; align-items: center; gap: 10px; }
-        .pdots { display: flex; gap: 12px; margin: 10px 0; }
-        .pdot { width: 14px; height: 14px; border-radius: 50%; border: 1.5px solid var(--bd); }
-        .pdot.on { background: var(--ac); border-color: var(--ac); }
-        .ppad { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; width: 100%; }
-        .pk { padding: 15px; border-radius: 10px; border: none; background: var(--s2); font-size: 1.2rem; font-weight: 600; cursor: pointer; }
-        .pk:active { background: var(--bd); }
+/* ── LOGIN ── */
+.login{position:fixed;inset:0;background:var(--bg);z-index:500;display:none;align-items:center;justify-content:center;padding:20px}
+.login.open{display:flex}
+.lbox{background:var(--sf);border:.5px solid var(--bd);border-radius:16px;padding:24px 20px;width:100%;max-width:320px;text-align:center}
+.llogo{font-family:'Syne',sans-serif;font-size:1rem;font-weight:800;color:var(--ac);margin-bottom:4px}
+.lsub{font-size:.79rem;color:var(--mt);margin-bottom:18px}
+.lusers{display:flex;flex-direction:column;gap:8px}
+.lu{padding:11px 14px;border-radius:10px;border:.5px solid var(--bd);background:var(--s2);cursor:pointer;text-align:left;display:flex;align-items:center;gap:10px;width:100%;transition:all .15s}
+.lu:hover{border-color:var(--ac);background:var(--al)}
+.lav{width:32px;height:32px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:.75rem;font-weight:600;flex-shrink:0}
+.lname{font-weight:500;font-size:.85rem}
+.pin-area{display:none;flex-direction:column;align-items:center;gap:7px;margin-top:12px}
+.pin-area.show{display:flex}
+.pdots{display:flex;gap:10px;margin:4px 0}
+.pdot{width:12px;height:12px;border-radius:50%;border:1.5px solid var(--bd);background:transparent;transition:all .15s}
+.pdot.on{background:var(--ac);border-color:var(--ac)}
+.ppad{display:grid;grid-template-columns:repeat(3,1fr);gap:7px;width:100%}
+.pk{padding:12px;border-radius:9px;border:.5px solid var(--bd);background:var(--s2);font-size:1rem;font-weight:500;cursor:pointer;font-family:'DM Mono',monospace;transition:all .15s}
+.pk:hover{background:var(--al);border-color:var(--ac)}
+.pk:active{transform:scale(.96)}
+.pk.del{font-size:.78rem;color:var(--mt)}
+.perr{font-size:.73rem;color:#E24B4A;min-height:16px}
+.pback{background:none;border:none;color:var(--mt);font-size:.73rem;cursor:pointer;text-decoration:underline;margin-top:2px}
+.lback{background:none;border:none;color:var(--mt);font-size:.73rem;cursor:pointer;text-decoration:underline;margin-top:12px;display:block;width:100%;text-align:center}
 
-        /* --- LAYOUT --- */
-        .hdr { display: flex; align-items: center; justify-content: space-between; padding: 12px 16px; background: var(--sf); border-bottom: .5px solid var(--bd); sticky: top; z-index: 100; }
-        .board { display: flex; gap: 15px; padding: 15px; overflow-x: auto; align-items: flex-start; height: calc(100vh - 120px); }
-        .col { background: #ebede9; border-radius: 12px; min-width: 280px; max-width: 280px; display: flex; flex-direction: column; max-height: 100%; }
-        .col-hd { padding: 12px; display: flex; justify-content: space-between; font-family: 'Syne', sans-serif; font-size: 0.75rem; font-weight: 800; color: var(--ac); border-bottom: 2px solid rgba(0,0,0,0.05); }
-        .col-bd { padding: 10px; overflow-y: auto; display: flex; flex-direction: column; gap: 10px; }
+/* ── HEADER ── */
+.hdr{display:flex;align-items:center;justify-content:space-between;padding:10px 16px;border-bottom:.5px solid var(--bd);background:var(--sf);position:sticky;top:0;z-index:100;gap:8px;flex-wrap:wrap}
+.hdr-logo{font-family:'Syne',sans-serif;font-size:.88rem;font-weight:800;color:var(--ac)}
+.hdr-user{font-size:.75rem;color:var(--mt);padding:4px 10px;border-radius:20px;background:var(--s2);border:.5px solid var(--bd)}
+.hbtns{display:flex;gap:6px;align-items:center}
+.hbtn{padding:5px 10px;border-radius:8px;border:.5px solid var(--bd);background:transparent;color:var(--mt);font-size:.74rem;cursor:pointer}
+.hbtn:hover{background:var(--s2)}
+.hbtn.hi{background:var(--ac);color:#fff;border-color:var(--ac);font-weight:500}
+.hbtn.out{color:var(--c4);border-color:var(--c4)}
 
-        /* --- CARDS --- */
-        .card { background: var(--sf); border-radius: 10px; padding: 12px; border: 0.5px solid var(--bd); box-shadow: 0 2px 5px rgba(0,0,0,0.02); }
-        .cref { font-family: 'DM Mono', monospace; font-weight: 600; color: var(--ac); font-size: 0.9rem; }
-        .cid { font-size: 0.65rem; color: var(--mt); font-family: 'DM Mono'; }
-        .cnome { font-weight: 700; font-size: 0.85rem; margin: 4px 0; text-transform: uppercase; }
-        
-        /* Estilo Encaixe (O seu campo Taty) */
-        .card-e { border: 1.5px solid var(--ac); }
-        .ef { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin: 8px 0; }
-        .el { font-size: 0.6rem; text-transform: uppercase; color: var(--mt); font-weight: 600; }
-        .ei { width: 100%; padding: 8px; border-radius: 6px; border: 1px solid var(--bd); font-family: 'DM Mono'; font-weight: 600; text-align: center; outline: none; }
-        .ei:focus { border-color: var(--ac); background: var(--al); }
-        .ebtn { width: 100%; padding: 10px; border-radius: 8px; background: var(--ac); color: white; border: none; font-weight: 700; cursor: pointer; margin-top: 8px; }
+/* ── SECTION TABS ── */
+.stabs{display:flex;gap:0;border-bottom:.5px solid var(--bd);background:var(--sf)}
+.stab{flex:1;padding:10px 8px;text-align:center;font-size:.75rem;font-weight:500;color:var(--mt);cursor:pointer;border-bottom:2px solid transparent;transition:all .15s}
+.stab.on{color:var(--ac);border-bottom-color:var(--ac)}
 
-        /* Toasts */
-        #toast { position: fixed; bottom: 20px; right: 20px; padding: 12px 20px; background: var(--ac); color: white; border-radius: 8px; display: none; z-index: 1000; animation: slideUp 0.3s; }
-        @keyframes slideUp { from { transform: translateY(100%); } to { transform: translateY(0); } }
-    </style>
+/* ── STATS ── */
+.stats{display:flex;gap:7px;padding:12px 16px 0;overflow-x:auto}
+.sc{background:var(--sf);border:.5px solid var(--bd);border-radius:10px;padding:8px 12px;flex-shrink:0;min-width:82px;border-top:2.5px solid var(--bd)}
+.sc-l{font-size:.57rem;text-transform:uppercase;letter-spacing:.6px;color:var(--mt);margin-bottom:2px;white-space:nowrap}
+.sc-v{font-family:'DM Mono',monospace;font-size:1.25rem;font-weight:500}
+
+/* ── TOOLBAR ── */
+.tb{display:flex;gap:7px;padding:10px 16px;align-items:center;flex-wrap:wrap}
+.srch{flex:1;min-width:120px;background:var(--sf);border:.5px solid var(--bd);border-radius:8px;padding:7px 10px;color:var(--tx);font-size:16px;outline:none}
+.srch:focus{border-color:var(--ac)}
+.fb{padding:5px 10px;border-radius:8px;border:.5px solid var(--bd);background:var(--sf);color:var(--mt);font-size:.72rem;cursor:pointer;white-space:nowrap;transition:all .15s}
+.fb.on{border-color:var(--ac);color:var(--ac);background:var(--al)}
+
+/* ── BOARD ── */
+.board{padding:0 16px 28px;display:grid;gap:10px}
+@media(min-width:900px){.board{grid-template-columns:repeat(auto-fill,minmax(240px,1fr))}}
+
+/* ── COL ── */
+.col{background:var(--sf);border:.5px solid var(--bd);border-radius:12px;overflow:hidden}
+.col-top{height:3px}
+.col-hd{padding:9px 12px;display:flex;align-items:center;justify-content:space-between;border-bottom:.5px solid var(--bd)}
+.col-ti{font-family:'Syne',sans-serif;font-size:.66rem;font-weight:700;text-transform:uppercase;letter-spacing:.5px}
+.col-cn{font-family:'DM Mono',monospace;font-size:.66rem;color:var(--mt);background:var(--s2);padding:2px 6px;border-radius:20px}
+.col-bd{padding:8px;display:flex;flex-direction:column;gap:7px;min-height:50px}
+
+/* ── CARDS ── */
+.card{background:var(--s2);border:.5px solid var(--bd);border-radius:10px;padding:12px;cursor:pointer;transition:border-color .15s}
+.card:hover{border-color:var(--bd2)}
+.cref{font-family:'DM Mono',monospace;font-size:.8rem;font-weight:500;color:var(--ac);margin-bottom:1px}
+.cid{font-family:'DM Mono',monospace;font-size:.61rem;color:var(--mt)}
+.cnome{font-weight:600;font-size:.86rem;margin:3px 0 6px;line-height:1.3}
+.ctags{display:flex;gap:4px;flex-wrap:wrap;margin-bottom:7px}
+.tag{font-size:.61rem;padding:2px 7px;border-radius:20px;font-family:'DM Mono',monospace}
+.tg{background:#E6F1FB;color:#0C447C}
+.tgr{background:#E1F5EE;color:#085041}
+.tur{background:#FAECE7;color:#993C1D}
+.cfoot{display:flex;justify-content:space-between;align-items:center;gap:5px;flex-wrap:wrap}
+.cdate{font-size:.63rem;color:var(--mt);font-family:'DM Mono',monospace}
+
+/* CARD EDVALDO */
+.card-e{background:var(--sf);border:.5px solid var(--c2);border-radius:10px;padding:13px}
+.ef{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:10px 0 8px}
+.efl{display:flex;flex-direction:column;gap:3px}
+.el{font-size:.6rem;text-transform:uppercase;letter-spacing:.6px;color:var(--mt)}
+.ei{background:var(--s2);border:.5px solid var(--bd);border-radius:7px;padding:7px 9px;font-size:16px;color:var(--tx);outline:none;width:100%}
+.ei:focus{border-color:var(--c2)}
+.eobs{width:100%;background:var(--s2);border:.5px solid var(--bd);border-radius:7px;padding:7px 9px;font-size:16px;color:var(--tx);outline:none;resize:none;margin-bottom:8px}
+.ebtn{width:100%;padding:9px;border-radius:8px;border:none;background:var(--c2);color:#fff;font-size:.82rem;font-weight:600;cursor:pointer}
+
+/* CARD ROSANA */
+.card-r{background:var(--sf);border:.5px solid var(--c5);border-radius:10px;padding:13px}
+.ci{display:flex;align-items:center;justify-content:space-between;background:var(--s2);border:.5px solid var(--bd);border-radius:7px;padding:8px 10px;cursor:pointer;margin-bottom:5px;transition:all .15s}
+.ci.done{background:var(--al);border-color:#9FE1CB}
+.ci-l{display:flex;flex-direction:column}
+.ci-c{font-size:.83rem;font-weight:500}
+.ci-q{font-size:.68rem;color:var(--mt)}
+.ci-b{width:20px;height:20px;border-radius:5px;border:1.5px solid var(--bd);background:var(--sf);display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:all .15s}
+.ci.done .ci-b{background:#1D9E75;border-color:#1D9E75}
+.ci-chk{display:none}
+.ci.done .ci-chk{display:block}
+.pb{height:3px;background:var(--bd);border-radius:2px;margin:5px 0 3px;overflow:hidden}
+.pf{height:100%;background:#1D9E75;border-radius:2px;transition:width .3s}
+.pl{font-size:.66rem;color:var(--mt);text-align:right;margin-bottom:7px}
+.dbtn{width:100%;padding:9px;border-radius:8px;border:none;font-size:.82rem;font-weight:600;cursor:pointer}
+.dbtn:disabled{opacity:.4;cursor:default}
+.nci{display:flex;gap:7px;margin-top:8px}
+.nci-i{flex:1;background:var(--s2);border:.5px solid var(--bd);border-radius:7px;padding:7px 9px;font-size:16px;color:var(--tx);outline:none}
+.nci-b{padding:7px 12px;border-radius:7px;border:none;background:var(--c3);color:#fff;font-size:.79rem;font-weight:600;cursor:pointer}
+
+/* CARD CHEGOU */
+.card-arr{background:var(--sf);border:.5px solid var(--c7);border-radius:10px;padding:13px}
+.arr-btns{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:10px}
+.arr-btn{padding:10px 8px;border-radius:9px;border:none;font-size:.8rem;font-weight:600;cursor:pointer;text-align:center}
+
+/* CARD CAROL */
+.card-carol{background:var(--sf);border:.5px solid var(--c6);border-radius:10px;padding:13px}
+
+/* CALC BOX */
+.calc-box{background:var(--al);border:.5px solid #9FE1CB;border-radius:9px;padding:11px;margin-top:8px}
+.calc-ti{font-size:.67rem;font-weight:600;color:#085041;margin-bottom:7px;text-transform:uppercase;letter-spacing:.5px}
+.calc-row{display:flex;justify-content:space-between;font-size:.8rem;padding:2px 0;border-bottom:.5px solid #C8EDD8}
+.calc-row:last-child{border-bottom:none;font-weight:600;padding-top:5px}
+.calc-k{color:#085041}
+.calc-v{font-family:'DM Mono',monospace;color:#085041;font-weight:500}
+
+/* CORES */
+.cor-row{display:flex;gap:7px;align-items:center;margin-bottom:6px}
+.cor-i{flex:2;background:var(--s2);border:.5px solid var(--bd);border-radius:8px;padding:7px 9px;color:var(--tx);font-size:16px;outline:none}
+.qtd-i{width:64px;background:var(--s2);border:.5px solid var(--bd);border-radius:8px;padding:7px 9px;color:var(--tx);font-size:16px;outline:none;text-align:center;font-family:'DM Mono',monospace}
+.rmv{background:none;border:none;color:var(--mt);cursor:pointer;font-size:1rem;padding:4px}
+.rmv:hover{color:#D4537E}
+.add-cor{margin-top:4px;background:none;border:1px dashed var(--bd);border-radius:8px;color:var(--mt);padding:7px;width:100%;font-size:.76rem;cursor:pointer}
+.add-cor:hover{border-color:var(--ac);color:var(--ac)}
+
+/* DETALHE */
+.df{display:flex;justify-content:space-between;align-items:baseline;padding:5px 0;font-size:.82rem;border-bottom:.5px solid var(--s2)}
+.dk{color:var(--mt);font-size:.75rem}
+.dv{font-weight:500;text-align:right;max-width:60%;word-break:break-word}
+.obs-box{background:#FAEEDA;border-radius:8px;padding:8px 10px;font-size:.76rem;color:#633806;margin-top:8px;line-height:1.5}
+.obs-bl{background:#E6F1FB;color:#0C447C}
+.spills{display:flex;gap:3px;overflow-x:auto;margin-bottom:12px;padding-bottom:3px}
+.spill{flex-shrink:0;font-size:.59rem;padding:3px 7px;border-radius:6px;border:.5px solid var(--bd);color:var(--mt);font-weight:600;white-space:nowrap}
+.spill.done{border-color:#1D9E75;color:#1D9E75;background:#E1F5EE}
+.spill.active{border-color:var(--ac);color:var(--ac);background:var(--al)}
+.agroup{display:flex;flex-direction:column;gap:7px;margin-top:14px}
+.abtn{width:100%;padding:10px;border-radius:9px;border:none;font-size:.83rem;font-weight:600;cursor:pointer}
+.abtn:hover{opacity:.85}
+.abtn-wpp{background:rgba(37,211,102,.08);border:1px solid var(--wpp);color:var(--wpp);display:flex;align-items:center;justify-content:center;gap:7px}
+.abtn-danger{background:#FCEBEB;border:.5px solid #F09595;color:#A32D2D}
+
+/* PEDIDOS */
+.pcard{background:var(--sf);border:.5px solid var(--bd);border-radius:12px;padding:13px;cursor:pointer;transition:border-color .15s;margin-bottom:8px}
+.pcard:hover{border-color:var(--bd2)}
+.pcard-hd{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:6px}
+.pcard-cod{font-family:'DM Mono',monospace;font-size:.82rem;font-weight:500;color:var(--ac)}
+.sbadge{font-size:.67rem;padding:2px 8px;border-radius:20px;font-weight:500;white-space:nowrap}
+.grade-chips{display:flex;gap:5px;flex-wrap:wrap;margin:6px 0}
+.gchip{font-size:.7rem;padding:2px 8px;border-radius:6px;font-family:'DM Mono',monospace;background:var(--s2);color:var(--mt);border:.5px solid var(--bd)}
+.gchip.ok{background:var(--b3);color:var(--c3);border-color:#9FE1CB}
+.gchip.par{background:var(--b1);color:var(--c1)}
+.gchip.no{background:var(--b4);color:var(--c4)}
+
+/* OVERLAY */
+.ov{position:fixed;inset:0;background:rgba(0,0,0,.4);z-index:200;display:none;align-items:flex-end;justify-content:center}
+.ov.open{display:flex}
+@media(min-width:580px){.ov{align-items:center;padding:16px}}
+.modal{background:var(--sf);border-radius:16px 16px 0 0;padding:20px;width:100%;max-width:560px;max-height:93vh;overflow-y:auto}
+@media(min-width:580px){.modal{border-radius:16px}}
+.mhd{display:flex;justify-content:space-between;align-items:center;margin-bottom:15px}
+.mti{font-family:'Syne',sans-serif;font-size:.95rem;font-weight:800}
+.xb{background:none;border:none;color:var(--mt);font-size:1.3rem;cursor:pointer;padding:0 4px}
+
+/* FORM */
+.fg2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.fg{display:flex;flex-direction:column;gap:4px}
+.fg.full{grid-column:1/-1}
+.fl{font-size:.62rem;text-transform:uppercase;letter-spacing:.7px;color:var(--mt)}
+.fi,.fsl{background:var(--s2);border:.5px solid var(--bd);border-radius:8px;padding:8px 10px;color:var(--tx);font-size:16px;outline:none;width:100%;transition:border-color .15s}
+.fi:focus,.fsl:focus{border-color:var(--ac)}
+.drow{display:flex;gap:6px}
+.hoje-b{padding:8px 10px;border-radius:8px;border:.5px solid var(--bd);background:var(--s2);color:var(--mt);font-size:.73rem;cursor:pointer}
+.hoje-b:hover{background:var(--al);color:var(--ac)}
+.divr{height:.5px;background:var(--bd);margin:13px 0}
+.sl{font-size:.62rem;text-transform:uppercase;letter-spacing:.7px;color:var(--mt);margin-bottom:7px}
+.fact{display:flex;gap:8px;margin-top:14px;justify-content:flex-end}
+.bc{padding:8px 15px;border-radius:8px;border:.5px solid var(--bd);background:transparent;color:var(--mt);cursor:pointer}
+.bs{padding:8px 18px;border-radius:8px;border:none;background:var(--ac);color:#fff;font-weight:600;cursor:pointer}
+
+/* CFG */
+.cfg-sec{margin-bottom:14px;padding-bottom:14px;border-bottom:.5px solid var(--bd)}
+.cfg-sec:last-child{border-bottom:none;margin-bottom:0}
+.cfg-l{font-size:.63rem;text-transform:uppercase;letter-spacing:.7px;color:var(--mt);margin-bottom:6px}
+.cfg-info{font-size:.75rem;color:var(--mt);line-height:1.5;margin-bottom:6px}
+.cfg-row{display:flex;gap:7px;align-items:center;margin-bottom:5px}
+.cfg-name{font-size:.76rem;color:var(--mt);min-width:90px}
+.cfg-i{flex:1;background:var(--s2);border:.5px solid var(--bd);border-radius:7px;padding:7px 9px;color:var(--tx);font-family:'DM Mono',monospace;font-size:16px;outline:none}
+.cfg-sv{margin-top:7px;padding:8px;border-radius:8px;border:none;background:var(--ac);color:#fff;font-size:.79rem;font-weight:600;cursor:pointer;width:100%}
+
+/* TOAST */
+.toasts{position:fixed;bottom:16px;right:14px;z-index:999;display:flex;flex-direction:column;gap:5px;pointer-events:none}
+.toast{background:var(--sf);border:.5px solid var(--bd);border-radius:9px;padding:9px 13px;font-size:.78rem;box-shadow:0 4px 16px rgba(0,0,0,.1);animation:tIn .2s ease;max-width:260px}
+.toast.s{border-left:3px solid #1D9E75}.toast.i{border-left:3px solid #378ADD}.toast.w{border-left:3px solid #EF9F27}
+@keyframes tIn{from{transform:translateX(20px);opacity:0}to{transform:none;opacity:1}}
+.empty{text-align:center;padding:24px 8px;color:var(--mt);font-size:.77rem}
+@media(max-width:640px){.fg2{grid-template-columns:1fr}}
+</style>
 </head>
 <body>
 
-    <div id="portal" class="portal">
-        <div class="lbox">
-            <div class="portal-logo">Azpex · Bonequim</div>
-            <button class="portal-btn" onclick="openLogin('Cinthia / Taty')">🏭 Fábrica - Cinthia/Taty</button>
-            <button class="portal-btn" onclick="openLogin('Rosana')">🧵 Fábrica - Rosana</button>
-            <button class="portal-btn" onclick="logout()">Sair</button>
-        </div>
-    </div>
+<!-- PORTAL -->
+<div class="portal" id="portal">
+  <div class="portal-box">
+    <div class="portal-logo">Azpex · Bonequim</div>
+    <div class="portal-sub">Selecione sua área</div>
+    <div class="portal-btns">
+      <button class="portal-btn" onclick="openLogin('fabrica')">
+        <div class="portal-icon" style="background:#E1F5EE">🏭</div>
+        <div>
+          <div class="portal-label">Fábrica</div>
+          <div class="portal-desc">Cortes, produção e estoque</div>
+        </div>
+      </button>
+      <button class="portal-btn" onclick="openLogin('loja')">
+        <div class="portal-icon" style="background:#E6F1FB">🏪</div>
+        <div>
+          <div class="portal-label">Loja Bonequim</div>
+          <div class="portal-desc">Pedidos e retiradas</div>
+        </div>
+      </button>
+    </div>
+  </div>
+</div>
 
-    <div id="login" class="login" style="display:none">
-        <div class="lbox">
-            <div id="login-user" style="font-weight: 700; margin-bottom: 10px;"></div>
-            <div class="pin-area" style="display:flex">
-                <div class="pdots">
-                    <div class="pdot" id="dot0"></div>
-                    <div class="pdot" id="dot1"></div>
-                    <div class="pdot" id="dot2"></div>
-                    <div class="pdot" id="dot3"></div>
-                </div>
-                <div class="ppad">
-                    <button class="pk" onclick="pressKey('1')">1</button>
-                    <button class="pk" onclick="pressKey('2')">2</button>
-                    <button class="pk" onclick="pressKey('3')">3</button>
-                    <button class="pk" onclick="pressKey('4')">4</button>
-                    <button class="pk" onclick="pressKey('5')">5</button>
-                    <button class="pk" onclick="pressKey('6')">6</button>
-                    <button class="pk" onclick="pressKey('7')">7</button>
-                    <button class="pk" onclick="pressKey('8')">8</button>
-                    <button class="pk" onclick="pressKey('9')">9</button>
-                    <button class="pk" onclick="pressKey('C')">C</button>
-                    <button class="pk" onclick="pressKey('0')">0</button>
-                    <button class="pk" onclick="backPortal()">⬅</button>
-                </div>
-            </div>
-        </div>
-    </div>
+<!-- LOGIN FÁBRICA -->
+<div class="login" id="login-fabrica">
+  <div class="lbox">
+    <div class="llogo">🏭 Fábrica</div>
+    <div class="lsub" id="lsub-f">Quem é você?</div>
+    <div class="lusers" id="lusers-f">
+      <button class="lu" onclick="selUser('taty','f')"><div class="lav" style="background:#E1F5EE;color:#085041">CT</div><div class="lname">Cinthia / Taty</div></button>
+      <button class="lu" onclick="selUser('edvaldo','f')"><div class="lav" style="background:#E6F1FB;color:#0C447C">ED</div><div class="lname">Edvaldo</div></button>
+      <button class="lu" onclick="selUser('rosana','f')"><div class="lav" style="background:#FBEAF0;color:#72243E">RO</div><div class="lname">Rosana</div></button>
+      <button class="lu" onclick="selUser('daimartha','f')"><div class="lav" style="background:#FFF8DC;color:#8B6914">DM</div><div class="lname">Dai / Martha</div></button>
+      <button class="lu" onclick="selUser('carol','f')"><div class="lav" style="background:#EEEDFE;color:#3C3489">CA</div><div class="lname">Carol</div></button>
+      <button class="lu" onclick="selUser('estoque','f')"><div class="lav" style="background:#F1EFE8;color:#5F5E5A">ES</div><div class="lname">Estoque</div></button>
+    </div>
+    <div class="pin-area" id="pin-area-f">
+      <div style="font-size:.76rem;color:var(--mt)">Digite seu PIN</div>
+      <div class="pdots"><div class="pdot" id="fpd0"></div><div class="pdot" id="fpd1"></div><div class="pdot" id="fpd2"></div><div class="pdot" id="fpd3"></div></div>
+      <div class="perr" id="fperr"></div>
+      <div class="ppad">
+        <button class="pk" onclick="ppk('1','f')">1</button><button class="pk" onclick="ppk('2','f')">2</button><button class="pk" onclick="ppk('3','f')">3</button>
+        <button class="pk" onclick="ppk('4','f')">4</button><button class="pk" onclick="ppk('5','f')">5</button><button class="pk" onclick="ppk('6','f')">6</button>
+        <button class="pk" onclick="ppk('7','f')">7</button><button class="pk" onclick="ppk('8','f')">8</button><button class="pk" onclick="ppk('9','f')">9</button>
+        <div></div><button class="pk" onclick="ppk('0','f')">0</button><button class="pk del" onclick="ppdel('f')">⌫</button>
+      </div>
+      <button class="pback" onclick="backUsers('f')">← Voltar</button>
+    </div>
+    <button class="lback" onclick="backPortal()">← Voltar ao início</button>
+  </div>
+</div>
 
-    <div id="app" style="display:none">
-        <div class="hdr">
-            <div style="font-family: 'Syne'; font-weight: 800; color: var(--ac)">Azpex</div>
-            <div id="user-display" style="font-size: 0.8rem; background: var(--al); padding: 4px 12px; border-radius: 20px;"></div>
-            <button onclick="logout()" style="background:none; border:none; color:var(--c4); cursor:pointer; font-weight:600">Sair</button>
-        </div>
+<!-- LOGIN LOJA -->
+<div class="login" id="login-loja">
+  <div class="lbox">
+    <div class="llogo">🏪 Loja Bonequim</div>
+    <div class="lsub" id="lsub-l">Quem é você?</div>
+    <div class="lusers" id="lusers-l">
+      <button class="lu" onclick="selUser('vendA','l')"><div class="lav" style="background:#E6F1FB;color:#0C447C">VA</div><div class="lname">Vendedora A</div></button>
+      <button class="lu" onclick="selUser('vendB','l')"><div class="lav" style="background:#FBEAF0;color:#72243E">VB</div><div class="lname">Vendedora B</div></button>
+      <button class="lu" onclick="selUser('vendC','l')"><div class="lav" style="background:#FAEEDA;color:#633806">VC</div><div class="lname">Vendedora C</div></button>
+      <button class="lu" onclick="selUser('gerente','l')"><div class="lav" style="background:var(--al);color:var(--ac)">GI</div><div class="lname">Gi — Bonequim</div></button>
+    </div>
+    <div class="pin-area" id="pin-area-l">
+      <div style="font-size:.76rem;color:var(--mt)">Digite seu PIN</div>
+      <div class="pdots"><div class="pdot" id="lpd0"></div><div class="pdot" id="lpd1"></div><div class="pdot" id="lpd2"></div><div class="pdot" id="lpd3"></div></div>
+      <div class="perr" id="lperr"></div>
+      <div class="ppad">
+        <button class="pk" onclick="ppk('1','l')">1</button><button class="pk" onclick="ppk('2','l')">2</button><button class="pk" onclick="ppk('3','l')">3</button>
+        <button class="pk" onclick="ppk('4','l')">4</button><button class="pk" onclick="ppk('5','l')">5</button><button class="pk" onclick="ppk('6','l')">6</button>
+        <button class="pk" onclick="ppk('7','l')">7</button><button class="pk" onclick="ppk('8','l')">8</button><button class="pk" onclick="ppk('9','l')">9</button>
+        <div></div><button class="pk" onclick="ppk('0','l')">0</button><button class="pk del" onclick="ppdel('l')">⌫</button>
+      </div>
+      <button class="pback" onclick="backUsers('l')">← Voltar</button>
+    </div>
+    <button class="lback" onclick="backPortal()">← Voltar ao início</button>
+  </div>
+</div>
 
-        <div class="board" id="board">
-            </div>
-    </div>
+<!-- APP -->
+<div id="app" style="display:none">
+  <div class="hdr">
+    <div class="hdr-logo" id="app-logo">Azpex</div>
+    <div class="hdr-user" id="app-user"></div>
+    <div class="hbtns">
+      <button class="hbtn" onclick="syncAll()">↻</button>
+      <button class="hbtn" onclick="openCfg()" id="btn-cfg" style="display:none">Config</button>
+      <button class="hbtn hi" id="btn-novo" style="display:none">+ Novo</button>
+      <button class="hbtn out" onclick="logout()">Sair</button>
+    </div>
+  </div>
+  <div class="stabs" id="stabs" style="display:none"></div>
+  <div class="stats" id="stats"></div>
+  <div class="tb">
+    <input class="srch" id="srch" placeholder="Buscar..." oninput="render()">
+    <button class="fb on" onclick="setF('todos',this)">Todos</button>
+    <button class="fb" onclick="setF('minha',this)">Minha fila</button>
+  </div>
+  <div id="main-content"></div>
+</div>
 
-    <div id="toast"></div>
+<!-- MODAL NOVO CORTE -->
+<div class="ov" id="ov-novo">
+  <div class="modal">
+    <div class="mhd"><div class="mti" id="form-ti">Novo corte</div><button class="xb" onclick="cl('ov-novo')">×</button></div>
+    <div class="fg2">
+      <div class="fg"><label class="fl">ID</label><input class="fi" id="f-id" placeholder="Auto"></div>
+      <div class="fg"><label class="fl">Referência</label><input class="fi" id="f-ref" placeholder="ex: 2838"></div>
+      <div class="fg full"><label class="fl">Nome da peça *</label><input class="fi" id="f-nome" placeholder="ex: Calça Dakota"></div>
+      <div class="fg full"><label class="fl">Data entrada</label><div class="drow"><input class="fi" id="f-data" type="date" style="flex:1"><button class="hoje-b" onclick="setHoje()">Hoje</button></div></div>
+      <div class="fg full"><label class="fl">Tecido</label><select class="fsl" id="f-tec" onchange="autoFillRolo()"><option value="">Selecionar...</option></select></div>
+      <div class="fg"><label class="fl">Fornecedor</label><select class="fsl" id="f-tin"><option value="">Selecionar...</option></select></div>
+      <div class="fg"><label class="fl">Grade</label><select class="fsl" id="f-grade"><option value="">Selecionar...</option></select></div>
+      <div class="fg full"><label class="fl">Retalho</label><input class="fi" id="f-ret" placeholder="ex: GG"></div>
+      <div class="fg full"><label class="fl">Comprimento do rolo (m)</label><input class="fi" id="f-rolo" type="number" step="0.5" placeholder="ex: 30" oninput="calcPreview()"></div>
+      <div class="fg full"><label class="fl">Observação</label><input class="fi" id="f-obs" placeholder="Observações..."></div>
+      <div class="fg"><label class="fl">Urgente?</label><select class="fsl" id="f-urg"><option value="nao">Não</option><option value="sim">Sim ⚡</option></select></div>
+    </div>
+    <div id="calc-preview"></div>
+    <div class="fact"><button class="bc" onclick="cl('ov-novo')">Cancelar</button><button class="bs" onclick="salvarCorte()">Salvar</button></div>
+  </div>
+</div>
 
-    <script>
-        // --- DADOS MOCK (Simulando o Banco de Dados) ---
-        let database = [
-            { id: '160', ref: '2959', nome: 'VESTIDO LONGO CANELADO', status: 'encaixe', comp: '', aprov: '' },
-            { id: '430', ref: '2868', nome: 'VESTIDO VALÉRIA MONTARIA', status: 'aprovacao', comp: '4.5', aprov: '83.3' },
-            { id: '004', ref: '2934', nome: 'VESTIDO JADE UM OMBRO', status: 'cores', comp: '3.2', aprov: '77' }
-        ];
+<!-- MODAL DETALHE -->
+<div class="ov" id="ov-det"><div class="modal" id="det-c"></div></div>
 
-        let currentUser = "";
-        let currentPin = "";
+<!-- MODAL CORES -->
+<div class="ov" id="ov-cores">
+  <div class="modal">
+    <div class="mhd"><div class="mti">Definir cores para descansar</div><button class="xb" onclick="cl('ov-cores')">×</button></div>
+    <div id="cores-info" style="font-size:.8rem;color:var(--mt);margin-bottom:12px"></div>
+    <div class="sl">Cor e quantidade de rolos</div>
+    <div id="cores-list"></div>
+    <button class="add-cor" onclick="addCor()">+ Adicionar cor</button>
+    <div class="fact">
+      <button class="bc" onclick="cl('ov-cores')">Cancelar</button>
+      <button class="bs" style="background:#1D9E75" onclick="salvarCores()">Enviar para Rosana</button>
+    </div>
+    <div id="cores-wpp-btns" style="margin-top:8px;display:flex;flex-direction:column;gap:6px"></div>
+  </div>
+</div>
 
-        // --- FUNÇÕES DE NAVEGAÇÃO ---
-        function openLogin(user) {
-            currentUser = user;
-            document.getElementById('portal').style.display = 'none';
-            document.getElementById('login').style.display = 'flex';
-            document.getElementById('login-user').innerText = user;
-            currentPin = "";
-            updateDots();
-        }
+<!-- MODAL NOVO PEDIDO -->
+<div class="ov" id="ov-pedido">
+  <div class="modal">
+    <div class="mhd"><div class="mti">Novo pedido</div><button class="xb" onclick="cl('ov-pedido')">×</button></div>
+    <div class="fg2">
+      <div class="fg"><label class="fl">Código da peça *</label><input class="fi" id="p-cod" placeholder="ex: 0552256"></div>
+      <div class="fg full"><label class="fl">Nome da peça *</label><input class="fi" id="p-nome" placeholder="ex: Calça Dakota"></div>
+      <div class="fg full"><label class="fl">Grade *</label><select class="fsl" id="p-grade-sel" onchange="buildPedidoTabela()"><option value="">Selecionar grade...</option></select></div>
+    </div>
+    <div id="p-tabela-area" style="margin-top:10px"></div>
+    <div class="divr"></div>
+    <div class="fg full"><label class="fl">Observação</label><textarea class="fi" id="p-obs" rows="2" placeholder="Observações..."></textarea></div>
+    <div class="fact"><button class="bc" onclick="cl('ov-pedido')">Cancelar</button><button class="bs" onclick="salvarPedido()">Enviar pedido</button></div>
+  </div>
+</div>
 
-        function backPortal() {
-            document.getElementById('portal').style.display = 'flex';
-            document.getElementById('login').style.display = 'none';
-        }
+<!-- MODAL RESPONDER PEDIDO -->
+<div class="ov" id="ov-resp">
+  <div class="modal">
+    <div class="mhd"><div class="mti" id="resp-ti">Responder</div><button class="xb" onclick="cl('ov-resp')">×</button></div>
+    <div id="resp-info" style="font-size:.8rem;color:var(--mt);margin-bottom:10px"></div>
+    <div class="sl">Quantidade encontrada no estoque</div>
+    <div id="resp-grades"></div>
+    <div class="fg full" style="margin:10px 0"><label class="fl">Observação</label><textarea class="fi" id="resp-obs" rows="2" placeholder="Observações..."></textarea></div>
+    <div style="display:flex;flex-direction:column;gap:8px">
+      <button class="bs" style="background:#1D9E75" onclick="responderPedido('aprovado')">✔ Pedido aprovado e separado</button>
+      <button class="bs" style="background:#EF9F27" onclick="responderPedido('parcial')">⚡ Aprovado parcialmente</button>
+      <button class="bs" style="background:#E24B4A" onclick="responderPedido('recusado')">✕ Produto não disponível</button>
+    </div>
+  </div>
+</div>
 
-        function pressKey(k) {
-            if (k === 'C') { currentPin = ""; }
-            else if (currentPin.length < 4) { currentPin += k; }
-            
-            updateDots();
+<!-- MODAL DECISÃO ENVIO -->
+<div class="ov" id="ov-decisao">
+  <div class="modal">
+    <div class="mhd"><div class="mti">Decisão de envio</div><button class="xb" onclick="cl('ov-decisao')">×</button></div>
+    <div id="decisao-info" style="font-size:.82rem;color:var(--mt);margin-bottom:12px"></div>
+    <div id="decisao-cores" style="margin-bottom:12px"></div>
+    <div class="fg full" style="margin-bottom:12px">
+      <label class="fl">Observação de quantidades</label>
+      <textarea class="fi" id="decisao-obs" rows="3" placeholder="Ex: Enviar tudo / Preto 10pç G e GG / conforme tabela acima..."></textarea>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:8px">
+      <button class="bs" style="background:#1D9E75" onclick="confirmarEnvio()">✔ Confirmar envio</button>
+      <button class="bs abtn-danger" style="background:#FCEBEB;color:#A32D2D;border:.5px solid #F09595" onclick="confirmarArquivar()">✕ Não precisamos — arquivar</button>
+    </div>
+  </div>
+</div>
 
-            if (currentPin.length === 4) {
-                // PIN Simples para teste: 1234
-                if (currentPin === "1234") {
-                    loginSuccess();
-                } else {
-                    alert("PIN Incorreto (Tente 1234)");
-                    currentPin = "";
-                    updateDots();
-                }
-            }
-        }
+<!-- MODAL DECISAO ENVIO -->
+<div class="ov" id="ov-envio">
+  <div class="modal">
+    <div class="mhd"><div class="mti">Decisão de envio</div><button class="xb" onclick="cl('ov-envio')">×</button></div>
+    <div id="envio-info" style="font-size:.82rem;color:var(--mt);margin-bottom:12px"></div>
+    <div id="envio-cores" style="margin-bottom:12px"></div>
+    <div class="fg full" style="margin-bottom:12px">
+      <label class="fl">Observação de quantidades</label>
+      <textarea class="fi" id="envio-obs" rows="3" placeholder="Ex: Enviar tudo · Preto: 10 peças, Azul: 5 peças..."></textarea>
+    </div>
+    <div style="display:flex;gap:8px">
+      <button class="bs" style="flex:1;background:#1D9E75" onclick="confirmarEnvio()">✔ Confirmar envio</button>
+      <button class="bc" style="flex:1" onclick="cl('ov-envio')">Cancelar</button>
+    </div>
+  </div>
+</div>
 
-        function updateDots() {
-            for (let i = 0; i < 4; i++) {
-                document.getElementById(`dot${i}`).className = i < currentPin.length ? 'pdot on' : 'pdot';
-            }
-        }
-
-        function loginSuccess() {
-            document.getElementById('login').style.display = 'none';
-            document.getElementById('app').style.display = 'block';
-            document.getElementById('user-display').innerText = currentUser;
-            render();
-        }
-
-        function logout() {
-            location.reload();
-        }
-
-        // --- LÓGICA DO BOARD (AQUI ESTÁ O QUE VOCÊ PRECISAVA) ---
-
-        function render() {
-            const board = document.getElementById('board');
-            board.innerHTML = '';
-
-            const colunas = [
-                { id: 'encaixe', titulo: 'AG. ENCAIXE' },
-                { id: 'aprovacao', titulo: 'AG. APROVAÇÃO' },
-                { id: 'cores', titulo: 'DEFINIR CORES' }
-            ];
-
-            colunas.forEach(col => {
-                let html = `
-                    <div class="col">
-                        <div class="col-hd"><span>${col.titulo}</span><span>${database.filter(i => i.status === col.id).length}</span></div>
-                        <div class="col-bd">
-                `;
-
-                database.filter(item => item.status === col.id).forEach(item => {
-                    if (col.id === 'encaixe' && currentUser.includes('Taty')) {
-                        // Card Especial de Edição para Taty
-                        html += `
-                            <div class="card card-e">
-                                <div class="cref">${item.ref} <span class="cid">ID-${item.id}</span></div>
-                                <div class="cnome">${item.nome}</div>
-                                <div class="ef">
-                                    <div><label class="el">Comprimento (M)</label><input type="number" id="comp-${item.id}" class="ei" value="${item.comp}"></div>
-                                    <div><label class="el">Aproveitamento (%)</label><input type="number" id="aprov-${item.id}" class="ei" value="${item.aprov}"></div>
-                                </div>
-                                <button class="ebtn" onclick="salvarEncaixe('${item.id}')">Salvar e aprovar encaixe ✓</button>
-                            </div>
-                        `;
-                    } else {
-                        // Card Padrão de Visualização
-                        html += `
-                            <div class="card">
-                                <div class="cref">${item.ref} <span class="cid">ID-${item.id}</span></div>
-                                <div class="cnome">${item.nome}</div>
-                                <div style="font-size:0.6rem; color:var(--mt); margin-top:5px">
-                                    ${item.comp ? '📏 '+item.comp+'m' : ''} ${item.aprov ? ' | ✨ '+item.aprov+'%' : ''}
-                                </div>
-                            </div>
-                        `;
-                    }
-                });
-
-                html += `</div></div>`;
-                board.innerHTML += html;
-            });
-        }
-
-        // FUNÇÃO PARA MOVER O CARD
-        function salvarEncaixe(id) {
-            const comp = document.getElementById(`comp-${id}`).value;
-            const aprov = document.getElementById(`aprov-${id}`).value;
-
-            if (!comp || !aprov) {
-                showToast("⚠️ Taty, preencha o comprimento e aproveitamento!");
-                return;
-            }
-
-            // Atualiza no "Banco de Dados"
-            const index = database.findIndex(i => i.id === id);
-            database[index].comp = comp;
-            database[index].aprov = aprov;
-            database[index].status = 'aprovacao'; // MOVE PARA A PRÓXIMA COLUNA
-
-            showToast("🚀 Encaixe salvo e enviado para Aprovação!");
-            render(); // Recarrega a tela
-        }
-
-        function showToast(msg) {
-            const t = document.getElementById('toast');
-            t.innerText = msg;
-            t.style.display = 'block';
-            setTimeout(() => { t.style.display = 'none'; }, 3000);
-        }
-
-    </script>
-</body>
-</html>
+<!-- MODAL CONFIG -->
+<div class="ov" id="ov-cfg">
+  <div class="modal">
+    <div class="mhd"><div class="mti">Configurações</div><button class="xb" onclick="cl('ov-cfg')">×</button></div>
+    <div class="cfg-sec">
+      <div class="cfg-l">Google Sheets (Cortes)</div>
+      <input class="cfg-i" id="cfg-url" placeholder="URL do Apps Script" style="width:100%;margin-bottom:7px">
+      <button class="cfg-sv" onclick="saveCfgUrl()">Conectar</button>
+    </div>
+    <div class="cfg-sec" id="cfg-pins-sec">
+      <div class="cfg-l">PINs — Fábrica</div>
+      <div class="cfg-row"><span class="cfg-name">Cinthia/Taty</span><input class="cfg-i" id="cfg-pt" maxlength="4" type="password" placeholder="4 dígitos"></div>
+      <div class="cfg-row"><span class="cfg-name">Edvaldo</span><input class="cfg-i" id="cfg-pe" maxlength="4" type="password" placeholder="4 dígitos"></div>
+      <div class="cfg-row"><span class="cfg-name">Rosana</span><input class="cfg-i" id="cfg-pr" maxlength="4" type="password" placeholder="4 dígitos"></div>
+      <div class="cfg-row"><span class="cfg-name">Dai/Martha</span><input class="cfg-i" id="cfg-pd" maxlength="4" type="password" placeholder="4 dígitos"></div>
+      <div class="cfg-row"><span class="cfg-name">Carol</span><input class="cfg-i" id="cfg-pc" maxlength="4" type="password" placeholder="4 dígitos"></div>
+      <div class="cfg-row"><span class="cfg-name">Estoque</span><input class="cfg-i" id="cfg-pes" maxlength="4" type="password" placeholder="4 dígitos"></div>
+      <div class="cfg-l" style="margin-top:10px">PINs — Loja</div>
+      <div class="cfg-row"><span class="cfg-name">Vendedora A</span><input class="cfg-i" id="cfg-pva" maxlength="4" type="password" placeholder="4 dígitos"></div>
+      <div class="cfg-row"><span class="cfg-name">Vendedora B</span><input class="cfg-i" id="cfg-pvb" maxlength="4" type="password" placeholder="4 d
