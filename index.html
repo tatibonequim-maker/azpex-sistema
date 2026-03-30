@@ -1455,7 +1455,13 @@ function setHoje(){document.getElementById('f-data').value=new Date().toISOStrin
 async function salvarCorte(){
   const nome=document.getElementById('f-nome').value.trim();
   if(!nome){toast('Preencha o nome','w');return;}
-  const id=document.getElementById('f-id').value.trim()||('ID-'+String(cortes.length+1).padStart(3,'0'));
+  // Generate ID based on max existing ID to avoid collisions after deletions
+  function nextId(){
+    let max=0;
+    cortes.forEach(c=>{const n=parseInt((c.id||'').replace(/[^0-9]/g,''));if(n>max)max=n;});
+    return 'ID-'+String(max+1).padStart(3,'0');
+  }
+  const id=document.getElementById('f-id').value.trim()||nextId();
   const obj={
     id,ref:document.getElementById('f-ref').value.trim(),nome,
     data:document.getElementById('f-data').value,
