@@ -1185,23 +1185,20 @@ async function salvarEncaixe(id){
   if(!c)return;
   c.encM=m;c.encPct=pct;c.encObs=document.getElementById('eo-'+id)?.value.trim()||'';
   if(user==='taty'){
+    lastPushTime=Date.now();
     c.status='DEFINIR_CORES';
     sl();render();
-    toast('Salvando...','i');
+    toast('Encaixe aprovado! Defina as cores.','s');
     if(c._row){
-      lastPushTime=Date.now();
       await apip({action:'atualizarCampos',row:c._row,campos:[['ENCAIXE_M',m],['RENDIMENTO',pct],['OBS_CAD',c.encObs],['STATUS','DEFINIR_CORES']]});
-      toast('Encaixe salvo! Defina as cores.','s');
       setTimeout(()=>syncAll(true),3000);
-    } else {
-      toast('Encaixe salvo localmente (sem conexão com planilha)','s');
     }
   } else {
+    lastPushTime=Date.now();
     c.status='AGUARDANDO_APROVACAO';
     sl();render();
     toast('Encaixe enviado para aprovação!','s');
     if(c._row){
-      lastPushTime=Date.now();
       await apip({action:'atualizarCampos',row:c._row,campos:[['ENCAIXE_M',m],['RENDIMENTO',pct],['OBS_CAD',c.encObs],['STATUS','AGUARDANDO_APROVACAO']]});
       setTimeout(()=>syncAll(true),3000);
     }
