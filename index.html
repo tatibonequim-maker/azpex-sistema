@@ -569,7 +569,6 @@ function checkPin(side){
     const saved=localStorage.getItem('az_pin_'+pinUser)||DPINS[pinUser]||'0000';
     if(pinVal===saved){
       user=pinUser;
-      // Hide all logins
       document.getElementById('login-fabrica').style.display='none';
       document.getElementById('login-loja').style.display='none';
       document.getElementById('login-fabrica').classList.remove('open');
@@ -591,7 +590,6 @@ function logout(){
   user='';
   document.getElementById('app').style.display='none';
   document.getElementById('portal').style.display='flex';
-  // reset logins
   ['fabrica','loja'].forEach(s=>{
     const el=document.getElementById('login-'+s);
     el.classList.remove('open');
@@ -650,7 +648,6 @@ function initApp(){
   render();
   if(cfg.url){
     setTimeout(syncAll,600);
-    // Auto-sync every 30 seconds
     setInterval(()=>{if(cfg.url)syncAll(true);},30000);
   }
   }catch(err){console.error('initApp error:',err);toast('Erro: '+err.message,'w');}
@@ -660,8 +657,6 @@ function setSection(s,el){
   section=s;
   document.querySelectorAll('.stab').forEach(b=>b.classList.remove('on'));
   el.classList.add('on');
-  const isLoja=['vendA','vendB','vendC','gerente'].includes(user);
-  const canNovo=user==='taty'||(isLoja&&user!=='gerente');
   if(s==='pedidos'){
     const canPed=['taty','carol','vendA','vendB','vendC','gerente'].includes(user);
     document.getElementById('btn-novo').style.display=canPed?'':'none';
@@ -768,14 +763,12 @@ function str(v){
 }
 
 function strNum(v){
-  // Like str() but also rejects date-like numbers
   if(v===null||v===undefined)return'';
   const s=v.toString().trim();
-  if(s.match(/^\d{4}-\d{2}-\d{2}/))return''; // date format
+  if(s.match(/^\d{4}-\d{2}-\d{2}/))return'';
   if(s==='nan'||s==='NaN')return'';
-  // If it's a huge number that looks like a date serial, reject
   const n=parseFloat(s);
-  if(!isNaN(n)&&n>40000&&n<50000)return''; // Excel date serial range
+  if(!isNaN(n)&&n>40000&&n<50000)return'';
   return s;
 }
 function parseCores(s){if(!s)return[];return s.split(',').map(x=>{const p=x.trim().split(':');return{cor:p[0]?.trim()||'',qtd:p[1]?.trim()||'1'};}).filter(c=>c.cor);}
@@ -853,7 +846,6 @@ function getVisCortes(){
     if(user==='carol')list=list.filter(c=>c.status==='AG_FOTO'||c.status==='FOTO_OK');
     if(user==='estoque')list=list.filter(c=>c.status==='EMBALAR');
   }
-  // Gi only sees reposicao (not novidades)
   if(user==='gerente'&&section==='cortes')list=list.filter(c=>c.tipo!=='novidade'||c.status==='PRONTO_RETIRADA'||c.status==='ARQUIVADO');
   return list;
 }
@@ -914,7 +906,6 @@ function renderCortes(){
   const cols=getColsCortes();const vis=getVisCortes();
   const grouped={};cols.forEach(c=>{grouped[c.s]=[];});
   vis.forEach(c=>{if(grouped[c.status]!==undefined)grouped[c.status].push(c);});
-  // Build __TODOS__ virtual column for Edvaldo
   const TODOS_STATUS=['AGUARDANDO_ENCAIXE','ENCAIXE_REPROVADO','AGUARDANDO_APROVACAO','DEFINIR_CORES','DESCANSAR_TECIDO','TECIDO_DESCANSADO','NO_CORTE'];
   const todosItems=vis.filter(c=>TODOS_STATUS.includes(c.status));
   grouped['__TODOS__']=todosItems;
@@ -975,7 +966,6 @@ function cardBase(c){
     </div>
   </div>`;
 }
-
 
 function cardEdvaldoInfo(c){
   const info=CSM[c.status]||{l:c.status,c:'var(--mt)',b:'var(--s2)'};
@@ -1211,7 +1201,6 @@ function toggleDC(id,cor){
   if(!c.checksDesc)c.checksDesc={};
   c.checksDesc[cor]=!c.checksDesc[cor];
   sl();
-  // Re-render the specific card
   const el=document.getElementById('cd-'+id);
   if(el){
     const tmp=document.createElement('div');
@@ -1359,505 +1348,4 @@ function openDet(id){
     ${c.encM?`<div class="df"><span class="dk">Encaixe</span><span class="dv">${c.encM}m</span></div>`:''}
     ${c.encPct?`<div class="df"><span class="dk">Aproveitamento</span><span class="dv">${c.encPct}%</span></div>`:''}
     ${c.numCorte?`<div class="df"><span class="dk">Nº corte</span><span class="dv">${c.numCorte}</span></div>`:''}
-    ${c.cores?.length?`<div style="margin-top:8px"><div class="sl">Cores e estimativa de peças</div>${(()=>{
-      const enc=parseFloat(c.encM)||0;
-      const sizes=(c.grade||'').split(' ').filter(Boolean);
-      const folhas=enc&&c.rolo?Math.floor(parseFloat(c.rolo)/enc):0;
-      return c.cores.map(x=>{
-        const pecas=folhas?folhas*sizes.length:null;
-        return`<div class="df"><span class="dk">${x.cor} · ${x.qtd} rolo(s)</span><span class="dv">${pecas?'~'+pecas+' pç':''}</span></div>`;
-      }).join('');
-    })()}</div>`:''}
-    ${c.obs?`<div class="obs-box">Obs: ${c.obs}</div>`:''}
-    ${c.encObs?`<div class="obs-box obs-bl">Obs. Edvaldo: ${c.encObs}</div>`:''}
-    ${c.carolObs?`<div class="obs-box" style="background:var(--b6);color:var(--c6)">Obs. Carol: ${c.carolObs}</div>`:''}
-    ${c.giObs?`<div class="obs-box" style="background:var(--b8);color:var(--c8)">Obs. envio: ${c.giObs}</div>`:''}
-    ${c.fotoLocal?`<div style="margin-top:8px"><img src="${c.fotoLocal}" style="width:100%;border-radius:9px;max-height:180px;object-fit:cover"></div>`:''}
-    ${user==='taty'?calcDetalhe(c):''}
-    <div class="agroup">
-      ${user==='taty'&&c.status==='AGUARDANDO_APROVACAO'?`
-        <button class="abtn" style="background:var(--b3);color:var(--c3)" onclick="aprovar('${c.id}')">✔ Aprovar encaixe</button>
-        <button class="abtn abtn-danger" onclick="reprovar('${c.id}')">✕ Reprovar encaixe</button>`:''}
-      ${user==='taty'&&c.status==='DEFINIR_CORES'?`<button class="abtn" style="background:var(--b6);color:var(--c6)" onclick="cl('ov-det');openCores('${c.id}')">Definir cores →</button>`:''}
-      ${(user==='taty'||user==='daimartha')&&c.status==='NO_CORTE'?`
-        <button class="abtn" style="background:var(--b2);color:var(--c2)" onclick="cl('ov-det');marcarChegada('${c.id}','reposicao')">📦 Reposição — separar envio</button>
-        <button class="abtn" style="background:var(--b6);color:var(--c6)" onclick="cl('ov-det');marcarChegada('${c.id}','novidade')">✨ Novidade — avisar Carol</button>`:''}
-      ${(['gerente','taty','carol'].includes(user))&&c.status==='AGUARDANDO_GI'?`<div style='display:flex;flex-direction:column;gap:7px'><button class="abtn" style="background:var(--b3);color:var(--c3)" onclick="cl('ov-det');aprovarEnvio('${c.id}')">✔ Sim, enviar para loja</button><button class="abtn abtn-danger" onclick="cl('ov-det');giArquivar('${c.id}')">✕ Não precisamos — arquivar</button></div>`:''}
-      ${user==='daimartha'&&c.status==='EMBALAR'?`<button class="abtn" style="background:var(--b3);color:var(--c3)" onclick="cl('ov-det');transmissaoMire('${c.id}')">✔ Transmissão Miré feita</button>`:''}
-      ${user==='gerente'&&c.status==='PRONTO_RETIRADA'?`<button class="abtn" style="background:var(--b3);color:var(--c3)" onclick="cl('ov-det');arquivar('${c.id}')">✔ Recebido — arquivar</button>`:''}
-      ${cfg.wedv&&c.status==='AGUARDANDO_ENCAIXE'?`<a href="https://wa.me/${cfg.wedv}?text=${encodeURIComponent('📐 Azpex\n*'+c.id+' — '+c.nome+'*\nRef: '+c.ref+'\nAguarda encaixe.\nTecido: '+c.tec+' · Grade: '+c.grade+(c.urg?'\n⚡ URGENTE':''))}" target="_blank" style="text-decoration:none"><button class="abtn abtn-wpp">📱 Avisar Edvaldo</button></a>`:''}
-      ${cfg.wros&&(c.status==='DESCANSAR_TECIDO'||c.status==='DEFINIR_CORES')?`<a href="https://wa.me/${cfg.wros}?text=${encodeURIComponent('✂️ Azpex\n*'+c.id+' — '+c.nome+'*\nRef: '+c.ref+'\nLiber. para descanso.\nCores:\n'+(c.cores||[]).map(x=>'• '+x.cor+' — '+x.qtd+' rolo(s)').join('\n')+(c.urg?'\n⚡ URGENTE':''))}" target="_blank" style="text-decoration:none"><button class="abtn abtn-wpp">📱 Avisar Rosana</button></a>`:''}
-    </div>`;
-  op('ov-det');
-}
-
-async function marcarImpresso(id){
-  const c=cortes.find(x=>x.id===id);
-  if(!c)return;
-  c.impresso=c.impresso==='sim'?'nao':'sim';
-  sl();render();
-  toast(c.impresso==='sim'?'✔ Marcado como impresso':'Desmarcado','s');
-  await push(c._row,[['IMPRESSO',c.impresso]]);
-}
-
-async function arquivar(id){
-  const c=cortes.find(x=>x.id===id);
-  if(!c)return;
-  c.status='ARQUIVADO';
-  sl();cl('ov-det');render();
-  toast('Recebido e arquivado!','s');
-  await push(c._row,[['STATUS','ARQUIVADO']]);
-}
-
-async function deletarCorte(id){
-  if(!confirm('Tem certeza que quer deletar este corte? Esta ação não pode ser desfeita.'))return;
-  const c=cortes.find(x=>x.id===id);
-  if(!c)return;
-  cortes=cortes.filter(x=>x.id!==id);
-  sl();cl('ov-det');render();
-  toast('Corte deletado.','i');
-  // Delete from sheets - set status to DELETADO so it won't appear on sync
-  if(c._row)await push(c._row,[['STATUS','DELETADO'],['NOME','[DELETADO] '+c.nome]]);
-}
-
-// NOVO CORTE
-function autoFillRolo(){
-  const tec=(document.getElementById('f-tec')?.value||'').toLowerCase();
-  const roloEl=document.getElementById('f-rolo');
-  if(!roloEl||roloEl.value)return;
-  const is30=tec==='montaria'||tec==='montaria light'||tec==='canelado montaria'||tec==='montaria pes'||tec.includes('montaria');
-  if(is30)roloEl.value='30';
-  else if(tec.includes('jeans'))roloEl.value='35';
-  calcPreview();
-}
-
-function openNovo(){
-  editId=null;
-  document.getElementById('form-ti').textContent='Novo corte';
-  ['f-id','f-ref','f-nome','f-ret','f-obs','f-rolo'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});
-  ['f-tec','f-tin','f-grade'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});
-  document.getElementById('f-urg').value='nao';
-  document.getElementById('f-data').value=new Date().toISOString().split('T')[0];
-  document.getElementById('calc-preview').innerHTML='';
-  op('ov-novo');
-}
-function openEditar(id){
-  cl('ov-det');const c=cortes.find(x=>x.id===id);editId=id;
-  document.getElementById('form-ti').textContent='Editar corte';
-  document.getElementById('f-id').value=c.id;
-  document.getElementById('f-ref').value=c.ref||'';
-  document.getElementById('f-nome').value=c.nome;
-  document.getElementById('f-data').value=c.data||'';
-  document.getElementById('f-tec').value=c.tec||'';
-  document.getElementById('f-tin').value=c.tin||'';
-  document.getElementById('f-grade').value=c.grade||'';
-  document.getElementById('f-ret').value=c.ret||'';
-  document.getElementById('f-obs').value=c.obs||'';
-  document.getElementById('f-rolo').value=c.rolo||'';
-  document.getElementById('f-urg').value=c.urg?'sim':'nao';
-  document.getElementById('calc-preview').innerHTML='';
-  // Pre-select grade in dropdown
-  const gsel=document.getElementById('f-grade');
-  if(gsel){
-    let found=false;
-    for(let i=0;i<gsel.options.length;i++){
-      if(gsel.options[i].value===c.grade){gsel.selectedIndex=i;found=true;break;}
-    }
-    if(!found&&c.grade){
-      const opt=document.createElement('option');opt.value=c.grade;opt.text=c.grade;
-      gsel.appendChild(opt);gsel.value=c.grade;
-    }
-  }
-  op('ov-novo');
-}
-function setHoje(){document.getElementById('f-data').value=new Date().toISOString().split('T')[0];}
-async function salvarCorte(){
-  const nome=document.getElementById('f-nome').value.trim();
-  if(!nome){toast('Preencha o nome','w');return;}
-  // Generate ID based on max existing ID to avoid collisions after deletions
-  function nextId(){
-    return 'ID-'+Date.now().toString().slice(-7);
-  }
-  const id=document.getElementById('f-id').value.trim()||nextId();
-  const obj={
-    id,ref:document.getElementById('f-ref').value.trim(),nome,
-    data:document.getElementById('f-data').value,
-    tec:document.getElementById('f-tec').value,tin:document.getElementById('f-tin').value,
-    grade:document.getElementById('f-grade').value,ret:document.getElementById('f-ret').value.trim(),
-    obs:document.getElementById('f-obs').value.trim(),
-    rolo:parseFloat(document.getElementById('f-rolo').value)||0,
-    urg:document.getElementById('f-urg').value==='sim',
-    encM:'',encPct:'',encObs:'',cores:[],checksDesc:{},numCorte:'',dataDesc:'',
-    tipo:'',carolObs:'',fotoLocal:'',status:'AGUARDANDO_ENCAIXE',
-  };
-  if(editId){
-    const idx=cortes.findIndex(x=>x.id===editId);
-    if(idx>-1){
-      const o=cortes[idx];
-      // Preserve all fields that are not in the edit form
-      ['status','encM','encPct','encObs','cores','checksDesc','numCorte','dataDesc',
-       'tipo','carolObs','giObs','fotoLocal','impresso','_row'].forEach(k=>{obj[k]=o[k];});
-      cortes[idx]=obj;
-    }
-  }else cortes.unshift(obj);
-  sl();cl('ov-novo');render();toast(editId?'✏️ Atualizado!':'✅ Criado!','s');
-  if(!editId){const r=await pushNew({ID:obj.id,REF:obj.ref,NOME:obj.nome,DATA_ENTRADA:dout(obj.data).replace(/—/,''),TECIDO:obj.tec,TINTURARIA:obj.tin,GRADE:obj.grade,RETALHO:obj.ret,OBS:obj.obs,ROLO:obj.rolo,URGENTE:obj.urg?'sim':'nao'});if(r?.ok)setTimeout(()=>syncAll(true),800);}
-  else await push(obj._row,[['TECIDO',obj.tec],['TINTURARIA',obj.tin],['GRADE',obj.grade],['RETALHO',obj.ret],['OBS',obj.obs],['ROLO',obj.rolo],['URGENTE',obj.urg?'sim':'nao']]);
-}
-
-// CORES
-function openCores(id){
-  coresId=id;corCount=0;
-  const c=cortes.find(x=>x.id===id);
-  if(!c){console.error('openCores: corte nao encontrado',id);return;}
-  const enc=parseFloat(c.encM)||0;
-  const sizes=(c.grade||'').split(' ').filter(Boolean);
-  const rolo=parseFloat(c.rolo)||0;
-  let estimaInfo='';
-  let estimaHTML='';
-  if(enc&&rolo&&sizes.length){
-    const folhas=Math.floor(rolo/enc);
-    const total=folhas*sizes.length;
-    estimaHTML=`<div class="calc-box" style="margin:8px 0">
-      <div class="calc-ti">Estimativa de corte</div>
-      <div class="calc-row"><span class="calc-k">Rolo</span><span class="calc-v">${rolo}m</span></div>
-      <div class="calc-row"><span class="calc-k">Encaixe</span><span class="calc-v">${enc}m</span></div>
-      <div class="calc-row"><span class="calc-k">Folhas</span><span class="calc-v">${folhas}</span></div>
-      ${sizes.map(s=>`<div class="calc-row"><span class="calc-k">Tam. ${s}</span><span class="calc-v">${folhas} pç</span></div>`).join('')}
-      <div class="calc-row"><span class="calc-k">Total</span><span class="calc-v">${total} peças</span></div>
-    </div>`;
-  } else if(!enc){
-    estimaHTML=`<div style="font-size:.76rem;color:var(--mt);background:var(--s2);border-radius:7px;padding:8px;margin:6px 0">Preencha o comprimento do encaixe para ver a estimativa de folhas</div>`;
-  }
-  document.getElementById('cores-info').innerHTML=`
-    <strong>${c.nome}</strong> · Grade: ${c.grade||'—'}<br>
-    <span style="font-size:.78rem;color:var(--mt)">Encaixe: ${c.encM||'—'}m · Aproveit.: ${c.encPct||'—'}%</span>
-    ${c.encObs?`<div style="font-size:.74rem;color:var(--c2);margin-top:3px">Obs: ${c.encObs}</div>`:''}
-    ${estimaHTML}
-    <div style="font-size:.74rem;color:var(--mt);margin-top:4px">Insira a cor e quantos rolos. A estimativa por cor aparece automaticamente.</div>`;
-  const list=document.getElementById('cores-list');list.innerHTML='';
-  if(c.cores?.length)c.cores.forEach(x=>addCor(x.cor,x.qtd));else addCor();
-  // WhatsApp buttons
-  const wppDiv=document.getElementById('cores-wpp-btns');
-  if(wppDiv){
-    const msgs=[];
-    if(cfg.wros){
-      const msg=encodeURIComponent('✂️ Azpex\n*'+c.nome+'*\nGrade: '+c.grade+(c.numCorte?' · Corte: '+c.numCorte:'')+'\nCores para descansar serão definidas agora.');
-      msgs.push(`<a href="https://wa.me/${cfg.wros}?text=${msg}" target="_blank" style="text-decoration:none"><button class="abtn abtn-wpp" style="width:100%;padding:8px;border-radius:8px">📱 Avisar Rosana</button></a>`);
-    }
-    wppDiv.innerHTML=msgs.join('');
-  }
-  op('ov-cores');
-}
-function addCor(cor='',qtd=''){
-  corCount++;
-  const n=corCount;
-  const div=document.createElement('div');div.className='cor-row';div.id='cor-'+n;
-  div.style.cssText='display:flex;gap:7px;align-items:center;margin-bottom:6px;flex-wrap:wrap';
-  div.innerHTML=`
-    <input class="cor-i" placeholder="Nome da cor" value="${cor}" style="flex:2;min-width:100px">
-    <input class="qtd-i" type="number" min="1" step="1" placeholder="Rolos" value="${qtd}" id="qtd-${n}" oninput="updateCorEstima(${n})">
-    <span id="estima-${n}" style="font-size:.72rem;color:var(--ac);font-weight:500;min-width:50px"></span>
-    <button class="rmv" onclick="document.getElementById('cor-${n}').remove()">✕</button>`;
-  document.getElementById('cores-list').appendChild(div);
-  if(qtd)updateCorEstima(n);
-}
-
-function updateCorEstima(n){
-  const c=cortes.find(x=>x.id===coresId);
-  if(!c)return;
-  const enc=parseFloat(c.encM)||0;
-  const sizes=(c.grade||'').split(' ').filter(Boolean);
-  const rolos=parseFloat(document.getElementById('qtd-'+n)?.value)||0;
-  const el=document.getElementById('estima-'+n);
-  if(!el)return;
-  if(enc&&sizes.length&&rolos){
-    const folhas=Math.floor((parseFloat(c.rolo)||30)/enc);
-    el.textContent='~'+(folhas*sizes.length*rolos)+' pç';
-  }else{el.textContent='';}
-}
-async function salvarCores(){
-  const rows=[...document.querySelectorAll('.cor-row')];
-  const cores=rows.map(r=>{const i=r.querySelectorAll('input');return{cor:i[0].value.trim(),qtd:i[1].value.trim()||'1'};}).filter(x=>x.cor);
-  if(!cores.length){toast('Adicione pelo menos uma cor','w');return;}
-  const c=cortes.find(x=>x.id===coresId);c.cores=cores;c.status='DESCANSAR_TECIDO';
-  sl();cl('ov-cores');render();toast('Cores definidas!','s');
-  await push(c._row,[['CORES',coresStr(cores)],['STATUS','DESCANSAR_TECIDO']]);
-}
-
-// ── PEDIDOS ──
-function renderPedidos(){
-  const isLoja=['vendA','vendB','vendC','gerente'].includes(user);
-  let list=[...pedidos].sort((a,b)=>b.ts-a.ts);
-  const q=(document.getElementById('srch')?.value||'').toLowerCase();
-  if(q)list=list.filter(p=>(p.cod+p.nome+p.cor).toLowerCase().includes(q));
-  if(filtro==='minha'){
-    if(['vendA','vendB','vendC'].includes(user))list=list.filter(p=>p.autor===user);
-    if(user==='estoque'||user==='taty'||user==='daimartha')list=list.filter(p=>p.status==='PENDENTE'||p.status==='APROVADO'||p.status==='PARCIAL');
-    if(user==='gerente')list=list.filter(p=>p.status!=='ARQUIVADO');
-  }
-  if(['vendA','vendB','vendC'].includes(user)&&filtro==='todos')list=list.filter(p=>p.autor===user);
-  if(filtro==='pendente')list=list.filter(p=>p.status==='PENDENTE');
-
-  const canResp=user==='estoque'||user==='taty'||user==='daimartha'||user==='carol';
-  const canTransf=user==='daimartha';
-  const canRec=user==='gerente';
-
-  document.getElementById('main-content').innerHTML=`<div style="padding:0 16px 28px">${list.length?list.map(p=>{
-    const info=psi(p.status);
-    return`<div class="pcard" onclick="openDetPedido('${p.id}')">
-      <div class="pcard-hd">
-        <div><div style="font-size:.68rem;color:var(--mt);font-family:'DM Mono',monospace">${p.id} · ${p.dataStr}</div><div class="pcard-cod">${p.cod}</div></div>
-        <span class="sbadge" style="background:${info.b};color:${info.c}">${info.l}</span>
-      </div>
-      <div style="font-weight:600;font-size:.88rem;margin-bottom:4px">${p.nome}</div>
-      <div style="font-size:.78rem;color:var(--mt);margin-bottom:6px">Cor: <strong>${p.cor}</strong> · ${UNAMES[p.autor]||p.autor}</div>
-      <div style="margin-top:4px;font-size:.77rem;color:var(--mt)">
-        ${(p.cores||[]).map(x=>`<div style="margin-bottom:2px"><strong style="color:var(--tx)">${x.cor}</strong> — ${Object.entries(x.qtds||{}).map(([t,q])=>`${t}:${q}`).join(' · ')}</div>`).join('')}
-      </div>
-      <div style="display:flex;justify-content:flex-end;gap:7px;margin-top:6px">
-        ${canResp&&p.status==='PENDENTE'?`<button class="bs" style="font-size:.73rem;padding:5px 11px" onclick="event.stopPropagation();openResp('${p.id}')">Responder →</button>`:''}
-        ${canTransf&&(p.status==='APROVADO'||p.status==='PARCIAL')?`<button class="bs" style="font-size:.73rem;padding:5px 11px;background:#1D9E75" onclick="event.stopPropagation();confirmarTransf('${p.id}')">Transmissão Miré ✔</button>`:''}
-        ${canRec&&p.status==='TRANSFERIDO'?`<button class="bs" style="font-size:.73rem;padding:5px 11px;background:var(--c7)" onclick="event.stopPropagation();receberPedido('${p.id}')">✔ Recebido</button>`:''}
-      </div>
-    </div>`;
-  }).join(''):'<div class="empty">Nenhum pedido</div>'}</div>`;
-  renderStatsPedidos();
-}
-
-function openNovoPedido(){
-  ['p-cod','p-nome','p-obs'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});
-  const gsel=document.getElementById('p-grade-sel');
-  if(gsel){gsel.innerHTML='<option value="">Selecionar grade...</option>'+getGrades().map(g=>`<option>${g}</option>`).join('');gsel.value='';}
-  document.getElementById('p-tabela-area').innerHTML='';
-  pedCorCount=1;pedGradeSizes=[];
-  op('ov-pedido');
-}
-let pedCorCount=0;
-let pedGradeSizes=[];
-
-function buildPedidoTabela(){
-  const grade=document.getElementById('p-grade-sel').value;
-  pedGradeSizes=grade.split(' ').filter(Boolean);
-  const area=document.getElementById('p-tabela-area');
-  if(!pedGradeSizes.length){area.innerHTML='';return;}
-  pedCorCount=1;
-  renderPedidoTabela();
-}
-
-function renderPedidoTabela(){
-  const area=document.getElementById('p-tabela-area');
-  if(!pedGradeSizes.length){area.innerHTML='';return;}
-  // Build table
-  let rows='';
-  for(let i=1;i<=pedCorCount;i++){
-    rows+=`<tr>
-      <td style="padding:4px 5px"><input style="width:100%;background:var(--s2);border:.5px solid var(--bd);border-radius:6px;padding:5px 7px;font-size:15px;color:var(--tx);outline:none" id="pcor-${i}" placeholder="Cor..."></td>
-      ${pedGradeSizes.map(s=>`<td style="padding:4px 5px;text-align:center"><input style="width:48px;background:var(--s2);border:.5px solid var(--bd);border-radius:6px;padding:5px 4px;font-size:15px;color:var(--tx);outline:none;text-align:center" id="pq-${i}-${s}" type="number" min="0" step="1" placeholder="0"></td>`).join('')}
-      <td style="padding:4px 5px"><button onclick="removePedidoRow(${i})" style="background:none;border:none;color:var(--mt);cursor:pointer;font-size:.9rem">✕</button></td>
-    </tr>`;
-  }
-  area.innerHTML=`
-    <div class="sl">Quantidades por cor e tamanho</div>
-    <div style="overflow-x:auto">
-      <table style="width:100%;border-collapse:collapse;min-width:300px">
-        <thead>
-          <tr>
-            <th style="padding:5px 5px;text-align:left;font-size:.65rem;text-transform:uppercase;letter-spacing:.6px;color:var(--mt);font-weight:500;white-space:nowrap">Cor</th>
-            ${pedGradeSizes.map(s=>`<th style="padding:5px 5px;text-align:center;font-size:.65rem;text-transform:uppercase;letter-spacing:.6px;color:var(--mt);font-weight:500;font-family:'DM Mono',monospace">${s}</th>`).join('')}
-            <th></th>
-          </tr>
-        </thead>
-        <tbody id="p-tabela-body">${rows}</tbody>
-      </table>
-    </div>
-    <button onclick="addPedidoRow()" style="margin-top:8px;background:none;border:1px dashed var(--bd);border-radius:8px;color:var(--mt);padding:6px;width:100%;font-size:.76rem;cursor:pointer">+ Adicionar cor</button>`;
-}
-
-function addPedidoRow(){
-  pedCorCount++;
-  renderPedidoTabela();
-  // Restore existing values
-}
-
-function removePedidoRow(i){
-  if(pedCorCount<=1)return;
-  // Collect current values
-  const vals=[];
-  for(let r=1;r<=pedCorCount;r++){
-    if(r===i)continue;
-    const cor=document.getElementById('pcor-'+r)?.value||'';
-    const qtds={};
-    pedGradeSizes.forEach(s=>{qtds[s]=document.getElementById('pq-'+r+'-'+s)?.value||'';});
-    vals.push({cor,qtds});
-  }
-  pedCorCount--;
-  renderPedidoTabela();
-  // Restore values
-  vals.forEach((v,idx)=>{
-    const n=idx+1;
-    const el=document.getElementById('pcor-'+n);
-    if(el)el.value=v.cor;
-    pedGradeSizes.forEach(s=>{
-      const qel=document.getElementById('pq-'+n+'-'+s);
-      if(qel)qel.value=v.qtds[s]||'';
-    });
-  });
-}
-
-function addPedidoCor(){}
-function buildPedidoGrade(){}
-function salvarPedido(){
-  const cod=document.getElementById('p-cod').value.trim();
-  const nome=document.getElementById('p-nome').value.trim();
-  if(!cod||!nome){toast('Preencha código e nome','w');return;}
-  if(!pedGradeSizes.length){toast('Selecione a grade','w');return;}
-  // Collect from table
-  const coresList=[];
-  for(let i=1;i<=pedCorCount;i++){
-    const cor=document.getElementById('pcor-'+i)?.value.trim();
-    if(!cor)continue;
-    const qtds={};
-    let hasQtd=false;
-    pedGradeSizes.forEach(s=>{
-      const v=document.getElementById('pq-'+i+'-'+s)?.value;
-      if(v&&parseInt(v)>0){qtds[s]=v;hasQtd=true;}
-    });
-    if(cor&&hasQtd)coresList.push({cor,qtds});
-  }
-  if(!coresList.length){toast('Preencha pelo menos uma cor com quantidade','w');return;}
-  const p={
-    id:'PED-'+String(pedidos.length+1).padStart(3,'0'),
-    ts:Date.now(),
-    dataStr:new Date().toLocaleDateString('pt-BR'),
-    cod,nome,grade:pedGradeSizes.join(' '),
-    cores:coresList,
-    obs:document.getElementById('p-obs').value.trim(),
-    autor:user,status:'PENDENTE',respObs:'',respCores:{},respondidoPor:'',
-  };
-  pedidos.unshift(p);sl();cl('ov-pedido');render();toast('Pedido enviado!','s');
-  // Save to sheets
-  if(cfg.url){
-    apip({action:'adicionarPedido',pedido:{autor:p.autor,cod:p.cod,nome:p.nome,grade:p.grade,cores:p.cores,obs:p.obs}})
-      .then(r=>{if(r?.ok)setTimeout(()=>syncAll(true),800);})
-      .catch(e=>console.error(e));
-  }
-}
-function openDetPedido(id){
-  const p=pedidos.find(x=>x.id===id);if(!p)return;
-  const info=psi(p.status);
-  const canResp=(user==='estoque'||user==='taty')&&p.status==='PENDENTE';
-  const canTransf=user==='daimartha'&&(p.status==='APROVADO'||p.status==='PARCIAL');
-  const canRec=user==='gerente'&&p.status==='TRANSFERIDO';
-  document.getElementById('det-c').innerHTML=`
-    <div class="mhd"><div class="mti">${p.id}</div><button class="xb" onclick="cl('ov-det')">×</button></div>
-    <div style="margin-bottom:11px">
-      <div style="font-size:.98rem;font-weight:600;margin-bottom:4px">${p.nome}</div>
-      <span style="background:${info.b};color:${info.c};font-size:.7rem;padding:3px 8px;border-radius:20px;font-weight:500">${info.l}</span>
-    </div>
-    <div class="df"><span class="dk">Código</span><span class="dv">${p.cod}</span></div>
-    <div class="df"><span class="dk">Cor</span><span class="dv">${p.cor}</span></div>
-    <div class="df"><span class="dk">Data</span><span class="dv">${p.dataStr}</span></div>
-    <div class="df"><span class="dk">Solicitado por</span><span class="dv">${UNAMES[p.autor]||p.autor}</span></div>
-    ${p.respondidoPor?`<div class="df"><span class="dk">Respondido por</span><span class="dv">${UNAMES[p.respondidoPor]||p.respondidoPor}</span></div>`:''}
-    <div style="margin-top:8px"><div class="sl">Itens pedidos</div>
-      ${(p.cores||[]).map(x=>`<div style="background:var(--s2);border-radius:7px;padding:7px 9px;margin-bottom:5px"><div style="font-weight:500;font-size:.82rem;margin-bottom:3px">${x.cor}</div>${Object.entries(x.qtds||{}).map(([t,q])=>`<div class="df"><span class="dk">Tam. ${t}</span><span class="dv">${q} pç</span></div>`).join('')}</div>`).join('')}
-    </div>
-    ${Object.keys(p.respCores||{}).length?`<div style="margin-top:8px"><div class="sl">Encontrado no estoque</div>
-      ${Object.entries(p.respCores).map(([cor,qtds])=>`<div style="background:var(--s2);border-radius:7px;padding:7px 9px;margin-bottom:5px"><div style="font-weight:500;font-size:.82rem;margin-bottom:3px">${cor}</div>${Object.entries(qtds).map(([t,q])=>`<div class="df"><span class="dk">Tam. ${t}</span><span class="dv">${q} pç</span></div>`).join('')}</div>`).join('')}
-    </div>`:''}
-    ${p.obs?`<div class="obs-box">Obs pedido: ${p.obs}</div>`:''}
-    ${p.respObs?`<div class="obs-box obs-bl">Obs estoque: ${p.respObs}</div>`:''}
-    <div class="agroup">
-      ${canResp?`<button class="abtn" style="background:var(--b2);color:var(--c2)" onclick="cl('ov-det');openResp('${p.id}')">Responder pedido →</button>`:''}
-      ${canTransf?`<button class="abtn" style="background:var(--b3);color:var(--c3)" onclick="cl('ov-det');confirmarTransf('${p.id}')">✔ Transmissão Miré feita</button>`:''}
-      ${canRec?`<button class="abtn" style="background:var(--b3);color:var(--c3)" onclick="cl('ov-det');receberPedido('${p.id}')">✔ Recebido — arquivar</button>`:''}
-    </div>`;
-  op('ov-det');
-}
-function openResp(id){
-  const p=pedidos.find(x=>x.id===id);respId=id;
-  document.getElementById('resp-ti').textContent=`${p.cod} — ${p.nome}`;
-  document.getElementById('resp-info').textContent=`Cor: ${p.cor} · ${UNAMES[p.autor]}`;
-  document.getElementById('resp-obs').value='';
-  const sizes2=(p.grade||'').split(' ').filter(Boolean);
-  document.getElementById('resp-grades').innerHTML=`
-    <div style="overflow-x:auto;margin-bottom:8px">
-      <table style="width:100%;border-collapse:collapse">
-        <thead><tr>
-          <th style="padding:5px;text-align:left;font-size:.63rem;text-transform:uppercase;letter-spacing:.5px;color:var(--mt);font-weight:500">Cor</th>
-          ${sizes2.map(s=>`<th style="padding:5px;text-align:center;font-size:.63rem;font-family:'DM Mono',monospace;color:var(--mt)">${s}<br><span style="font-size:.58rem">ped / enc</span></th>`).join('')}
-        </tr></thead>
-        <tbody>
-          ${(p.cores||[]).map(x=>`<tr>
-            <td style="padding:5px;font-weight:500;font-size:.82rem">${x.cor}</td>
-            ${sizes2.map(s=>`<td style="padding:5px;text-align:center">
-              <div style="font-size:.7rem;color:var(--mt);margin-bottom:2px">${x.qtds?.[s]||'—'}</div>
-              <input style="width:46px;background:var(--s2);border:.5px solid var(--bd);border-radius:5px;padding:4px;font-size:14px;text-align:center;outline:none" id="rq-${x.cor}-${s}" type="number" min="0" step="1" value="${x.qtds?.[s]||0}">
-            </td>`).join('')}
-          </tr>`).join('')}
-        </tbody>
-      </table>
-    </div>`;
-  op('ov-resp');
-}
-function responderPedido(tipo){
-  const p=pedidos.find(x=>x.id===respId);
-  const rc={};
-  (p.cores||[]).forEach(x=>{
-    rc[x.cor]={};
-    Object.keys(x.qtds||{}).forEach(t=>{
-      rc[x.cor][t]=document.getElementById('rq-'+x.cor+'-'+t)?.value||'0';
-    });
-  });
-  p.respCores=rc;p.respObs=document.getElementById('resp-obs').value.trim();
-  p.status=tipo==='aprovado'?'APROVADO':tipo==='parcial'?'PARCIAL':'RECUSADO';
-  p.respondidoPor=user;sl();cl('ov-resp');render();
-  toast({aprovado:'✔ Aprovado!',parcial:'⚡ Aprovado parcialmente',recusado:'Não disponível'}[tipo],'s');
-  if(cfg.url&&p._row){
-    push2(p._row,[['STATUS',p.status],['RESP_OBS',p.respObs],['RESP_CORES',JSON.stringify(p.respCores)],['RESPONDIDO_POR',p.respondidoPor]]);
-  }
-}
-function confirmarTransf(id){
-  const p=pedidos.find(x=>x.id===id);p.status='TRANSFERIDO';sl();cl('ov-det');render();toast('Transferência feita!','s');
-  if(cfg.url&&p._row)push2(p._row,[['STATUS','TRANSFERIDO']]);
-}
-function receberPedido(id){
-  const p=pedidos.find(x=>x.id===id);p.status='ARQUIVADO';sl();cl('ov-det');render();toast('Recebido e arquivado!','s');
-  if(cfg.url&&p._row)push2(p._row,[['STATUS','ARQUIVADO']]);
-}
-
-// ── CFG ──
-function openCfg(){
-  document.getElementById('cfg-pins-sec').style.display=user==='taty'?'':'none';
-  if(cfg.url)document.getElementById('cfg-url').value=cfg.url;
-  ['wcarol','wdm','wgi','wedv','wros'].forEach(k=>{const el=document.getElementById('cfg-'+k);if(el&&cfg[k])el.value=cfg[k];});
-  if(cfg.customGrades)document.getElementById('cfg-grades').value=cfg.customGrades;
-  op('ov-cfg');
-}
-function saveCfgUrl(){cfg.url=document.getElementById('cfg-url').value.trim();localStorage.setItem('az_cfg',JSON.stringify(cfg));toast('Conectado!','i');cl('ov-cfg');setTimeout(syncAll,400);}
-function saveCfgWpp(){
-  ['wcarol','wdm','wgi','wedv','wros'].forEach(k=>{const v=document.getElementById('cfg-'+k)?.value.trim();if(v)cfg[k]=v;});
-  localStorage.setItem('az_cfg',JSON.stringify(cfg));toast('Números salvos!','s');
-}
-function savePins(){
-  const map={pt:'taty',pe:'edvaldo',pr:'rosana',pd:'daimartha',pc:'carol',pes:'estoque',pva:'vendA',pvb:'vendB',pvc:'vendC',pge:'gerente'};
-  Object.entries(map).forEach(([k,u])=>{const v=document.getElementById('cfg-'+k)?.value.trim();if(v&&v.length===4)localStorage.setItem('az_pin_'+u,v);});
-  toast('PINs salvos!','s');
-}
-function saveGrades(){cfg.customGrades=document.getElementById('cfg-grades').value.trim();localStorage.setItem('az_cfg',JSON.stringify(cfg));populateSels();toast('Grades atualizadas!','s');}
-
-// ── UTILS ──
-function op(id){document.getElementById(id)?.classList.add('open');}
-function cl(id){document.getElementById(id)?.classList.remove('open');}
-function toast(msg,type='i'){const c=document.getElementById('toasts');const t=document.createElement('div');t.className=`toast ${type}`;t.textContent=msg;c.appendChild(t);setTimeout(()=>t.remove(),3500);}
-['ov-novo','ov-det','ov-cores','ov-pedido','ov-resp','ov-cfg','ov-decisao','ov-envio'].forEach(id=>{document.getElementById(id)?.addEventListener('click',e=>{if(e.target===e.currentTarget)cl(id);});});
-
-// Fix novo button for initial state - will be overridden by initApp
-// btn-novo onclick set in initApp
-
-// Fix novo button for initial state - will be overridden by initApp
-// btn-novo onclick set in initApp
-</script>
-</body>
-</html>
+    ${c.cores?.length?`<div style
