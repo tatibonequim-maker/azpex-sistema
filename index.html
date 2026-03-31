@@ -615,13 +615,13 @@ function initApp(){
   document.getElementById('app-logo').textContent=isLoja?'Bonequim':'Azpex · Fábrica';
   document.getElementById('btn-cfg').style.display=isTaty?'':'none';
 
-  // Botão novo — só Taty cria cortes; vendedoras e Carol criam pedidos
+  // Botão novo — Taty e Carol criam cortes (aba cortes) e pedidos (aba pedidos)
   const btnNovo=document.getElementById('btn-novo');
-  if(isTaty){
+  if(isTaty||isCarol){
     btnNovo.style.display='';
     btnNovo.textContent='+ Novo corte';
     btnNovo.onclick=openNovo;
-  } else if(isVend||isCarol){
+  } else if(isVend){
     btnNovo.style.display='';
     btnNovo.textContent='+ Novo pedido';
     btnNovo.onclick=openNovoPedido;
@@ -663,14 +663,15 @@ function setSection(s,el){
   const isLoja=['vendA','vendB','vendC','gerente'].includes(user);
   const canNovo=user==='taty'||(isLoja&&user!=='gerente');
   if(s==='pedidos'){
-    const canPed=(isLoja&&user!=='gerente')||user==='carol';
+    const canPed=['taty','carol','vendA','vendB','vendC','gerente'].includes(user);
     document.getElementById('btn-novo').style.display=canPed?'':'none';
     document.getElementById('btn-novo').textContent='+ Novo pedido';
     document.getElementById('btn-novo').onclick=openNovoPedido;
   }else{
-    document.getElementById('btn-novo').style.display=user==='taty'?'':'none';
+    const canCorte=user==='taty'||user==='carol';
+    document.getElementById('btn-novo').style.display=canCorte?'':'none';
     document.getElementById('btn-novo').textContent='+ Novo corte';
-    // btn-novo onclick set in initApp
+    document.getElementById('btn-novo').onclick=openNovo;
   }
   render();
 }
