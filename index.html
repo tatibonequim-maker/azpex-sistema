@@ -1,4 +1,23 @@
-<!DOCTYPE html> <html lang="pt-BR"> <head> <meta charset="UTF-8"> <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"> <title>Azpex · Bonequim</title> <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Syne:wght@700;800&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet"> <style> :root{ --bg:#f5f4f0;--sf:#fff;--s2:#f8f7f3;--bd:#e0dfd8;--bd2:#cccbc4; --tx:#1a1a1a;--mt:#888780;--ac:#0C4D53;--al:#E1F5EE;--wpp:#25D366; --c1:#EF9F27;--b1:#FAEEDA;--c2:#378ADD;--b2:#E6F1FB; --c3:#1D9E75;--b3:#E1F5EE;--c4:#E24B4A;--b4:#FCEBEB; --c5:#7B5EA7;--b5:#EEEDFE;--c6:#D4537E;--b6:#FBEAF0; --c7:#0C4D53;--b7:#E1F5EE;--c8:#B8860B;--b8:#FFF8DC; } *{box-sizing:border-box;margin:0;padding:0} body{background:var(--bg);color:var(--tx);font-family:'DM Sans',sans-serif;min-height:100vh} input,select,textarea,button{font-family:'DM Sans',sans-serif}
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Azpex · Bonequim</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Syne:wght@700;800&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#f5f4f0;--sf:#fff;--s2:#f8f7f3;--bd:#e0dfd8;--bd2:#cccbc4;
+  --tx:#1a1a1a;--mt:#888780;--ac:#0C4D53;--al:#E1F5EE;--wpp:#25D366;
+  --c1:#EF9F27;--b1:#FAEEDA;--c2:#378ADD;--b2:#E6F1FB;
+  --c3:#1D9E75;--b3:#E1F5EE;--c4:#E24B4A;--b4:#FCEBEB;
+  --c5:#7B5EA7;--b5:#EEEDFE;--c6:#D4537E;--b6:#FBEAF0;
+  --c7:#0C4D53;--b7:#E1F5EE;--c8:#B8860B;--b8:#FFF8DC;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--bg);color:var(--tx);font-family:'DM Sans',sans-serif;min-height:100vh}
+input,select,textarea,button{font-family:'DM Sans',sans-serif}
+
 /* ── PORTAL ── */
 .portal{position:fixed;inset:0;background:var(--bg);z-index:600;display:flex;align-items:center;justify-content:center;padding:20px}
 .portal-box{width:100%;max-width:360px;text-align:center}
@@ -217,669 +236,1555 @@
 .empty{text-align:center;padding:24px 8px;color:var(--mt);font-size:.77rem}
 @media(max-width:640px){.fg2{grid-template-columns:1fr}}
 </style>
+</head>
+<body>
 
-</head> <body> <!-- PORTAL --> <div class="portal" id="portal"> <div class="portal-box"> <div class="portal-logo">Azpex · Bonequim</div> <div class="portal-sub">Selecione sua área</div> <div class="portal-btns"> <button class="portal-btn" onclick="openLogin('fabrica')"> <div class="portal-icon" style="background:#E1F5EE">🏭</div> <div> <div class="portal-label">Fábrica</div> <div class="portal-desc">Cortes, produção e estoque</div> </div> </button> <button class="portal-btn" onclick="openLogin('loja')"> <div class="portal-icon" style="background:#E6F1FB">🏪</div> <div> <div class="portal-label">Loja Bonequim</div> <div class="portal-desc">Pedidos e retiradas</div> </div> </button> </div> </div> </div> <!-- LOGIN FÁBRICA --> <div class="login" id="login-fabrica"> <div class="lbox"> <div class="llogo">🏭 Fábrica</div> <div class="lsub" id="lsub-f">Quem é você?</div> <div class="lusers" id="lusers-f"> <button class="lu" onclick="selUser('taty','f')"><div class="lav" style="background:#E1F5EE;color:#085041">CT</div><div class="lname">Cinthia / Taty</div></button> <button class="lu" onclick="selUser('edvaldo','f')"><div class="lav" style="background:#E6F1FB;color:#0C447C">ED</div><div class="lname">Edvaldo</div></button> <button class="lu" onclick="selUser('rosana','f')"><div class="lav" style="background:#FBEAF0;color:#72243E">RO</div><div class="lname">Rosana</div></button> <button class="lu" onclick="selUser('daimartha','f')"><div class="lav" style="background:#FFF8DC;color:#8B6914">DM</div><div class="lname">Dai / Martha</div></button> <button class="lu" onclick="selUser('carol','f')"><div class="lav" style="background:#EEEDFE;color:#3C3489">CA</div><div class="lname">Carol</div></button> <button class="lu" onclick="selUser('estoque','f')"><div class="lav" style="background:#F1EFE8;color:#5F5E5A">ES</div><div class="lname">Estoque</div></button> </div> <div class="pin-area" id="pin-area-f"> <div style="font-size:.76rem;color:var(--mt)">Digite seu PIN</div> <div class="pdots"><div class="pdot" id="fpd0"></div><div class="pdot" id="fpd1"></div><div class="pdot" id="fpd2"></div><div class="pdot" id="fpd3"></div></div> <div class="perr" id="fperr"></div> <div class="ppad"> <button class="pk" onclick="ppk('1','f')">1</button><button class="pk" onclick="ppk('2','f')">2</button><button class="pk" onclick="ppk('3','f')">3</button> <button class="pk" onclick="ppk('4','f')">4</button><button class="pk" onclick="ppk('5','f')">5</button><button class="pk" onclick="ppk('6','f')">6</button> <button class="pk" onclick="ppk('7','f')">7</button><button class="pk" onclick="ppk('8','f')">8</button><button class="pk" onclick="ppk('9','f')">9</button> <div></div><button class="pk" onclick="ppk('0','f')">0</button><button class="pk del" onclick="ppdel('f')">⌫</button> </div> <button class="pback" onclick="backUsers('f')">← Voltar</button> </div> <button class="lback" onclick="backPortal()">← Voltar ao início</button> </div> </div> <!-- LOGIN LOJA --> <div class="login" id="login-loja"> <div class="lbox"> <div class="llogo">🏪 Loja Bonequim</div> <div class="lsub" id="lsub-l">Quem é você?</div> <div class="lusers" id="lusers-l"> <button class="lu" onclick="selUser('vendA','l')"><div class="lav" style="background:#E6F1FB;color:#0C447C">VA</div><div class="lname">Vendedora A</div></button> <button class="lu" onclick="selUser('vendB','l')"><div class="lav" style="background:#FBEAF0;color:#72243E">VB</div><div class="lname">Vendedora B</div></button> <button class="lu" onclick="selUser('vendC','l')"><div class="lav" style="background:#FAEEDA;color:#633806">VC</div><div class="lname">Vendedora C</div></button> <button class="lu" onclick="selUser('gerente','l')"><div class="lav" style="background:var(--al);color:var(--ac)">GI</div><div class="lname">Gi — Bonequim</div></button> </div> <div class="pin-area" id="pin-area-l"> <div style="font-size:.76rem;color:var(--mt)">Digite seu PIN</div> <div class="pdots"><div class="pdot" id="lpd0"></div><div class="pdot" id="lpd1"></div><div class="pdot" id="lpd2"></div><div class="pdot" id="lpd3"></div></div> <div class="perr" id="lperr"></div> <div class="ppad"> <button class="pk" onclick="ppk('1','l')">1</button><button class="pk" onclick="ppk('2','l')">2</button><button class="pk" onclick="ppk('3','l')">3</button> <button class="pk" onclick="ppk('4','l')">4</button><button class="pk" onclick="ppk('5','l')">5</button><button class="pk" onclick="ppk('6','l')">6</button> <button class="pk" onclick="ppk('7','l')">7</button><button class="pk" onclick="ppk('8','l')">8</button><button class="pk" onclick="ppk('9','l')">9</button> <div></div><button class="pk" onclick="ppk('0','l')">0</button><button class="pk del" onclick="ppdel('l')">⌫</button> </div> <button class="pback" onclick="backUsers('l')">← Voltar</button> </div> <button class="lback" onclick="backPortal()">← Voltar ao início</button> </div> </div> <!-- APP --> <div id="app" style="display:none"> <div class="hdr"> <div class="hdr-logo" id="app-logo">Azpex</div> <div class="hdr-user" id="app-user"></div> <div class="hbtns"> <button class="hbtn" onclick="syncAll()">↻</button> <button class="hbtn" onclick="openCfg()" id="btn-cfg" style="display:none">Config</button> <button class="hbtn hi" id="btn-novo" style="display:none">+ Novo</button> <button class="hbtn out" onclick="logout()">Sair</button> </div> </div> <div class="stabs" id="stabs" style="display:none"></div> <div class="stats" id="stats"></div> <div class="tb"> <input class="srch" id="srch" placeholder="Buscar..." oninput="render()"> <button class="fb on" onclick="setF('todos',this)">Todos</button> <button class="fb" onclick="setF('minha',this)">Minha fila</button> </div> <div id="main-content"></div> </div> <!-- MODAL NOVO CORTE --> <div class="ov" id="ov-novo"> <div class="modal"> <div class="mhd"><div class="mti" id="form-ti">Novo corte</div><button class="xb" onclick="cl('ov-novo')">×</button></div> <div class="fg2"> <div class="fg"><label class="fl">ID</label><input class="fi" id="f-id" placeholder="Auto"></div> <div class="fg"><label class="fl">Referência</label><input class="fi" id="f-ref" placeholder="ex: 2838"></div> <div class="fg full"><label class="fl">Nome da peça *</label><input class="fi" id="f-nome" placeholder="ex: Calça Dakota"></div> <div class="fg full"><label class="fl">Data entrada</label><div class="drow"><input class="fi" id="f-data" type="date" style="flex:1"><button class="hoje-b" onclick="setHoje()">Hoje</button></div></div> <div class="fg full"><label class="fl">Tecido</label><select class="fsl" id="f-tec" onchange="autoFillRolo()"><option value="">Selecionar...</option></select></div> <div class="fg"><label class="fl">Fornecedor</label><select class="fsl" id="f-tin"><option value="">Selecionar...</option></select></div> <div class="fg"><label class="fl">Grade</label><select class="fsl" id="f-grade"><option value="">Selecionar...</option></select></div> <div class="fg full"><label class="fl">Retalho</label><input class="fi" id="f-ret" placeholder="ex: GG"></div> <div class="fg full"><label class="fl">Comprimento do rolo (m)</label><input class="fi" id="f-rolo" type="number" step="0.5" placeholder="ex: 30" oninput="calcPreview()"></div> <div class="fg full"><label class="fl">Observação</label><input class="fi" id="f-obs" placeholder="Observações..."></div> <div class="fg"><label class="fl">Urgente?</label><select class="fsl" id="f-urg"><option value="nao">Não</option><option value="sim">Sim ⚡</option></select></div> </div> <div id="calc-preview"></div> <div class="fact"><button class="bc" onclick="cl('ov-novo')">Cancelar</button><button class="bs" onclick="salvarCorte()">Salvar</button></div> </div> </div> <!-- MODAL DETALHE --> <div class="ov" id="ov-det"><div class="modal" id="det-c"></div></div> <!-- MODAL CORES --> <div class="ov" id="ov-cores"> <div class="modal"> <div class="mhd"><div class="mti">Definir cores para descansar</div><button class="xb" onclick="cl('ov-cores')">×</button></div> <div id="cores-info" style="font-size:.8rem;color:var(--mt);margin-bottom:12px"></div> <div class="sl">Cor e quantidade de rolos</div> <div id="cores-list"></div> <button class="add-cor" onclick="addCor()">+ Adicionar cor</button> <div class="fact"> <button class="bc" onclick="cl('ov-cores')">Cancelar</button> <button class="bs" style="background:#1D9E75" onclick="salvarCores()">Enviar para Rosana</button> </div> <div id="cores-wpp-btns" style="margin-top:8px;display:flex;flex-direction:column;gap:6px"></div> </div> </div> <!-- MODAL NOVO PEDIDO --> <div class="ov" id="ov-pedido"> <div class="modal"> <div class="mhd"><div class="mti">Novo pedido</div><button class="xb" onclick="cl('ov-pedido')">×</button></div> <div class="fg2"> <div class="fg"><label class="fl">Código da peça *</label><input class="fi" id="p-cod" placeholder="ex: 0552256"></div> <div class="fg full"><label class="fl">Nome da peça *</label><input class="fi" id="p-nome" placeholder="ex: Calça Dakota"></div> <div class="fg full"><label class="fl">Grade *</label><select class="fsl" id="p-grade-sel" onchange="buildPedidoTabela()"><option value="">Selecionar grade...</option></select></div> </div> <div id="p-tabela-area" style="margin-top:10px"></div> <div class="divr"></div> <div class="fg full"><label class="fl">Observação</label><textarea class="fi" id="p-obs" rows="2" placeholder="Observações..."></textarea></div> <div class="fact"><button class="bc" onclick="cl('ov-pedido')">Cancelar</button><button class="bs" onclick="salvarPedido()">Enviar pedido</button></div> </div> </div> <!-- MODAL RESPONDER PEDIDO --> <div class="ov" id="ov-resp"> <div class="modal"> <div class="mhd"><div class="mti" id="resp-ti">Responder</div><button class="xb" onclick="cl('ov-resp')">×</button></div> <div id="resp-info" style="font-size:.8rem;color:var(--mt);margin-bottom:10px"></div> <div class="sl">Quantidade encontrada no estoque</div> <div id="resp-grades"></div> <div class="fg full" style="margin:10px 0"><label class="fl">Observação</label><textarea class="fi" id="resp-obs" rows="2" placeholder="Observações..."></textarea></div> <div style="display:flex;flex-direction:column;gap:8px"> <button class="bs" style="background:#1D9E75" onclick="responderPedido('aprovado')">✔ Pedido aprovado e separado</button> <button class="bs" style="background:#EF9F27" onclick="responderPedido('parcial')">⚡ Aprovado parcialmente</button> <button class="bs" style="background:#E24B4A" onclick="responderPedido('recusado')">✕ Produto não disponível</button> </div> </div> </div> <!-- MODAL DECISÃO ENVIO --> <div class="ov" id="ov-decisao"> <div class="modal"> <div class="mhd"><div class="mti">Decisão de envio</div><button class="xb" onclick="cl('ov-decisao')">×</button></div> <div id="decisao-info" style="font-size:.82rem;color:var(--mt);margin-bottom:12px"></div> <div id="decisao-cores" style="margin-bottom:12px"></div> <div class="fg full" style="margin-bottom:12px"> <label class="fl">Observação de quantidades</label> <textarea class="fi" id="decisao-obs" rows="3" placeholder="Ex: Enviar tudo / Preto 10pç G e GG / conforme tabela acima..."></textarea> </div> <div style="display:flex;flex-direction:column;gap:8px"> <button class="bs" style="background:#1D9E75" onclick="confirmarEnvio()">✔ Confirmar envio</button> <button class="bs abtn-danger" style="background:#FCEBEB;color:#A32D2D;border:.5px solid #F09595" onclick="confirmarArquivar()">✕ Não precisamos — arquivar</button> </div> </div> </div> <!-- MODAL DECISAO ENVIO --> <div class="ov" id="ov-envio"> <div class="modal"> <div class="mhd"><div class="mti">Decisão de envio</div><button class="xb" onclick="cl('ov-envio')">×</button></div> <div id="envio-info" style="font-size:.82rem;color:var(--mt);margin-bottom:12px"></div> <div id="envio-cores" style="margin-bottom:12px"></div> <div class="fg full" style="margin-bottom:12px"> <label class="fl">Observação de quantidades</label> <textarea class="fi" id="envio-obs" rows="3" placeholder="Ex: Enviar tudo · Preto: 10 peças, Azul: 5 peças..."></textarea> </div> <div style="display:flex;gap:8px"> <button class="bs" style="flex:1;background:#1D9E75" onclick="confirmarEnvio()">✔ Confirmar envio</button> <button class="bc" style="flex:1" onclick="cl('ov-envio')">Cancelar</button> </div> </div> </div> <!-- MODAL CONFIG --> <div class="ov" id="ov-cfg"> <div class="modal"> <div class="mhd"><div class="mti">Configurações</div><button class="xb" onclick="cl('ov-cfg')">×</button></div> <div class="cfg-sec"> <div class="cfg-l">Google Sheets (Cortes)</div> <input class="cfg-i" id="cfg-url" placeholder="URL do Apps Script" style="width:100%;margin-bottom:7px"> <button class="cfg-sv" onclick="saveCfgUrl()">Conectar</button> </div> <div class="cfg-sec" id="cfg-pins-sec"> <div class="cfg-l">PINs — Fábrica</div> <div class="cfg-row"><span class="cfg-name">Cinthia/Taty</span><input class="cfg-i" id="cfg-pt" maxlength="4" type="password" placeholder="4 dígitos"></div> <div class="cfg-row"><span class="cfg-name">Edvaldo</span><input class="cfg-i" id="cfg-pe" maxlength="4" type="password" placeholder="4 dígitos"></div> <div class="cfg-row"><span class="cfg-name">Rosana</span><input class="cfg-i" id="cfg-pr" maxlength="4" type="password" placeholder="4 dígitos"></div> <div class="cfg-row"><span class="cfg-name">Dai/Martha</span><input class="cfg-i" id="cfg-pd" maxlength="4" type="password" placeholder="4 dígitos"></div> <div class="cfg-row"><span class="cfg-name">Carol</span><input class="cfg-i" id="cfg-pc" maxlength="4" type="password" placeholder="4 dígitos"></div> <div class="cfg-row"><span class="cfg-name">Estoque</span><input class="cfg-i" id="cfg-pes" maxlength="4" type="password" placeholder="4 dígitos"></div> <div class="cfg-l" style="margin-top:10px">PINs — Loja</div> <div class="cfg-row"><span class="cfg-name">Vendedora A</span><input class="cfg-i" id="cfg-pva" maxlength="4" type="password" placeholder="4 dígitos"></div> <div class="cfg-row"><span class="cfg-name">Vendedora B</span><input class="cfg-i" id="cfg-pvb" maxlength="4" type="password" placeholder="4 dígitos"></div> <div class="cfg-row"><span class="cfg-name">Vendedora C</span><input class="cfg-i" id="cfg-pvc" maxlength="4" type="password" placeholder="4 dígitos"></div> <div class="cfg-row"><span class="cfg-name">Gi/Bonequim</span><input class="cfg-i" id="cfg-pge" maxlength="4" type="password" placeholder="4 dígitos"></div> <button class="cfg-sv" onclick="savePins()">Salvar PINs</button> </div> <div class="cfg-sec"> <div class="cfg-l">WhatsApp</div> <div class="cfg-row"><span class="cfg-name">Carol</span><input class="cfg-i" id="cfg-wcarol" placeholder="5511999999999"></div> <div class="cfg-row"><span class="cfg-name">Dai/Martha</span><input class="cfg-i" id="cfg-wdm" placeholder="5511999999999"></div> <div class="cfg-row"><span class="cfg-name">Gi/Bonequim</span><input class="cfg-i" id="cfg-wgi" placeholder="5511999999999"></div> <div class="cfg-row"><span class="cfg-name">Edvaldo</span><input class="cfg-i" id="cfg-wedv" placeholder="5511999999999"></div> <div class="cfg-row"><span class="cfg-name">Rosana</span><input class="cfg-i" id="cfg-wros" placeholder="5511999999999"></div> <button class="cfg-sv" onclick="saveCfgWpp()">Salvar números</button> </div> <div class="cfg-sec"> <div class="cfg-l">Grades personalizadas</div> <textarea class="fi" id="cfg-grades" rows="2" placeholder="Ex: XP, XG, PP P M G GG XG"></textarea> <button class="cfg-sv" onclick="saveGrades()">Salvar grades</button> </div> </div> </div> <div class="toasts" id="toasts"></div> <script> // ── CONSTANTS ── const DURL='https://script.google.com/macros/s/AKfycbxPBTjdEM04daObzVy7j1qV4qkQjn1-4WUav0mKMuvWp6v6O3YI1Pwjh0G2mdcF7GDh/exec'; const DPINS={taty:'1234',edvaldo:'5678',rosana:'9012',daimartha:'3456',carol:'2468',estoque:'1357',vendA:'1111',vendB:'2222',vendC:'3333',gerente:'4444'}; const GRADES_DEF=['PP','P','M','G','GG','PP P','P M','M G','G GG','PP P M','P M G','M G GG','PP P M G','P M G GG','PP P M G GG']; const UNAMES={taty:'Cinthia / Taty',edvaldo:'Edvaldo',rosana:'Rosana',daimartha:'Dai / Martha',carol:'Carol',estoque:'Estoque',vendA:'Vendedora A',vendB:'Vendedora B',vendC:'Vendedora C',gerente:'Gi — Bonequim'}; // Cortes status const CSM={ AGUARDANDO_ENCAIXE:{l:'Ag. encaixe',c:'var(--c1)',b:'var(--b1)'}, AGUARDANDO_APROVACAO:{l:'Ag. aprovação',c:'var(--c2)',b:'var(--b2)'}, ENCAIXE_REPROVADO:{l:'Reprovado',c:'var(--c4)',b:'var(--b4)'}, DEFINIR_CORES:{l:'Definir cores',c:'var(--c6)',b:'var(--b6)'}, DESCANSAR_TECIDO:{l:'Descansar tecido',c:'var(--c5)',b:'var(--b5)'}, TECIDO_DESCANSADO:{l:'Tecido descansado',c:'var(--c3)',b:'var(--b3)'}, NO_CORTE:{l:'Corte / Oficina',c:'var(--c3)',b:'var(--b3)'}, AG_FOTO:{l:'Ag. foto Carol',c:'var(--c6)',b:'var(--b6)'}, FOTO_OK:{l:'Foto aprovada',c:'var(--c3)',b:'var(--b3)'}, AGUARDANDO_GI:{l:'Ag. decisão de envio',c:'var(--c8)',b:'var(--b8)'}, EMBALAR:{l:'Embalar / Separar',c:'var(--c7)',b:'var(--b7)'}, PRONTO_RETIRADA:{l:'Pronto p/ retirada',c:'var(--c3)',b:'var(--b3)'}, ARQUIVADO:{l:'Arquivado',c:'var(--mt)',b:'var(--s2)'}, }; function csi(s){return CSM[s]||{l:s,c:'var(--mt)',b:'var(--s2)'};} // Pedidos status const PSM={ PENDENTE:{l:'Pendente',c:'var(--c1)',b:'var(--b1)'}, APROVADO:{l:'Aprovado',c:'var(--c3)',b:'var(--b3)'}, PARCIAL:{l:'Parcial',c:'var(--c1)',b:'var(--b1)'}, RECUSADO:{l:'Não disponível',c:'var(--c4)',b:'var(--b4)'}, TRANSFERIDO:{l:'Transferência feita',c:'var(--c3)',b:'var(--b3)'}, }; function psi(s){return PSM[s]||{l:s,c:'var(--mt)',b:'var(--s2)'};} let cfg=JSON.parse(localStorage.getItem('az_cfg')||'{}'); if(!cfg.url)cfg.url=DURL; let cortes=JSON.parse(localStorage.getItem('az_cortes')||'[]'); let pedidos=JSON.parse(localStorage.getItem('az_pedidos')||'[]'); let user='',section='cortes',filtro='todos'; let coresId=null,respId=null,corCount=0,editId=null,decisaoId=null; let pinUser='',pinVal='',pinSide=''; // ── PORTAL ── function openLogin(side){ pinSide=side; document.getElementById('portal').style.display='none'; document.getElementById('login-'+side).classList.add('open'); } function backPortal(){ document.getElementById('login-fabrica').classList.remove('open'); document.getElementById('login-loja').classList.remove('open'); document.getElementById('portal').style.display='flex'; } // ── LOGIN ── function selUser(u,side){ pinUser=u;pinVal='';pinSide=side; document.getElementById('lusers-'+side).style.display='none'; document.getElementById('pin-area-'+side).classList.add('show'); document.getElementById(side+'perr').textContent=''; updDots(side); } function backUsers(side){ pinUser='';pinVal=''; document.getElementById('lusers-'+side).style.display='flex'; document.getElementById('pin-area-'+side).classList.remove('show'); } function ppk(k,side){if(pinVal.length>=4)return;pinVal+=k;updDots(side);if(pinVal.length===4)setTimeout(()=>checkPin(side),120);} function ppdel(side){pinVal=pinVal.slice(0,-1);updDots(side);document.getElementById(side+'perr').textContent='';} function updDots(side){for(let i=0;i<4;i++)document.getElementById(side+'pd'+i)?.classList.toggle('on',i<pinVal.length);} function checkPin(side){ const s=side||pinSide||'f'; try{ const saved=localStorage.getItem('az_pin_'+pinUser)||DPINS[pinUser]||'0000'; if(pinVal===saved){ user=pinUser; // Hide all logins document.getElementById('login-fabrica').style.display='none'; document.getElementById('login-loja').style.display='none'; document.getElementById('login-fabrica').classList.remove('open'); document.getElementById('login-loja').classList.remove('open'); initApp(); }else{ const errEl=document.getElementById(s+'perr'); if(errEl)errEl.textContent='PIN incorreto. Tente novamente.'; pinVal='';updDots(s); } }catch(err){ console.error('checkPin error:',err); const errEl=document.getElementById(s+'perr'); if(errEl)errEl.textContent='Erro interno. Tente novamente.'; pinVal='';updDots(s); } } function logout(){ user=''; document.getElementById('app').style.display='none'; document.getElementById('portal').style.display='flex'; // reset logins ['fabrica','loja'].forEach(s=>{ const el=document.getElementById('login-'+s); el.classList.remove('open'); document.getElementById('lusers-'+s).style.display='flex'; document.getElementById('pin-area-'+s).classList.remove('show'); }); } // ── INIT APP ── function initApp(){ try{ document.getElementById('portal').style.display='none'; document.getElementById('app').style.display=''; document.getElementById('app-user').textContent=UNAMES[user]||user; const isTaty=user==='taty'; const isLoja=['vendA','vendB','vendC','gerente'].includes(user); const isVend=['vendA','vendB','vendC'].includes(user); const isCarol=user==='carol'; document.getElementById('app-logo').textContent=isLoja?'Bonequim':'Azpex · Fábrica'; document.getElementById('btn-cfg').style.display=isTaty?'':'none'; // Botão novo — só Taty cria cortes; vendedoras e Carol criam pedidos const btnNovo=document.getElementById('btn-novo'); if(isTaty){ btnNovo.style.display=''; btnNovo.textContent='+ Novo corte'; btnNovo.onclick=openNovo; } else if(isVend||isCarol){ btnNovo.style.display=''; btnNovo.textContent='+ Novo pedido'; btnNovo.onclick=openNovoPedido; } else { btnNovo.style.display='none'; } // Abas const stabsEl=document.getElementById('stabs'); const showBothTabs=isTaty||user==='gerente'||user==='estoque'||user==='daimartha'||isCarol; if(showBothTabs){ stabsEl.style.display='flex'; let cortesLabel='Cortes'; if(user==='gerente') cortesLabel='Reposições'; if(user==='estoque') cortesLabel='Embalar'; stabsEl.innerHTML=` <button class="stab on" onclick="setSection('cortes',this)">${cortesLabel}</button> <button class="stab" onclick="setSection('pedidos',this)">Pedidos</button>`; section='cortes'; }else{ stabsEl.style.display='none'; section=isLoja?'pedidos':'cortes'; } populateSels(); render(); if(cfg.url){ setTimeout(syncAll,600); // Auto-sync every 30 seconds setInterval(()=>{if(cfg.url)syncAll(true);},30000); } }catch(err){console.error('initApp error:',err);toast('Erro: '+err.message,'w');} } function setSection(s,el){ section=s; document.querySelectorAll('.stab').forEach(b=>b.classList.remove('on')); el.classList.add('on'); const isLoja=['vendA','vendB','vendC','gerente'].includes(user); const canNovo=user==='taty'||(isLoja&&user!=='gerente'); if(s==='pedidos'){ const canPed=(isLoja&&user!=='gerente')||user==='carol'; document.getElementById('btn-novo').style.display=canPed?'':'none'; document.getElementById('btn-novo').textContent='+ Novo pedido'; document.getElementById('btn-novo').onclick=openNovoPedido; }else{ document.getElementById('btn-novo').style.display=user==='taty'?'':'none'; document.getElementById('btn-novo').textContent='+ Novo corte'; // btn-novo onclick set in initApp } render(); } function setF(f,el){filtro=f;document.querySelectorAll('.fb').forEach(b=>b.classList.remove('on'));el.classList.add('on');render();} // ── API ── async function apig(p){const r=await fetch('/api/proxy?'+new URLSearchParams(p));return r.json();} async function apip(b){const r=await fetch('/api/proxy',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(b)});return r.json();} async function push(row,campos){ if(!cfg.url||!row)return; try{ await apip({action:'atualizarCampos',row,campos}); setTimeout(()=>{if(cfg.url)syncAll(true);},3000); }catch(e){console.error('push error:',e);} } async function push2(row,campos){ if(!cfg.url||!row)return; try{ await apip({action:'atualizarPedido',row,campos}); setTimeout(()=>{if(cfg.url)syncAll(true);},1500); }catch(e){console.error('push2 error:',e);} } async function pushNew(dados){if(!cfg.url)return null;try{return await apip({action:'adicionarPeca',dados});}catch(e){return null;}} async function syncAll(silent){ if(!cfg.url){if(!silent)toast('Configure o URL primeiro','w');return;} if(!silent)toast('Sincronizando...','i'); try{ const[c,l,p]=await Promise.all([apig({action:'getCortes'}),apig({action:'getListas'}),apig({action:'getPedidos'})]); if(Array.isArray(c)&&c.length>0){ const fotoMap={};cortes.forEach(x=>{if(x.fotoLocal)fotoMap[x.id]=x.fotoLocal;}); cortes=c.filter(r=>r.STATUS!=='DELETADO').map(r=>({ id:str(r.ID),ref:str(r.REF),nome:str(r.NOME), data:din(str(r.DATA_ENTRADA)),tec:str(r.TECIDO),tin:str(r.TINTURARIA), grade:str(r.GRADE),ret:str(r.RETALHO),obs:str(r.OBS), urg:str(r.URGENTE).toLowerCase()==='sim', rolo:parseFloat(r.ROLO)||0, encM:strNum(r.ENCAIXE_M),encPct:strNum(r.RENDIMENTO)||strNum(r['RENDIMENTO_%']),encObs:str(r.OBS_CAD), cores:parseCores(str(r.CORES)), checksDesc:parseChecks(str(r.CHECKS_DESC)), numCorte:str(r.NUM_CORTE),dataDesc:str(r.DATA_DESCANSO),impresso:str(r.IMPRESSO)||'', tipo:str(r.TIPO_CHEGADA),carolObs:str(r.CAROL_OBS),giObs:str(r.GI_OBS), status:mapStatus(str(r.STATUS)),_row:r._row, fotoLocal:fotoMap[str(r.ID)]||'', })); } if(Array.isArray(p)&&p.length>0){ pedidos=p.map(r=>({ id:str(r.ID),ts:new Date(str(r.DATA)||Date.now()).getTime(), dataStr:str(r.DATA),autor:str(r.AUTOR), cod:str(r.COD),nome:str(r.NOME),grade:str(r.GRADE), cores:safeJSON(str(r.CORES),[]), obs:str(r.OBS),status:str(r.STATUS)||'PENDENTE', respObs:str(r.RESP_OBS), respCores:safeJSON(str(r.RESP_CORES),{}), respondidoPor:str(r.RESPONDIDO_POR), _row:r._row, })); } if(l&&l.tecidos){localStorage.setItem('az_listas',JSON.stringify(l));populateSels();} sl();render();if(!silent)toast('Sincronizado ✔','s'); }catch(e){console.error(e);if(!silent)toast('Erro ao sincronizar','w');} } function safeJSON(s,def){try{return s?JSON.parse(s):def;}catch(e){return def;}} function mapStatus(s){ const m={ 'COMPLETAR GRADE':'AGUARDANDO_ENCAIXE','ENCAIXE PENDENTE':'AGUARDANDO_ENCAIXE', 'AGUARDANDO_ENCAIXE':'AGUARDANDO_ENCAIXE','DEFINIR CORES':'DEFINIR_CORES', 'DEFINIR_CORES':'DEFINIR_CORES','DESCANSAR TECIDO':'DESCANSAR_TECIDO', 'DESCANSAR_TECIDO':'DESCANSAR_TECIDO','AGUARDANDO_APROVACAO':'AGUARDANDO_APROVACAO', 'ENCAIXE_REPROVADO':'ENCAIXE_REPROVADO','TECIDO_DESCANSADO':'TECIDO_DESCANSADO', 'PRONTO PARA CORTAR':'TECIDO_DESCANSADO','NO_CORTE':'NO_CORTE', 'AG_FOTO':'AG_FOTO','FOTO_OK':'FOTO_OK', 'SEPARAR_ENVIO':'AGUARDANDO_GI', 'AGUARDANDO_GI':'AGUARDANDO_GI','EMBALAR':'EMBALAR', 'PRONTO_RETIRADA':'PRONTO_RETIRADA','ARQUIVADO':'ARQUIVADO', 'CHEGOU_OFICINA':'NO_CORTE', }; return m[(s||'').trim()]||'AGUARDANDO_ENCAIXE'; } function str(v){ if(v===null||v===undefined)return''; const s=v.toString().trim(); if(s.match(/^\d{4}-\d{2}-\d{2}T/))return''; if(s==='nan'||s==='NaN'||s==='undefined')return''; return s; } function strNum(v){ // Like str() but also rejects date-like numbers if(v===null||v===undefined)return''; const s=v.toString().trim(); if(s.match(/^\d{4}-\d{2}-\d{2}/))return''; // date format if(s==='nan'||s==='NaN')return''; // If it's a huge number that looks like a date serial, reject const n=parseFloat(s); if(!isNaN(n)&&n>40000&&n<50000)return''; // Excel date serial range return s; } function parseCores(s){if(!s)return[];return s.split(',').map(x=>{const p=x.trim().split(':');return{cor:p[0]?.trim()||'',qtd:p[1]?.trim()||'1'};}).filter(c=>c.cor);} function coresStr(a){return a.map(c=>`${c.cor}:${c.qtd}`).join(', ');} function parseChecks(s){if(!s)return{};const o={};s.split(',').forEach(x=>{const p=x.split(':');if(p[0])o[p[0].trim()]=p[1]?.trim()==='1';});return o;} function checksStr(o){return Object.entries(o).map(([k,v])=>`${k}:${v?1:0}`).join(',');} function din(s){if(!s)return'';if(s.includes('T'))return s.split('T')[0];if(s.includes('/'))return s.split('/').reverse().join('-');return s;} function dout(s){if(!s)return'—';if(s.includes('-')){const p=s.split('-');return`${p[2]}/${p[1]}/${p[0]}`;}return s;} function sl(){localStorage.setItem('az_cortes',JSON.stringify(cortes));localStorage.setItem('az_pedidos',JSON.stringify(pedidos));} function getGrades(){ const custom=(cfg.customGrades||'').split(',').map(s=>s.trim()).filter(Boolean); return[...GRADES_DEF,...custom.filter(g=>!GRADES_DEF.includes(g))]; } function populateSels(){ const stored=JSON.parse(localStorage.getItem('az_listas')||'{}'); const tecs=stored.tecidos?.length?stored.tecidos:['Montaria','Montaria Light','Canelado Montaria','Visco Caneladinho','Canelado 70','Canelado Visco','New Light','Fluity','Flamê','Jeans','Viscose','Cirrê','Moletinho']; const tins=stored.tinturarias?.length?stored.tinturarias:['GUARA','MAR','N/A']; const grades=getGrades(); ['f-tec','p-tec'].forEach(id=>{const el=document.getElementById(id);if(el)el.innerHTML='<option value="">Selecionar...</option>'+tecs.map(t=>`<option>${t}</option>`).join('');}); ['f-tin'].forEach(id=>{const el=document.getElementById(id);if(el)el.innerHTML='<option value="">Selecionar...</option>'+tins.map(t=>`<option>${t}</option>`).join('');}); ['f-grade','p-grade'].forEach(id=>{const el=document.getElementById(id);if(el)el.innerHTML='<option value="">Selecionar...</option>'+grades.map(g=>`<option>${g}</option>`).join('');}); } // ── CALC ── function calcTotalPecas(c){ if(!c.rolo||!c.encM||!c.grade)return null; const enc=parseFloat(c.encM);if(!enc||isNaN(enc))return null; const sizes=c.grade.split(' ').filter(Boolean); return Math.floor(parseFloat(c.rolo)/enc)*sizes.length; } function calcDetalhe(c){ if(!c.rolo||!c.grade)return''; const enc=parseFloat(c.encM)||0; const sizes=c.grade.split(' ').filter(Boolean); if(!sizes.length)return''; if(!enc)return''; const folhas=Math.floor(parseFloat(c.rolo)/enc); const total=folhas*sizes.length; return`<div class="calc-box"><div class="calc-ti">Estimativa de corte</div> <div class="calc-row"><span class="calc-k">Folhas</span><span class="calc-v">${folhas}</span></div> ${sizes.map(s=>`<div class="calc-row"><span class="calc-k">Tam. ${s}</span><span class="calc-v">${folhas} pç</span></div>`).join('')} <div class="calc-row"><span class="calc-k">Total</span><span class="calc-v">${total} peças</span></div> </div>`; } function calcPreview(){ const rolo=parseFloat(document.getElementById('f-rolo')?.value)||0; const grade=document.getElementById('f-grade')?.value||''; const prev=document.getElementById('calc-preview'); if(!prev||!rolo||!grade){if(prev)prev.innerHTML='';return;} const sizes=grade.split(' ').filter(Boolean); prev.innerHTML=`<div class="calc-box" style="margin-top:10px"><div class="calc-ti">Com este rolo</div> ${sizes.map(s=>`<div class="calc-row"><span class="calc-k">Tam. ${s}</span><span class="calc-v">? pç (aguarda encaixe)</span></div>`).join('')} <div class="calc-row"><span class="calc-k">${sizes.length} tamanhos</span><span class="calc-v">${rolo}m de tecido</span></div> </div>`; } // ── RENDER ── function render(){ if(!user)return; if(section==='cortes')renderCortes(); else renderPedidos(); } // ── CORTES ── function getVisCortes(){ let list=[...cortes]; const q=(document.getElementById('srch')?.value||'').toLowerCase(); if(q)list=list.filter(c=>(c.id+c.nome+c.tec+c.ref).toLowerCase().includes(q)); if(filtro==='minha'){ if(user==='edvaldo')list=list.filter(c=>c.status==='AGUARDANDO_ENCAIXE'||c.status==='ENCAIXE_REPROVADO'); if(user==='rosana')list=list.filter(c=>c.status==='DESCANSAR_TECIDO'||c.status==='TECIDO_DESCANSADO'); if(user==='daimartha')list=list.filter(c=>['NO_CORTE','AGUARDANDO_GI','EMBALAR','PRONTO_RETIRADA'].includes(c.status)); if(user==='carol')list=list.filter(c=>c.status==='AG_FOTO'||c.status==='FOTO_OK'); if(user==='estoque')list=list.filter(c=>c.status==='EMBALAR'); } // Gi only sees reposicao (not novidades) if(user==='gerente'&&section==='cortes')list=list.filter(c=>c.tipo!=='novidade'||c.status==='PRONTO_RETIRADA'||c.status==='ARQUIVADO'); return list; } function getColsCortes(){ if(user==='taty')return[ {s:'AGUARDANDO_ENCAIXE',l:'Ag. encaixe',c:'var(--c1)'}, {s:'AGUARDANDO_APROVACAO',l:'Ag. aprovação',c:'var(--c2)'}, {s:'DEFINIR_CORES',l:'Definir cores',c:'var(--c6)'}, {s:'DESCANSAR_TECIDO',l:'Descansar tecido',c:'var(--c5)'}, {s:'TECIDO_DESCANSADO',l:'Tecido descansado',c:'var(--c3)'}, {s:'NO_CORTE',l:'Corte / Oficina',c:'var(--c3)'}, {s:'AG_FOTO',l:'Ag. foto',c:'var(--c6)'}, {s:'AGUARDANDO_GI',l:'Ag. decisão de envio',c:'var(--c8)'}, {s:'EMBALAR',l:'Embalar / Separar',c:'var(--c7)'}, {s:'PRONTO_RETIRADA',l:'Pronto p/ retirada',c:'var(--c3)'}, ]; if(user==='edvaldo')return[ {s:'AGUARDANDO_ENCAIXE',l:'Fila de encaixe',c:'var(--c1)'}, {s:'ENCAIXE_REPROVADO',l:'Reprovado — refazer',c:'var(--c4)'}, {s:'__TODOS__',l:'Todos os cortes',c:'var(--mt)'}, ]; if(user==='rosana')return[ {s:'DESCANSAR_TECIDO',l:'Para descansar',c:'var(--c5)'}, {s:'TECIDO_DESCANSADO',l:'Descansado',c:'var(--c3)'}, {s:'NO_CORTE',l:'No corte',c:'var(--c3)'}, ]; if(user==='daimartha')return[ {s:'NO_CORTE',l:'Corte / Oficina',c:'var(--c3)'}, {s:'AG_FOTO',l:'Ag. foto Carol',c:'var(--c6)'}, {s:'AGUARDANDO_GI',l:'Ag. decisão de envio',c:'var(--c8)'}, {s:'EMBALAR',l:'Embalar / Separar',c:'var(--c7)'}, {s:'PRONTO_RETIRADA',l:'Pronto p/ retirada',c:'var(--c3)'}, ]; if(user==='carol')return[ {s:'AGUARDANDO_ENCAIXE',l:'Ag. encaixe',c:'var(--c1)'}, {s:'AGUARDANDO_APROVACAO',l:'Aprovar encaixe',c:'var(--c2)'}, {s:'DEFINIR_CORES',l:'Definir cores',c:'var(--c6)'}, {s:'NO_CORTE',l:'Corte / Oficina',c:'var(--c3)'}, {s:'AG_FOTO',l:'Ag. foto',c:'var(--c6)'}, {s:'SEPARAR_ENVIO',l:'Separar',c:'var(--c8)'}, {s:'EMBALAR',l:'Embalar',c:'var(--c7)'}, {s:'PRONTO_RETIRADA',l:'Pronto p/ retirada',c:'var(--c3)'}, ]; if(user==='estoque')return[ {s:'EMBALAR',l:'Para embalar / separar',c:'var(--c7)'}, {s:'PRONTO_RETIRADA',l:'Pronto p/ retirada',c:'var(--c3)'}, ]; if(user==='gerente'&&section==='cortes')return[ {s:'AGUARDANDO_GI',l:'Decisão de envio',c:'var(--c8)'}, {s:'PRONTO_RETIRADA',l:'Pronto p/ retirada',c:'var(--c3)'}, {s:'ARQUIVADO',l:'Não enviados',c:'var(--mt)'}, ]; return[]; } function renderCortes(){ const cols=getColsCortes();const vis=getVisCortes(); const grouped={};cols.forEach(c=>{grouped[c.s]=[];}); vis.forEach(c=>{if(grouped[c.status]!==undefined)grouped[c.status].push(c);}); // Build __TODOS__ virtual column for Edvaldo const TODOS_STATUS=['AGUARDANDO_ENCAIXE','ENCAIXE_REPROVADO','AGUARDANDO_APROVACAO','DEFINIR_CORES','DESCANSAR_TECIDO','TECIDO_DESCANSADO','NO_CORTE']; const todosItems=vis.filter(c=>TODOS_STATUS.includes(c.status)); grouped['__TODOS__']=todosItems; document.getElementById('main-content').innerHTML=`<div class="board">${cols.map(col=>{ const items=grouped[col.s]||[]; const cardFn=col.s==='__TODOS__'?cardEdvaldoInfo:corteCardHTML; return`<div class="col"><div class="col-top" style="background:${col.c}"></div> <div class="col-hd"><span class="col-ti">${col.l}</span><span class="col-cn">${items.length}</span></div> <div class="col-bd">${items.length?items.map(c=>cardFn(c)).join(''):'<div class="empty">Vazio</div>'}</div> </div>`; }).join('')}</div>`; renderStats(); } function corteCardHTML(c){ if(user==='edvaldo')return cardEdvaldo(c); if(user==='taty'&&(c.status==='AGUARDANDO_ENCAIXE'||c.status==='ENCAIXE_REPROVADO'))return cardEdvaldo(c); if((user==='rosana'||user==='taty')&&c.status==='DESCANSAR_TECIDO')return cardRosana(c); if((user==='rosana'||user==='taty')&&c.status==='TECIDO_DESCANSADO'&&!c.numCorte)return cardRosanaNC(c); if((user==='daimartha'||user==='taty'||user==='carol')&&c.status==='NO_CORTE')return cardChegou(c); if(user==='carol'&&c.status==='AG_FOTO')return cardCarol(c); if(user==='estoque'&&c.status==='EMBALAR')return cardEstoque(c); return cardBase(c); } function cardBase(c){ const canApr=user==='taty'&&c.status==='AGUARDANDO_APROVACAO'; const canCores=(user==='taty'||user==='carol')&&c.status==='DEFINIR_CORES'; const total=(user==='taty'||user==='carol')&&calcTotalPecas(c); const canGi=['gerente','taty','carol'].includes(user)&&c.status==='AGUARDANDO_GI'; const canDM=user==='daimartha'&&c.status==='EMBALAR'; return`<div class="card" onclick="event.stopPropagation();${canCores?`openCores('${c.id}')`:`openDet('${c.id}')`}"> <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:3px"> <div> ${c.ref?`<div style="font-family:'DM Mono',monospace;font-size:.88rem;font-weight:600;color:var(--ac)">${c.ref}</div>`:''} <div style="font-family:'DM Mono',monospace;font-size:.88rem;font-weight:500;color:#555">${c.id}</div> </div> ${c.urg?'<span class="tag tur">⚡</span>':''} </div> <div class="cnome">${c.nome}</div> ${(c.obs||c.encObs)?`<div style="font-size:.73rem;color:#8B4513;background:#FFF3CD;border-radius:5px;padding:3px 7px;margin-bottom:5px;line-height:1.3">⚠ ${[c.obs,c.encObs].filter(Boolean).join(' · ')}</div>`:''} <div class="ctags"> ${c.tec?`<span class="tag tg">${c.tec}</span>`:''} ${c.tin?`<span style="font-size:.72rem;padding:2px 7px;border-radius:20px;background:#F1EFE8;color:#5F5E5A">${c.tin}</span>`:''} ${c.grade?`<span style="font-size:.78rem;padding:3px 9px;border-radius:20px;font-family:'DM Mono',monospace;background:#E1F5EE;color:#085041;font-weight:600">${c.grade}</span>`:''} ${c.numCorte?`<span style="font-size:.78rem;padding:3px 9px;border-radius:20px;font-family:'DM Mono',monospace;background:var(--b3);color:var(--c3);font-weight:600">OP: ${c.numCorte}</span>`:''} ${total?`<span class="tag" style="background:var(--al);color:var(--ac)">~${total} pç</span>`:''} ${c.tipo?`<span class="tag" style="background:${c.tipo==='novidade'?'var(--b6)':'var(--b2)'};color:${c.tipo==='novidade'?'var(--c6)':'var(--c2)'}">${c.tipo}</span>`:''} </div> <div class="cfoot"> <span class="cdate">${dout(c.data)}</span> ${canApr?`<span style="background:var(--b2);color:var(--c2);font-size:.62rem;padding:2px 7px;border-radius:5px;font-weight:500">${c.encM}m·${c.encPct}%</span>`:''} ${canCores?`<span style="background:var(--b6);color:var(--c6);font-size:.63rem;padding:2px 8px;border-radius:5px;font-weight:500">Toque para definir cores</span>`:''} ${canGi?`<div style="display:flex;gap:5px"><button style="background:var(--b3);color:var(--c3);border:none;border-radius:6px;padding:3px 8px;font-size:.63rem;font-weight:500;cursor:pointer" onclick="event.stopPropagation();aprovarEnvio('${c.id}')">✔ Enviar</button><button style="background:var(--b4);color:var(--c4);border:none;border-radius:6px;padding:3px 8px;font-size:.63rem;font-weight:500;cursor:pointer" onclick="event.stopPropagation();giArquivar('${c.id}')">✕ Não precisa</button></div>`:''} ${canDM?`<button style="background:var(--b3);color:var(--c3);border:none;border-radius:6px;padding:3px 8px;font-size:.63rem;font-weight:500;cursor:pointer" onclick="event.stopPropagation();transmissaoMire('${c.id}')">Transmissão Miré ✔</button>`:''} </div> </div>`; } function cardEdvaldoInfo(c){ const info=CSM[c.status]||{l:c.status,c:'var(--mt)',b:'var(--s2)'}; return`<div class="card" onclick="openDet('${c.id}')"> <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:3px"> <div> ${c.ref?`<div style="font-family:'DM Mono',monospace;font-size:.88rem;font-weight:600;color:var(--ac)">${c.ref}</div>`:''} <div style="font-family:'DM Mono',monospace;font-size:.75rem;color:#555">${c.id}</div> </div> <span style="font-size:.62rem;padding:2px 7px;border-radius:20px;font-weight:500;background:${info.b};color:${info.c}">${info.l}</span> </div> <div class="cnome">${c.nome}</div> <div style="display:grid;grid-template-columns:1fr 1fr;gap:4px;margin:6px 0;font-size:.76rem"> <div><span style="color:var(--mt)">Tecido: </span><strong>${c.tec||'—'}</strong></div> <div><span style="color:var(--mt)">Fornecedor: </span><strong>${c.tin||'—'}</strong></div> <div><span style="color:var(--mt)">Grade: </span><strong>${c.grade||'—'}</strong></div> <div><span style="color:var(--mt)">Retalho: </span><strong>${c.ret||'—'}</strong></div> <div><span style="color:var(--mt)">Encaixe: </span><strong>${c.encM?c.encM+'m':'—'}</strong></div> <div><span style="color:var(--mt)">Aproveit.: </span><strong>${c.encPct?c.encPct+'%':'—'}</strong></div> </div> ${c.obs?`<div style="font-size:.73rem;color:#8B4513;background:#FFF3CD;border-radius:5px;padding:3px 7px;margin-bottom:5px">⚠ ${c.obs}</div>`:''} <button onclick="event.stopPropagation();marcarImpresso('${c.id}')" style="width:100%;padding:7px;border-radius:7px;border:none;font-size:.78rem;font-weight:600;cursor:pointer;margin-top:4px; background:${c.impresso==='sim'?'var(--b3)':'var(--s2)'};color:${c.impresso==='sim'?'var(--c3)':'var(--mt)'}"> ${c.impresso==='sim'?'✔ Impresso':'Marcar como impresso'} </button> </div>`; } function cardEdvaldo(c){ const rep=c.status==='ENCAIXE_REPROVADO'; const rolo=c.rolo||0; return`<div class="card-e" id="ce-${c.id}"> <div style="display:flex;justify-content:space-between;margin-bottom:4px"> <div>${c.ref?`<div class="cref">${c.ref}</div>`:''}<div class="cid">${c.id}</div></div> ${c.urg?'<span class="tag tur">⚡</span>':''} ${rep?'<span style="background:var(--b4);color:var(--c4);font-size:.61rem;padding:2px 6px;border-radius:4px">Reprovado</span>':''} </div> <div class="cnome">${c.nome}</div> <div class="ctags"> ${c.tec?`<span class="tag tg">${c.tec}</span>`:''} ${c.tin?`<span style="font-size:.78rem;padding:3px 9px;border-radius:20px;font-family:'DM Mono',monospace;background:#E1F5EE;color:#085041;font-weight:600">${c.tin}</span>`:''} ${c.grade?`<span class="tag" style="background:var(--s2);color:var(--mt)">${c.grade}</span>`:''} </div> ${rep&&c.encObs?`<div class="obs-box obs-bl" style="margin-bottom:8px;font-size:.74rem">Motivo: ${c.encObs}</div>`:''} <div class="ef"> <div class="efl"><label class="el">Comprimento (m) *</label><input class="ei" id="em-${c.id}" type="number" step="0.01" placeholder="0.00" value="${c.encM||''}" oninput="calcInline('${c.id}')"></div> <div class="efl"><label class="el">Aproveitamento (%) *</label><input class="ei" id="ep-${c.id}" type="number" step="0.1" placeholder="0.0" value="${c.encPct||''}"></div> </div> <div id="calc-${c.id}" style="margin-bottom:8px"></div> <textarea class="eobs" id="eo-${c.id}" rows="2" placeholder="Observação">${rep?'':c.encObs||''}</textarea>
-<button class="ebtn" onclick="salvarEncaixe('${c.id}')" style="background:${user==='taty'?'var(--ac)':'var(--c2)'}">
-  ${user==='taty'?'Salvar e aprovar encaixe ✔':'Enviar para aprovação →'}
-</button>
+<!-- PORTAL -->
+<div class="portal" id="portal">
+  <div class="portal-box">
+    <div class="portal-logo">Azpex · Bonequim</div>
+    <div class="portal-sub">Selecione sua área</div>
+    <div class="portal-btns">
+      <button class="portal-btn" onclick="openLogin('fabrica')">
+        <div class="portal-icon" style="background:#E1F5EE">🏭</div>
+        <div>
+          <div class="portal-label">Fábrica</div>
+          <div class="portal-desc">Cortes, produção e estoque</div>
+        </div>
+      </button>
+      <button class="portal-btn" onclick="openLogin('loja')">
+        <div class="portal-icon" style="background:#E6F1FB">🏪</div>
+        <div>
+          <div class="portal-label">Loja Bonequim</div>
+          <div class="portal-desc">Pedidos e retiradas</div>
+        </div>
+      </button>
+    </div>
+  </div>
+</div>
 
-</div>`; }
+<!-- LOGIN FÁBRICA -->
+<div class="login" id="login-fabrica">
+  <div class="lbox">
+    <div class="llogo">🏭 Fábrica</div>
+    <div class="lsub" id="lsub-f">Quem é você?</div>
+    <div class="lusers" id="lusers-f">
+      <button class="lu" onclick="selUser('taty','f')"><div class="lav" style="background:#E1F5EE;color:#085041">CT</div><div class="lname">Cinthia / Taty</div></button>
+      <button class="lu" onclick="selUser('edvaldo','f')"><div class="lav" style="background:#E6F1FB;color:#0C447C">ED</div><div class="lname">Edvaldo</div></button>
+      <button class="lu" onclick="selUser('rosana','f')"><div class="lav" style="background:#FBEAF0;color:#72243E">RO</div><div class="lname">Rosana</div></button>
+      <button class="lu" onclick="selUser('daimartha','f')"><div class="lav" style="background:#FFF8DC;color:#8B6914">DM</div><div class="lname">Dai / Martha</div></button>
+      <button class="lu" onclick="selUser('carol','f')"><div class="lav" style="background:#EEEDFE;color:#3C3489">CA</div><div class="lname">Carol</div></button>
+      <button class="lu" onclick="selUser('estoque','f')"><div class="lav" style="background:#F1EFE8;color:#5F5E5A">ES</div><div class="lname">Estoque</div></button>
+    </div>
+    <div class="pin-area" id="pin-area-f">
+      <div style="font-size:.76rem;color:var(--mt)">Digite seu PIN</div>
+      <div class="pdots"><div class="pdot" id="fpd0"></div><div class="pdot" id="fpd1"></div><div class="pdot" id="fpd2"></div><div class="pdot" id="fpd3"></div></div>
+      <div class="perr" id="fperr"></div>
+      <div class="ppad">
+        <button class="pk" onclick="ppk('1','f')">1</button><button class="pk" onclick="ppk('2','f')">2</button><button class="pk" onclick="ppk('3','f')">3</button>
+        <button class="pk" onclick="ppk('4','f')">4</button><button class="pk" onclick="ppk('5','f')">5</button><button class="pk" onclick="ppk('6','f')">6</button>
+        <button class="pk" onclick="ppk('7','f')">7</button><button class="pk" onclick="ppk('8','f')">8</button><button class="pk" onclick="ppk('9','f')">9</button>
+        <div></div><button class="pk" onclick="ppk('0','f')">0</button><button class="pk del" onclick="ppdel('f')">⌫</button>
+      </div>
+      <button class="pback" onclick="backUsers('f')">← Voltar</button>
+    </div>
+    <button class="lback" onclick="backPortal()">← Voltar ao início</button>
+  </div>
+</div>
+
+<!-- LOGIN LOJA -->
+<div class="login" id="login-loja">
+  <div class="lbox">
+    <div class="llogo">🏪 Loja Bonequim</div>
+    <div class="lsub" id="lsub-l">Quem é você?</div>
+    <div class="lusers" id="lusers-l">
+      <button class="lu" onclick="selUser('vendA','l')"><div class="lav" style="background:#E6F1FB;color:#0C447C">VA</div><div class="lname">Vendedora A</div></button>
+      <button class="lu" onclick="selUser('vendB','l')"><div class="lav" style="background:#FBEAF0;color:#72243E">VB</div><div class="lname">Vendedora B</div></button>
+      <button class="lu" onclick="selUser('vendC','l')"><div class="lav" style="background:#FAEEDA;color:#633806">VC</div><div class="lname">Vendedora C</div></button>
+      <button class="lu" onclick="selUser('gerente','l')"><div class="lav" style="background:var(--al);color:var(--ac)">GI</div><div class="lname">Gi — Bonequim</div></button>
+    </div>
+    <div class="pin-area" id="pin-area-l">
+      <div style="font-size:.76rem;color:var(--mt)">Digite seu PIN</div>
+      <div class="pdots"><div class="pdot" id="lpd0"></div><div class="pdot" id="lpd1"></div><div class="pdot" id="lpd2"></div><div class="pdot" id="lpd3"></div></div>
+      <div class="perr" id="lperr"></div>
+      <div class="ppad">
+        <button class="pk" onclick="ppk('1','l')">1</button><button class="pk" onclick="ppk('2','l')">2</button><button class="pk" onclick="ppk('3','l')">3</button>
+        <button class="pk" onclick="ppk('4','l')">4</button><button class="pk" onclick="ppk('5','l')">5</button><button class="pk" onclick="ppk('6','l')">6</button>
+        <button class="pk" onclick="ppk('7','l')">7</button><button class="pk" onclick="ppk('8','l')">8</button><button class="pk" onclick="ppk('9','l')">9</button>
+        <div></div><button class="pk" onclick="ppk('0','l')">0</button><button class="pk del" onclick="ppdel('l')">⌫</button>
+      </div>
+      <button class="pback" onclick="backUsers('l')">← Voltar</button>
+    </div>
+    <button class="lback" onclick="backPortal()">← Voltar ao início</button>
+  </div>
+</div>
+
+<!-- APP -->
+<div id="app" style="display:none">
+  <div class="hdr">
+    <div class="hdr-logo" id="app-logo">Azpex</div>
+    <div class="hdr-user" id="app-user"></div>
+    <div class="hbtns">
+      <button class="hbtn" onclick="syncAll()">↻</button>
+      <button class="hbtn" onclick="openCfg()" id="btn-cfg" style="display:none">Config</button>
+      <button class="hbtn hi" id="btn-novo" style="display:none">+ Novo</button>
+      <button class="hbtn out" onclick="logout()">Sair</button>
+    </div>
+  </div>
+  <div class="stabs" id="stabs" style="display:none"></div>
+  <div class="stats" id="stats"></div>
+  <div class="tb">
+    <input class="srch" id="srch" placeholder="Buscar..." oninput="render()">
+    <button class="fb on" onclick="setF('todos',this)">Todos</button>
+    <button class="fb" onclick="setF('minha',this)">Minha fila</button>
+  </div>
+  <div id="main-content"></div>
+</div>
+
+<!-- MODAL NOVO CORTE -->
+<div class="ov" id="ov-novo">
+  <div class="modal">
+    <div class="mhd"><div class="mti" id="form-ti">Novo corte</div><button class="xb" onclick="cl('ov-novo')">×</button></div>
+    <div class="fg2">
+      <div class="fg"><label class="fl">ID</label><input class="fi" id="f-id" placeholder="Auto"></div>
+      <div class="fg"><label class="fl">Referência</label><input class="fi" id="f-ref" placeholder="ex: 2838"></div>
+      <div class="fg full"><label class="fl">Nome da peça *</label><input class="fi" id="f-nome" placeholder="ex: Calça Dakota"></div>
+      <div class="fg full"><label class="fl">Data entrada</label><div class="drow"><input class="fi" id="f-data" type="date" style="flex:1"><button class="hoje-b" onclick="setHoje()">Hoje</button></div></div>
+      <div class="fg full"><label class="fl">Tecido</label><select class="fsl" id="f-tec" onchange="autoFillRolo()"><option value="">Selecionar...</option></select></div>
+      <div class="fg"><label class="fl">Fornecedor</label><select class="fsl" id="f-tin"><option value="">Selecionar...</option></select></div>
+      <div class="fg"><label class="fl">Grade</label><select class="fsl" id="f-grade"><option value="">Selecionar...</option></select></div>
+      <div class="fg full"><label class="fl">Retalho</label><input class="fi" id="f-ret" placeholder="ex: GG"></div>
+      <div class="fg full"><label class="fl">Comprimento do rolo (m)</label><input class="fi" id="f-rolo" type="number" step="0.5" placeholder="ex: 30" oninput="calcPreview()"></div>
+      <div class="fg full"><label class="fl">Observação</label><input class="fi" id="f-obs" placeholder="Observações..."></div>
+      <div class="fg"><label class="fl">Urgente?</label><select class="fsl" id="f-urg"><option value="nao">Não</option><option value="sim">Sim ⚡</option></select></div>
+    </div>
+    <div id="calc-preview"></div>
+    <div class="fact"><button class="bc" onclick="cl('ov-novo')">Cancelar</button><button class="bs" onclick="salvarCorte()">Salvar</button></div>
+  </div>
+</div>
+
+<!-- MODAL DETALHE -->
+<div class="ov" id="ov-det"><div class="modal" id="det-c"></div></div>
+
+<!-- MODAL CORES -->
+<div class="ov" id="ov-cores">
+  <div class="modal">
+    <div class="mhd"><div class="mti">Definir cores para descansar</div><button class="xb" onclick="cl('ov-cores')">×</button></div>
+    <div id="cores-info" style="font-size:.8rem;color:var(--mt);margin-bottom:12px"></div>
+    <div class="sl">Cor e quantidade de rolos</div>
+    <div id="cores-list"></div>
+    <button class="add-cor" onclick="addCor()">+ Adicionar cor</button>
+    <div class="fact">
+      <button class="bc" onclick="cl('ov-cores')">Cancelar</button>
+      <button class="bs" style="background:#1D9E75" onclick="salvarCores()">Enviar para Rosana</button>
+    </div>
+    <div id="cores-wpp-btns" style="margin-top:8px;display:flex;flex-direction:column;gap:6px"></div>
+  </div>
+</div>
+
+<!-- MODAL NOVO PEDIDO -->
+<div class="ov" id="ov-pedido">
+  <div class="modal">
+    <div class="mhd"><div class="mti">Novo pedido</div><button class="xb" onclick="cl('ov-pedido')">×</button></div>
+    <div class="fg2">
+      <div class="fg"><label class="fl">Código da peça *</label><input class="fi" id="p-cod" placeholder="ex: 0552256"></div>
+      <div class="fg full"><label class="fl">Nome da peça *</label><input class="fi" id="p-nome" placeholder="ex: Calça Dakota"></div>
+      <div class="fg full"><label class="fl">Grade *</label><select class="fsl" id="p-grade-sel" onchange="buildPedidoTabela()"><option value="">Selecionar grade...</option></select></div>
+    </div>
+    <div id="p-tabela-area" style="margin-top:10px"></div>
+    <div class="divr"></div>
+    <div class="fg full"><label class="fl">Observação</label><textarea class="fi" id="p-obs" rows="2" placeholder="Observações..."></textarea></div>
+    <div class="fact"><button class="bc" onclick="cl('ov-pedido')">Cancelar</button><button class="bs" onclick="salvarPedido()">Enviar pedido</button></div>
+  </div>
+</div>
+
+<!-- MODAL RESPONDER PEDIDO -->
+<div class="ov" id="ov-resp">
+  <div class="modal">
+    <div class="mhd"><div class="mti" id="resp-ti">Responder</div><button class="xb" onclick="cl('ov-resp')">×</button></div>
+    <div id="resp-info" style="font-size:.8rem;color:var(--mt);margin-bottom:10px"></div>
+    <div class="sl">Quantidade encontrada no estoque</div>
+    <div id="resp-grades"></div>
+    <div class="fg full" style="margin:10px 0"><label class="fl">Observação</label><textarea class="fi" id="resp-obs" rows="2" placeholder="Observações..."></textarea></div>
+    <div style="display:flex;flex-direction:column;gap:8px">
+      <button class="bs" style="background:#1D9E75" onclick="responderPedido('aprovado')">✔ Pedido aprovado e separado</button>
+      <button class="bs" style="background:#EF9F27" onclick="responderPedido('parcial')">⚡ Aprovado parcialmente</button>
+      <button class="bs" style="background:#E24B4A" onclick="responderPedido('recusado')">✕ Produto não disponível</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL DECISÃO ENVIO -->
+<div class="ov" id="ov-decisao">
+  <div class="modal">
+    <div class="mhd"><div class="mti">Decisão de envio</div><button class="xb" onclick="cl('ov-decisao')">×</button></div>
+    <div id="decisao-info" style="font-size:.82rem;color:var(--mt);margin-bottom:12px"></div>
+    <div id="decisao-cores" style="margin-bottom:12px"></div>
+    <div class="fg full" style="margin-bottom:12px">
+      <label class="fl">Observação de quantidades</label>
+      <textarea class="fi" id="decisao-obs" rows="3" placeholder="Ex: Enviar tudo / Preto 10pç G e GG / conforme tabela acima..."></textarea>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:8px">
+      <button class="bs" style="background:#1D9E75" onclick="confirmarEnvio()">✔ Confirmar envio</button>
+      <button class="bs abtn-danger" style="background:#FCEBEB;color:#A32D2D;border:.5px solid #F09595" onclick="confirmarArquivar()">✕ Não precisamos — arquivar</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL DECISAO ENVIO -->
+<div class="ov" id="ov-envio">
+  <div class="modal">
+    <div class="mhd"><div class="mti">Decisão de envio</div><button class="xb" onclick="cl('ov-envio')">×</button></div>
+    <div id="envio-info" style="font-size:.82rem;color:var(--mt);margin-bottom:12px"></div>
+    <div id="envio-cores" style="margin-bottom:12px"></div>
+    <div class="fg full" style="margin-bottom:12px">
+      <label class="fl">Observação de quantidades</label>
+      <textarea class="fi" id="envio-obs" rows="3" placeholder="Ex: Enviar tudo · Preto: 10 peças, Azul: 5 peças..."></textarea>
+    </div>
+    <div style="display:flex;gap:8px">
+      <button class="bs" style="flex:1;background:#1D9E75" onclick="confirmarEnvio()">✔ Confirmar envio</button>
+      <button class="bc" style="flex:1" onclick="cl('ov-envio')">Cancelar</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL CONFIG -->
+<div class="ov" id="ov-cfg">
+  <div class="modal">
+    <div class="mhd"><div class="mti">Configurações</div><button class="xb" onclick="cl('ov-cfg')">×</button></div>
+    <div class="cfg-sec">
+      <div class="cfg-l">Google Sheets (Cortes)</div>
+      <input class="cfg-i" id="cfg-url" placeholder="URL do Apps Script" style="width:100%;margin-bottom:7px">
+      <button class="cfg-sv" onclick="saveCfgUrl()">Conectar</button>
+    </div>
+    <div class="cfg-sec" id="cfg-pins-sec">
+      <div class="cfg-l">PINs — Fábrica</div>
+      <div class="cfg-row"><span class="cfg-name">Cinthia/Taty</span><input class="cfg-i" id="cfg-pt" maxlength="4" type="password" placeholder="4 dígitos"></div>
+      <div class="cfg-row"><span class="cfg-name">Edvaldo</span><input class="cfg-i" id="cfg-pe" maxlength="4" type="password" placeholder="4 dígitos"></div>
+      <div class="cfg-row"><span class="cfg-name">Rosana</span><input class="cfg-i" id="cfg-pr" maxlength="4" type="password" placeholder="4 dígitos"></div>
+      <div class="cfg-row"><span class="cfg-name">Dai/Martha</span><input class="cfg-i" id="cfg-pd" maxlength="4" type="password" placeholder="4 dígitos"></div>
+      <div class="cfg-row"><span class="cfg-name">Carol</span><input class="cfg-i" id="cfg-pc" maxlength="4" type="password" placeholder="4 dígitos"></div>
+      <div class="cfg-row"><span class="cfg-name">Estoque</span><input class="cfg-i" id="cfg-pes" maxlength="4" type="password" placeholder="4 dígitos"></div>
+      <div class="cfg-l" style="margin-top:10px">PINs — Loja</div>
+      <div class="cfg-row"><span class="cfg-name">Vendedora A</span><input class="cfg-i" id="cfg-pva" maxlength="4" type="password" placeholder="4 dígitos"></div>
+      <div class="cfg-row"><span class="cfg-name">Vendedora B</span><input class="cfg-i" id="cfg-pvb" maxlength="4" type="password" placeholder="4 dígitos"></div>
+      <div class="cfg-row"><span class="cfg-name">Vendedora C</span><input class="cfg-i" id="cfg-pvc" maxlength="4" type="password" placeholder="4 dígitos"></div>
+      <div class="cfg-row"><span class="cfg-name">Gi/Bonequim</span><input class="cfg-i" id="cfg-pge" maxlength="4" type="password" placeholder="4 dígitos"></div>
+      <button class="cfg-sv" onclick="savePins()">Salvar PINs</button>
+    </div>
+    <div class="cfg-sec">
+      <div class="cfg-l">WhatsApp</div>
+      <div class="cfg-row"><span class="cfg-name">Carol</span><input class="cfg-i" id="cfg-wcarol" placeholder="5511999999999"></div>
+      <div class="cfg-row"><span class="cfg-name">Dai/Martha</span><input class="cfg-i" id="cfg-wdm" placeholder="5511999999999"></div>
+      <div class="cfg-row"><span class="cfg-name">Gi/Bonequim</span><input class="cfg-i" id="cfg-wgi" placeholder="5511999999999"></div>
+      <div class="cfg-row"><span class="cfg-name">Edvaldo</span><input class="cfg-i" id="cfg-wedv" placeholder="5511999999999"></div>
+      <div class="cfg-row"><span class="cfg-name">Rosana</span><input class="cfg-i" id="cfg-wros" placeholder="5511999999999"></div>
+      <button class="cfg-sv" onclick="saveCfgWpp()">Salvar números</button>
+    </div>
+    <div class="cfg-sec">
+      <div class="cfg-l">Grades personalizadas</div>
+      <textarea class="fi" id="cfg-grades" rows="2" placeholder="Ex: XP, XG, PP P M G GG XG"></textarea>
+      <button class="cfg-sv" onclick="saveGrades()">Salvar grades</button>
+    </div>
+  </div>
+</div>
+
+<div class="toasts" id="toasts"></div>
+
+<script>
+// ── CONSTANTS ──
+const DURL='https://script.google.com/macros/s/AKfycbxPBTjdEM04daObzVy7j1qV4qkQjn1-4WUav0mKMuvWp6v6O3YI1Pwjh0G2mdcF7GDh/exec';
+const DPINS={taty:'1234',edvaldo:'5678',rosana:'9012',daimartha:'3456',carol:'2468',estoque:'1357',vendA:'1111',vendB:'2222',vendC:'3333',gerente:'4444'};
+const GRADES_DEF=['PP','P','M','G','GG','PP P','P M','M G','G GG','PP P M','P M G','M G GG','PP P M G','P M G GG','PP P M G GG'];
+const UNAMES={taty:'Cinthia / Taty',edvaldo:'Edvaldo',rosana:'Rosana',daimartha:'Dai / Martha',carol:'Carol',estoque:'Estoque',vendA:'Vendedora A',vendB:'Vendedora B',vendC:'Vendedora C',gerente:'Gi — Bonequim'};
+
+// Cortes status
+const CSM={
+  AGUARDANDO_ENCAIXE:{l:'Ag. encaixe',c:'var(--c1)',b:'var(--b1)'},
+  AGUARDANDO_APROVACAO:{l:'Ag. aprovação',c:'var(--c2)',b:'var(--b2)'},
+  ENCAIXE_REPROVADO:{l:'Reprovado',c:'var(--c4)',b:'var(--b4)'},
+  DEFINIR_CORES:{l:'Definir cores',c:'var(--c6)',b:'var(--b6)'},
+  DESCANSAR_TECIDO:{l:'Descansar tecido',c:'var(--c5)',b:'var(--b5)'},
+  TECIDO_DESCANSADO:{l:'Tecido descansado',c:'var(--c3)',b:'var(--b3)'},
+  NO_CORTE:{l:'Corte / Oficina',c:'var(--c3)',b:'var(--b3)'},
+  AG_FOTO:{l:'Ag. foto Carol',c:'var(--c6)',b:'var(--b6)'},
+  FOTO_OK:{l:'Foto aprovada',c:'var(--c3)',b:'var(--b3)'},
+  AGUARDANDO_GI:{l:'Ag. decisão de envio',c:'var(--c8)',b:'var(--b8)'},
+  EMBALAR:{l:'Embalar / Separar',c:'var(--c7)',b:'var(--b7)'},
+  PRONTO_RETIRADA:{l:'Pronto p/ retirada',c:'var(--c3)',b:'var(--b3)'},
+  ARQUIVADO:{l:'Arquivado',c:'var(--mt)',b:'var(--s2)'},
+};
+function csi(s){return CSM[s]||{l:s,c:'var(--mt)',b:'var(--s2)'};}
+
+// Pedidos status
+const PSM={
+  PENDENTE:{l:'Pendente',c:'var(--c1)',b:'var(--b1)'},
+  APROVADO:{l:'Aprovado',c:'var(--c3)',b:'var(--b3)'},
+  PARCIAL:{l:'Parcial',c:'var(--c1)',b:'var(--b1)'},
+  RECUSADO:{l:'Não disponível',c:'var(--c4)',b:'var(--b4)'},
+  TRANSFERIDO:{l:'Transferência feita',c:'var(--c3)',b:'var(--b3)'},
+};
+function psi(s){return PSM[s]||{l:s,c:'var(--mt)',b:'var(--s2)'};}
+
+let cfg=JSON.parse(localStorage.getItem('az_cfg')||'{}');
+if(!cfg.url)cfg.url=DURL;
+let cortes=JSON.parse(localStorage.getItem('az_cortes')||'[]');
+let pedidos=JSON.parse(localStorage.getItem('az_pedidos')||'[]');
+let user='',section='cortes',filtro='todos';
+let coresId=null,respId=null,corCount=0,editId=null,decisaoId=null;
+let lastPushTime=0;
+let pinUser='',pinVal='',pinSide='';
+
+// ── PORTAL ──
+function openLogin(side){
+  pinSide=side;
+  document.getElementById('portal').style.display='none';
+  document.getElementById('login-'+side).classList.add('open');
+}
+function backPortal(){
+  document.getElementById('login-fabrica').classList.remove('open');
+  document.getElementById('login-loja').classList.remove('open');
+  document.getElementById('portal').style.display='flex';
+}
+
+// ── LOGIN ──
+function selUser(u,side){
+  pinUser=u;pinVal='';pinSide=side;
+  document.getElementById('lusers-'+side).style.display='none';
+  document.getElementById('pin-area-'+side).classList.add('show');
+  document.getElementById(side+'perr').textContent='';
+  updDots(side);
+}
+function backUsers(side){
+  pinUser='';pinVal='';
+  document.getElementById('lusers-'+side).style.display='flex';
+  document.getElementById('pin-area-'+side).classList.remove('show');
+}
+function ppk(k,side){if(pinVal.length>=4)return;pinVal+=k;updDots(side);if(pinVal.length===4)setTimeout(()=>checkPin(side),120);}
+function ppdel(side){pinVal=pinVal.slice(0,-1);updDots(side);document.getElementById(side+'perr').textContent='';}
+function updDots(side){for(let i=0;i<4;i++)document.getElementById(side+'pd'+i)?.classList.toggle('on',i<pinVal.length);}
+function checkPin(side){
+  const s=side||pinSide||'f';
+  try{
+    const saved=localStorage.getItem('az_pin_'+pinUser)||DPINS[pinUser]||'0000';
+    if(pinVal===saved){
+      user=pinUser;
+      document.getElementById('login-fabrica').style.display='none';
+      document.getElementById('login-loja').style.display='none';
+      document.getElementById('login-fabrica').classList.remove('open');
+      document.getElementById('login-loja').classList.remove('open');
+      initApp();
+    }else{
+      const errEl=document.getElementById(s+'perr');
+      if(errEl)errEl.textContent='PIN incorreto. Tente novamente.';
+      pinVal='';updDots(s);
+    }
+  }catch(err){
+    console.error('checkPin error:',err);
+    const errEl=document.getElementById(s+'perr');
+    if(errEl)errEl.textContent='Erro interno. Tente novamente.';
+    pinVal='';updDots(s);
+  }
+}
+function logout(){
+  user='';
+  document.getElementById('app').style.display='none';
+  document.getElementById('portal').style.display='flex';
+  ['fabrica','loja'].forEach(s=>{
+    const el=document.getElementById('login-'+s);
+    el.classList.remove('open');
+    document.getElementById('lusers-'+s).style.display='flex';
+    document.getElementById('pin-area-'+s).classList.remove('show');
+  });
+}
+
+// ── INIT APP ──
+function initApp(){
+  try{
+  document.getElementById('portal').style.display='none';
+  document.getElementById('app').style.display='';
+  document.getElementById('app-user').textContent=UNAMES[user]||user;
+
+  const isTaty=user==='taty';
+  const isLoja=['vendA','vendB','vendC','gerente'].includes(user);
+  const isVend=['vendA','vendB','vendC'].includes(user);
+  const isCarol=user==='carol';
+
+  document.getElementById('app-logo').textContent=isLoja?'Bonequim':'Azpex · Fábrica';
+  document.getElementById('btn-cfg').style.display=isTaty?'':'none';
+
+  // Botão novo — Taty e Carol criam cortes (aba cortes) e pedidos (aba pedidos)
+  const btnNovo=document.getElementById('btn-novo');
+  if(isTaty||isCarol){
+    btnNovo.style.display='';
+    btnNovo.textContent='+ Novo corte';
+    btnNovo.onclick=openNovo;
+  } else if(isVend){
+    btnNovo.style.display='';
+    btnNovo.textContent='+ Novo pedido';
+    btnNovo.onclick=openNovoPedido;
+  } else {
+    btnNovo.style.display='none';
+  }
+
+  // Abas
+  const stabsEl=document.getElementById('stabs');
+  const showBothTabs=isTaty||user==='gerente'||user==='estoque'||user==='daimartha'||isCarol;
+  if(showBothTabs){
+    stabsEl.style.display='flex';
+    let cortesLabel='Cortes';
+    if(user==='gerente') cortesLabel='Reposições';
+    if(user==='estoque') cortesLabel='Embalar';
+    stabsEl.innerHTML=`
+      <button class="stab on" onclick="setSection('cortes',this)">${cortesLabel}</button>
+      <button class="stab" onclick="setSection('pedidos',this)">Pedidos</button>`;
+    section='cortes';
+  }else{
+    stabsEl.style.display='none';
+    section=isLoja?'pedidos':'cortes';
+  }
+
+  populateSels();
+  render();
+  if(cfg.url){
+    setTimeout(syncAll,600);
+    setInterval(()=>{if(cfg.url)syncAll(true);},30000);
+  }
+  }catch(err){console.error('initApp error:',err);toast('Erro: '+err.message,'w');}
+}
+
+function setSection(s,el){
+  section=s;
+  document.querySelectorAll('.stab').forEach(b=>b.classList.remove('on'));
+  el.classList.add('on');
+  if(s==='pedidos'){
+    const canPed=['taty','carol','vendA','vendB','vendC','gerente'].includes(user);
+    document.getElementById('btn-novo').style.display=canPed?'':'none';
+    document.getElementById('btn-novo').textContent='+ Novo pedido';
+    document.getElementById('btn-novo').onclick=openNovoPedido;
+  }else{
+    const canCorte=user==='taty'||user==='carol';
+    document.getElementById('btn-novo').style.display=canCorte?'':'none';
+    document.getElementById('btn-novo').textContent='+ Novo corte';
+    document.getElementById('btn-novo').onclick=openNovo;
+  }
+  render();
+}
+
+function setF(f,el){filtro=f;document.querySelectorAll('.fb').forEach(b=>b.classList.remove('on'));el.classList.add('on');render();}
+
+// ── API ──
+async function apig(p){const r=await fetch('/api/proxy?'+new URLSearchParams(p));return r.json();}
+async function apip(b){const r=await fetch('/api/proxy',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(b)});return r.json();}
+async function push(row,campos){
+  if(!cfg.url||!row)return;
+  lastPushTime=Date.now();
+  try{
+    await apip({action:'atualizarCampos',row,campos});
+    setTimeout(()=>{if(cfg.url)syncAll(true);},3000);
+  }catch(e){console.error('push error:',e);}
+}
+async function push2(row,campos){
+  if(!cfg.url||!row)return;
+  lastPushTime=Date.now();
+  try{
+    await apip({action:'atualizarPedido',row,campos});
+    setTimeout(()=>{if(cfg.url)syncAll(true);},1500);
+  }catch(e){console.error('push2 error:',e);}
+}
+async function pushNew(dados){if(!cfg.url)return null;try{return await apip({action:'adicionarPeca',dados});}catch(e){return null;}}
+
+async function syncAll(silent){
+  if(!cfg.url){if(!silent)toast('Configure o URL primeiro','w');return;}
+  if(silent&&Date.now()-lastPushTime<8000)return;
+  if(!silent)toast('Sincronizando...','i');
+  try{
+    const[c,l,p]=await Promise.all([apig({action:'getCortes'}),apig({action:'getListas'}),apig({action:'getPedidos'})]);
+    if(Array.isArray(c)&&c.length>0){
+      const fotoMap={};cortes.forEach(x=>{if(x.fotoLocal)fotoMap[x.id]=x.fotoLocal;});
+      cortes=c.filter(r=>r.STATUS!=='DELETADO').map(r=>({
+        id:str(r.ID),ref:str(r.REF),nome:str(r.NOME),
+        data:din(str(r.DATA_ENTRADA)),tec:str(r.TECIDO),tin:str(r.TINTURARIA),
+        grade:str(r.GRADE),ret:str(r.RETALHO),obs:str(r.OBS),
+        urg:str(r.URGENTE).toLowerCase()==='sim',
+        rolo:parseFloat(r.ROLO)||0,
+        encM:strNum(r.ENCAIXE_M),encPct:strNum(r.RENDIMENTO)||strNum(r['RENDIMENTO_%']),encObs:str(r.OBS_CAD),
+        cores:parseCores(str(r.CORES)),
+        checksDesc:parseChecks(str(r.CHECKS_DESC)),
+        numCorte:str(r.NUM_CORTE),dataDesc:str(r.DATA_DESCANSO),impresso:str(r.IMPRESSO)||'',
+        tipo:str(r.TIPO_CHEGADA),carolObs:str(r.CAROL_OBS),giObs:str(r.GI_OBS),
+        status:mapStatus(str(r.STATUS)),_row:r._row,
+        fotoLocal:fotoMap[str(r.ID)]||'',
+      }));
+    }
+    if(Array.isArray(p)&&p.length>0){
+      pedidos=p.map(r=>({
+        id:str(r.ID),ts:new Date(str(r.DATA)||Date.now()).getTime(),
+        dataStr:str(r.DATA),autor:str(r.AUTOR),
+        cod:str(r.COD),nome:str(r.NOME),grade:str(r.GRADE),
+        cores:safeJSON(str(r.CORES),[]),
+        obs:str(r.OBS),status:str(r.STATUS)||'PENDENTE',
+        respObs:str(r.RESP_OBS),
+        respCores:safeJSON(str(r.RESP_CORES),{}),
+        respondidoPor:str(r.RESPONDIDO_POR),
+        _row:r._row,
+      }));
+    }
+    if(l&&l.tecidos){localStorage.setItem('az_listas',JSON.stringify(l));populateSels();}
+    sl();render();if(!silent)toast('Sincronizado ✔','s');
+  }catch(e){console.error(e);if(!silent)toast('Erro ao sincronizar','w');}
+}
+
+function safeJSON(s,def){try{return s?JSON.parse(s):def;}catch(e){return def;}}
+
+function mapStatus(s){
+  const m={
+    'COMPLETAR GRADE':'AGUARDANDO_ENCAIXE','ENCAIXE PENDENTE':'AGUARDANDO_ENCAIXE',
+    'AGUARDANDO_ENCAIXE':'AGUARDANDO_ENCAIXE','DEFINIR CORES':'DEFINIR_CORES',
+    'DEFINIR_CORES':'DEFINIR_CORES','DESCANSAR TECIDO':'DESCANSAR_TECIDO',
+    'DESCANSAR_TECIDO':'DESCANSAR_TECIDO','AGUARDANDO_APROVACAO':'AGUARDANDO_APROVACAO',
+    'ENCAIXE_REPROVADO':'ENCAIXE_REPROVADO','TECIDO_DESCANSADO':'TECIDO_DESCANSADO',
+    'PRONTO PARA CORTAR':'TECIDO_DESCANSADO','NO_CORTE':'NO_CORTE',
+    'AG_FOTO':'AG_FOTO','FOTO_OK':'FOTO_OK',
+    'SEPARAR_ENVIO':'AGUARDANDO_GI',
+    'AGUARDANDO_GI':'AGUARDANDO_GI','EMBALAR':'EMBALAR',
+    'PRONTO_RETIRADA':'PRONTO_RETIRADA','ARQUIVADO':'ARQUIVADO',
+    'CHEGOU_OFICINA':'NO_CORTE',
+  };
+  return m[(s||'').trim()]||'AGUARDANDO_ENCAIXE';
+}
+
+function str(v){
+  if(v===null||v===undefined)return'';
+  const s=v.toString().trim();
+  if(s.match(/^\d{4}-\d{2}-\d{2}T/))return'';
+  if(s==='nan'||s==='NaN'||s==='undefined')return'';
+  return s;
+}
+
+function strNum(v){
+  if(v===null||v===undefined)return'';
+  const s=v.toString().trim();
+  if(s.match(/^\d{4}-\d{2}-\d{2}/))return'';
+  if(s==='nan'||s==='NaN')return'';
+  const n=parseFloat(s);
+  if(!isNaN(n)&&n>40000&&n<50000)return'';
+  return s;
+}
+function parseCores(s){if(!s)return[];return s.split(',').map(x=>{const p=x.trim().split(':');return{cor:p[0]?.trim()||'',qtd:p[1]?.trim()||'1'};}).filter(c=>c.cor);}
+function coresStr(a){return a.map(c=>`${c.cor}:${c.qtd}`).join(', ');}
+function parseChecks(s){if(!s)return{};const o={};s.split(',').forEach(x=>{const p=x.split(':');if(p[0])o[p[0].trim()]=p[1]?.trim()==='1';});return o;}
+function checksStr(o){return Object.entries(o).map(([k,v])=>`${k}:${v?1:0}`).join(',');}
+function din(s){if(!s)return'';if(s.includes('T'))return s.split('T')[0];if(s.includes('/'))return s.split('/').reverse().join('-');return s;}
+function dout(s){if(!s)return'—';if(s.includes('-')){const p=s.split('-');return`${p[2]}/${p[1]}/${p[0]}`;}return s;}
+function sl(){localStorage.setItem('az_cortes',JSON.stringify(cortes));localStorage.setItem('az_pedidos',JSON.stringify(pedidos));}
+
+function getGrades(){
+  const custom=(cfg.customGrades||'').split(',').map(s=>s.trim()).filter(Boolean);
+  return[...GRADES_DEF,...custom.filter(g=>!GRADES_DEF.includes(g))];
+}
+
+function populateSels(){
+  const stored=JSON.parse(localStorage.getItem('az_listas')||'{}');
+  const tecs=stored.tecidos?.length?stored.tecidos:['Montaria','Montaria Light','Canelado Montaria','Visco Caneladinho','Canelado 70','Canelado Visco','New Light','Fluity','Flamê','Jeans','Viscose','Cirrê','Moletinho'];
+  const tins=stored.tinturarias?.length?stored.tinturarias:['GUARA','MAR','N/A'];
+  const grades=getGrades();
+  ['f-tec','p-tec'].forEach(id=>{const el=document.getElementById(id);if(el)el.innerHTML='<option value="">Selecionar...</option>'+tecs.map(t=>`<option>${t}</option>`).join('');});
+  ['f-tin'].forEach(id=>{const el=document.getElementById(id);if(el)el.innerHTML='<option value="">Selecionar...</option>'+tins.map(t=>`<option>${t}</option>`).join('');});
+  ['f-grade','p-grade'].forEach(id=>{const el=document.getElementById(id);if(el)el.innerHTML='<option value="">Selecionar...</option>'+grades.map(g=>`<option>${g}</option>`).join('');});
+}
+
+// ── CALC ──
+function calcTotalPecas(c){
+  if(!c.rolo||!c.encM||!c.grade)return null;
+  const enc=parseFloat(c.encM);if(!enc||isNaN(enc))return null;
+  const sizes=c.grade.split(' ').filter(Boolean);
+  return Math.floor(parseFloat(c.rolo)/enc)*sizes.length;
+}
+function calcDetalhe(c){
+  if(!c.rolo||!c.grade)return'';
+  const enc=parseFloat(c.encM)||0;
+  const sizes=c.grade.split(' ').filter(Boolean);
+  if(!sizes.length)return'';
+  if(!enc)return'';
+  const folhas=Math.floor(parseFloat(c.rolo)/enc);
+  const total=folhas*sizes.length;
+  return`<div class="calc-box"><div class="calc-ti">Estimativa de corte</div>
+    <div class="calc-row"><span class="calc-k">Folhas</span><span class="calc-v">${folhas}</span></div>
+    ${sizes.map(s=>`<div class="calc-row"><span class="calc-k">Tam. ${s}</span><span class="calc-v">${folhas} pç</span></div>`).join('')}
+    <div class="calc-row"><span class="calc-k">Total</span><span class="calc-v">${total} peças</span></div>
+  </div>`;
+}
+function calcPreview(){
+  const rolo=parseFloat(document.getElementById('f-rolo')?.value)||0;
+  const grade=document.getElementById('f-grade')?.value||'';
+  const prev=document.getElementById('calc-preview');
+  if(!prev||!rolo||!grade){if(prev)prev.innerHTML='';return;}
+  const sizes=grade.split(' ').filter(Boolean);
+  prev.innerHTML=`<div class="calc-box" style="margin-top:10px"><div class="calc-ti">Com este rolo</div>
+    ${sizes.map(s=>`<div class="calc-row"><span class="calc-k">Tam. ${s}</span><span class="calc-v">? pç (aguarda encaixe)</span></div>`).join('')}
+    <div class="calc-row"><span class="calc-k">${sizes.length} tamanhos</span><span class="calc-v">${rolo}m de tecido</span></div>
+  </div>`;
+}
+
+// ── RENDER ──
+function render(){
+  if(!user)return;
+  if(section==='cortes')renderCortes();
+  else renderPedidos();
+}
+
+// ── CORTES ──
+function getVisCortes(){
+  let list=[...cortes];
+  const q=(document.getElementById('srch')?.value||'').toLowerCase();
+  if(q)list=list.filter(c=>(c.id+c.nome+c.tec+c.ref).toLowerCase().includes(q));
+  if(filtro==='minha'){
+    if(user==='edvaldo')list=list.filter(c=>c.status==='AGUARDANDO_ENCAIXE'||c.status==='ENCAIXE_REPROVADO');
+    if(user==='rosana')list=list.filter(c=>c.status==='DESCANSAR_TECIDO'||c.status==='TECIDO_DESCANSADO');
+    if(user==='daimartha')list=list.filter(c=>['NO_CORTE','AGUARDANDO_GI','EMBALAR','PRONTO_RETIRADA'].includes(c.status));
+    if(user==='carol')list=list.filter(c=>c.status==='AG_FOTO'||c.status==='FOTO_OK');
+    if(user==='estoque')list=list.filter(c=>c.status==='EMBALAR');
+  }
+  if(user==='gerente'&&section==='cortes')list=list.filter(c=>c.tipo!=='novidade'||c.status==='PRONTO_RETIRADA'||c.status==='ARQUIVADO');
+  return list;
+}
+
+function getColsCortes(){
+  if(user==='taty')return[
+    {s:'AGUARDANDO_ENCAIXE',l:'Ag. encaixe',c:'var(--c1)'},
+    {s:'AGUARDANDO_APROVACAO',l:'Ag. aprovação',c:'var(--c2)'},
+    {s:'DEFINIR_CORES',l:'Definir cores',c:'var(--c6)'},
+    {s:'DESCANSAR_TECIDO',l:'Descansar tecido',c:'var(--c5)'},
+    {s:'TECIDO_DESCANSADO',l:'Tecido descansado',c:'var(--c3)'},
+    {s:'NO_CORTE',l:'Corte / Oficina',c:'var(--c3)'},
+    {s:'AG_FOTO',l:'Ag. foto',c:'var(--c6)'},
+    {s:'AGUARDANDO_GI',l:'Ag. decisão de envio',c:'var(--c8)'},
+    {s:'EMBALAR',l:'Embalar / Separar',c:'var(--c7)'},
+    {s:'PRONTO_RETIRADA',l:'Pronto p/ retirada',c:'var(--c3)'},
+  ];
+  if(user==='edvaldo')return[
+    {s:'AGUARDANDO_ENCAIXE',l:'Fila de encaixe',c:'var(--c1)'},
+    {s:'ENCAIXE_REPROVADO',l:'Reprovado — refazer',c:'var(--c4)'},
+    {s:'__TODOS__',l:'Todos os cortes',c:'var(--mt)'},
+  ];
+  if(user==='rosana')return[
+    {s:'DESCANSAR_TECIDO',l:'Para descansar',c:'var(--c5)'},
+    {s:'TECIDO_DESCANSADO',l:'Descansado',c:'var(--c3)'},
+    {s:'NO_CORTE',l:'No corte',c:'var(--c3)'},
+  ];
+  if(user==='daimartha')return[
+    {s:'NO_CORTE',l:'Corte / Oficina',c:'var(--c3)'},
+    {s:'AG_FOTO',l:'Ag. foto Carol',c:'var(--c6)'},
+    {s:'AGUARDANDO_GI',l:'Ag. decisão de envio',c:'var(--c8)'},
+    {s:'EMBALAR',l:'Embalar / Separar',c:'var(--c7)'},
+    {s:'PRONTO_RETIRADA',l:'Pronto p/ retirada',c:'var(--c3)'},
+  ];
+  if(user==='carol')return[
+    {s:'AGUARDANDO_ENCAIXE',l:'Ag. encaixe',c:'var(--c1)'},
+    {s:'AGUARDANDO_APROVACAO',l:'Aprovar encaixe',c:'var(--c2)'},
+    {s:'DEFINIR_CORES',l:'Definir cores',c:'var(--c6)'},
+    {s:'NO_CORTE',l:'Corte / Oficina',c:'var(--c3)'},
+    {s:'AG_FOTO',l:'Ag. foto',c:'var(--c6)'},
+    {s:'SEPARAR_ENVIO',l:'Separar',c:'var(--c8)'},
+    {s:'EMBALAR',l:'Embalar',c:'var(--c7)'},
+    {s:'PRONTO_RETIRADA',l:'Pronto p/ retirada',c:'var(--c3)'},
+  ];
+  if(user==='estoque')return[
+    {s:'EMBALAR',l:'Para embalar / separar',c:'var(--c7)'},
+    {s:'PRONTO_RETIRADA',l:'Pronto p/ retirada',c:'var(--c3)'},
+  ];
+  if(user==='gerente'&&section==='cortes')return[
+    {s:'AGUARDANDO_GI',l:'Decisão de envio',c:'var(--c8)'},
+    {s:'PRONTO_RETIRADA',l:'Pronto p/ retirada',c:'var(--c3)'},
+    {s:'ARQUIVADO',l:'Não enviados',c:'var(--mt)'},
+  ];
+  return[];
+}
+
+function renderCortes(){
+  const cols=getColsCortes();const vis=getVisCortes();
+  const grouped={};cols.forEach(c=>{grouped[c.s]=[];});
+  vis.forEach(c=>{if(grouped[c.status]!==undefined)grouped[c.status].push(c);});
+  const TODOS_STATUS=['AGUARDANDO_ENCAIXE','ENCAIXE_REPROVADO','AGUARDANDO_APROVACAO','DEFINIR_CORES','DESCANSAR_TECIDO','TECIDO_DESCANSADO','NO_CORTE'];
+  const todosItems=vis.filter(c=>TODOS_STATUS.includes(c.status));
+  grouped['__TODOS__']=todosItems;
+
+  document.getElementById('main-content').innerHTML=`<div class="board">${cols.map(col=>{
+    const items=grouped[col.s]||[];
+    const cardFn=col.s==='__TODOS__'?cardEdvaldoInfo:corteCardHTML;
+    return`<div class="col"><div class="col-top" style="background:${col.c}"></div>
+      <div class="col-hd"><span class="col-ti">${col.l}</span><span class="col-cn">${items.length}</span></div>
+      <div class="col-bd">${items.length?items.map(c=>cardFn(c)).join(''):'<div class="empty">Vazio</div>'}</div>
+    </div>`;
+  }).join('')}</div>`;
+  renderStats();
+}
+
+function corteCardHTML(c){
+  if(user==='edvaldo')return cardEdvaldo(c);
+  if(user==='taty'&&(c.status==='AGUARDANDO_ENCAIXE'||c.status==='ENCAIXE_REPROVADO'))return cardEdvaldo(c);
+  if((user==='rosana'||user==='taty')&&c.status==='DESCANSAR_TECIDO')return cardRosana(c);
+  if((user==='rosana'||user==='taty')&&c.status==='TECIDO_DESCANSADO'&&!c.numCorte)return cardRosanaNC(c);
+  if((user==='daimartha'||user==='taty'||user==='carol')&&c.status==='NO_CORTE')return cardChegou(c);
+  if(user==='carol'&&c.status==='AG_FOTO')return cardCarol(c);
+  if(user==='estoque'&&c.status==='EMBALAR')return cardEstoque(c);
+  return cardBase(c);
+}
+
+function cardBase(c){
+  const canApr=user==='taty'&&c.status==='AGUARDANDO_APROVACAO';
+  const canCores=(user==='taty'||user==='carol')&&c.status==='DEFINIR_CORES';
+  const total=(user==='taty'||user==='carol')&&calcTotalPecas(c);
+  const canGi=['gerente','taty','carol'].includes(user)&&c.status==='AGUARDANDO_GI';
+  const canDM=user==='daimartha'&&c.status==='EMBALAR';
+  return`<div class="card" onclick="event.stopPropagation();${canCores?`openCores('${c.id}')`:`openDet('${c.id}')`}">
+    <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:3px">
+      <div>
+        ${c.ref?`<div style="font-family:'DM Mono',monospace;font-size:.88rem;font-weight:600;color:var(--ac)">${c.ref}</div>`:''}
+        <div style="font-family:'DM Mono',monospace;font-size:.88rem;font-weight:500;color:#555">${c.id}</div>
+      </div>
+      ${c.urg?'<span class="tag tur">⚡</span>':''}
+    </div>
+    <div class="cnome">${c.nome}</div>
+    ${(c.obs||c.encObs)?`<div style="font-size:.73rem;color:#8B4513;background:#FFF3CD;border-radius:5px;padding:3px 7px;margin-bottom:5px;line-height:1.3">⚠ ${[c.obs,c.encObs].filter(Boolean).join(' · ')}</div>`:''}
+    <div class="ctags">
+      ${c.tec?`<span class="tag tg">${c.tec}</span>`:''}
+      ${c.tin?`<span style="font-size:.72rem;padding:2px 7px;border-radius:20px;background:#F1EFE8;color:#5F5E5A">${c.tin}</span>`:''}
+      ${c.grade?`<span style="font-size:.78rem;padding:3px 9px;border-radius:20px;font-family:'DM Mono',monospace;background:#E1F5EE;color:#085041;font-weight:600">${c.grade}</span>`:''}
+      ${c.numCorte?`<span style="font-size:.78rem;padding:3px 9px;border-radius:20px;font-family:'DM Mono',monospace;background:var(--b3);color:var(--c3);font-weight:600">OP: ${c.numCorte}</span>`:''}
+      ${total?`<span class="tag" style="background:var(--al);color:var(--ac)">~${total} pç</span>`:''}
+      ${c.tipo?`<span class="tag" style="background:${c.tipo==='novidade'?'var(--b6)':'var(--b2)'};color:${c.tipo==='novidade'?'var(--c6)':'var(--c2)'}">${c.tipo}</span>`:''}
+    </div>
+    ${canCores?calcDetalhe(c):''}
+    <div class="cfoot">
+      <span class="cdate">${dout(c.data)}</span>
+      ${canApr?`<span style="background:var(--b2);color:var(--c2);font-size:.62rem;padding:2px 7px;border-radius:5px;font-weight:500">${c.encM}m·${c.encPct}%</span>`:''}
+      ${canCores?`<span style="background:var(--b6);color:var(--c6);font-size:.63rem;padding:2px 8px;border-radius:5px;font-weight:500">Toque para definir cores</span>`:''}
+      ${canGi?`<div style="display:flex;gap:5px"><button style="background:var(--b3);color:var(--c3);border:none;border-radius:6px;padding:3px 8px;font-size:.63rem;font-weight:500;cursor:pointer" onclick="event.stopPropagation();aprovarEnvio('${c.id}')">✔ Enviar</button><button style="background:var(--b4);color:var(--c4);border:none;border-radius:6px;padding:3px 8px;font-size:.63rem;font-weight:500;cursor:pointer" onclick="event.stopPropagation();giArquivar('${c.id}')">✕ Não precisa</button></div>`:''}
+      ${canDM?`<button style="background:var(--b3);color:var(--c3);border:none;border-radius:6px;padding:3px 8px;font-size:.63rem;font-weight:500;cursor:pointer" onclick="event.stopPropagation();transmissaoMire('${c.id}')">Transmissão Miré ✔</button>`:''}
+    </div>
+  </div>`;
+}
+
+function cardEdvaldoInfo(c){
+  const info=CSM[c.status]||{l:c.status,c:'var(--mt)',b:'var(--s2)'};
+  return`<div class="card" onclick="openDet('${c.id}')">
+    <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:3px">
+      <div>
+        ${c.ref?`<div style="font-family:'DM Mono',monospace;font-size:.88rem;font-weight:600;color:var(--ac)">${c.ref}</div>`:''}
+        <div style="font-family:'DM Mono',monospace;font-size:.75rem;color:#555">${c.id}</div>
+      </div>
+      <span style="font-size:.62rem;padding:2px 7px;border-radius:20px;font-weight:500;background:${info.b};color:${info.c}">${info.l}</span>
+    </div>
+    <div class="cnome">${c.nome}</div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:4px;margin:6px 0;font-size:.76rem">
+      <div><span style="color:var(--mt)">Tecido: </span><strong>${c.tec||'—'}</strong></div>
+      <div><span style="color:var(--mt)">Fornecedor: </span><strong>${c.tin||'—'}</strong></div>
+      <div><span style="color:var(--mt)">Grade: </span><strong>${c.grade||'—'}</strong></div>
+      <div><span style="color:var(--mt)">Retalho: </span><strong>${c.ret||'—'}</strong></div>
+      <div><span style="color:var(--mt)">Encaixe: </span><strong>${c.encM?c.encM+'m':'—'}</strong></div>
+      <div><span style="color:var(--mt)">Aproveit.: </span><strong>${c.encPct?c.encPct+'%':'—'}</strong></div>
+    </div>
+    ${c.obs?`<div style="font-size:.73rem;color:#8B4513;background:#FFF3CD;border-radius:5px;padding:3px 7px;margin-bottom:5px">⚠ ${c.obs}</div>`:''}
+    <button onclick="event.stopPropagation();marcarImpresso('${c.id}')"
+      style="width:100%;padding:7px;border-radius:7px;border:none;font-size:.78rem;font-weight:600;cursor:pointer;margin-top:4px;
+      background:${c.impresso==='sim'?'var(--b3)':'var(--s2)'};color:${c.impresso==='sim'?'var(--c3)':'var(--mt)'}">
+      ${c.impresso==='sim'?'✔ Impresso':'Marcar como impresso'}
+    </button>
+  </div>`;
+}
+
+function cardEdvaldo(c){
+  const rep=c.status==='ENCAIXE_REPROVADO';
+  const rolo=c.rolo||0;
+  return`<div class="card-e" id="ce-${c.id}">
+    <div style="display:flex;justify-content:space-between;margin-bottom:4px">
+      <div>${c.ref?`<div class="cref">${c.ref}</div>`:''}<div class="cid">${c.id}</div></div>
+      ${c.urg?'<span class="tag tur">⚡</span>':''}
+      ${rep?'<span style="background:var(--b4);color:var(--c4);font-size:.61rem;padding:2px 6px;border-radius:4px">Reprovado</span>':''}
+    </div>
+    <div class="cnome">${c.nome}</div>
+    <div class="ctags">
+      ${c.tec?`<span class="tag tg">${c.tec}</span>`:''}
+      ${c.tin?`<span style="font-size:.78rem;padding:3px 9px;border-radius:20px;font-family:'DM Mono',monospace;background:#E1F5EE;color:#085041;font-weight:600">${c.tin}</span>`:''}
+      ${c.grade?`<span class="tag" style="background:var(--s2);color:var(--mt)">${c.grade}</span>`:''}
+    </div>
+    ${rep&&c.encObs?`<div class="obs-box obs-bl" style="margin-bottom:8px;font-size:.74rem">Motivo: ${c.encObs}</div>`:''}
+    <div class="ef">
+      <div class="efl"><label class="el">Comprimento (m) *</label><input class="ei" id="em-${c.id}" type="number" step="0.01" placeholder="0.00" value="${c.encM||''}" oninput="calcInline('${c.id}')"></div>
+      <div class="efl"><label class="el">Aproveitamento (%) *</label><input class="ei" id="ep-${c.id}" type="number" step="0.1" placeholder="0.0" value="${c.encPct||''}"></div>
+    </div>
+    <div id="calc-${c.id}" style="margin-bottom:8px"></div>
+    <textarea class="eobs" id="eo-${c.id}" rows="2" placeholder="Observação">${rep?'':c.encObs||''}</textarea>
+    <button class="ebtn" onclick="salvarEncaixe('${c.id}')" style="background:${user==='taty'?'var(--ac)':'var(--c2)'}">
+      ${user==='taty'?'Salvar e aprovar encaixe ✔':'Enviar para aprovação →'}
+    </button>
+  </div>`;
+}
+
 function calcInline(id){
-const c=cortes.find(x=>x.id===id);if(!c||!c.rolo||!c.grade)return;
-const enc=parseFloat(document.getElementById('em-'+id)?.value)||0;
-const el=document.getElementById('calc-'+id);if(!el||!enc)return;
-const sizes=c.grade.split(' ').filter(Boolean);
-const folhas=Math.floor(c.rolo/enc);
-el.innerHTML=<div class="calc-box"><div class="calc-ti">Estimativa</div> ${sizes.map(s=><div class="calc-row"><span class="calc-k">${s}</span><span class="calc-v">${folhas} pç</span></div>`).join('')}
-<div class="calc-row"><span class="calc-k">Total</span><span class="calc-v">${folhas*sizes.length} pç</span></div>
+  const c=cortes.find(x=>x.id===id);if(!c||!c.rolo||!c.grade)return;
+  const enc=parseFloat(document.getElementById('em-'+id)?.value)||0;
+  const el=document.getElementById('calc-'+id);if(!el||!enc)return;
+  const sizes=c.grade.split(' ').filter(Boolean);
+  const folhas=Math.floor(c.rolo/enc);
+  el.innerHTML=`<div class="calc-box"><div class="calc-ti">Estimativa</div>
+    ${sizes.map(s=>`<div class="calc-row"><span class="calc-k">${s}</span><span class="calc-v">${folhas} pç</span></div>`).join('')}
+    <div class="calc-row"><span class="calc-k">Total</span><span class="calc-v">${folhas*sizes.length} pç</span></div>
+  </div>`;
+}
 
-</div>`; }
 function cardRosana(c){
-const checks=c.checksDesc||{};
-const total=c.cores?.length||0;
-const done=Object.values(checks).filter(Boolean).length;
-const pct=total?Math.round(done/total*100):0;
-return<div class="card-r" id="cd-${c.id}"> <div style="display:flex;justify-content:space-between;margin-bottom:4px"> <div> ${c.ref?<div style="font-family:'DM Mono',monospace;font-size:.88rem;font-weight:600;color:var(--ac)">${c.ref}</div>:''} <div style="font-family:'DM Mono',monospace;font-size:.88rem;font-weight:500;color:#555">${c.id}</div> </div> ${c.urg?'<span class="tag tur">⚡</span>':''} </div> <div class="cnome">${c.nome}</div> ${(c.obs||c.encObs)?<div style="font-size:.73rem;color:#8B4513;background:#FFF3CD;border-radius:5px;padding:3px 7px;margin-bottom:5px">⚠ ${[c.obs,c.encObs].filter(Boolean).join(' · ')}</div>:''} <div class="ctags">${c.grade?<span style="font-size:.78rem;padding:3px 9px;border-radius:20px;font-family:'DM Mono',monospace;background:#E1F5EE;color:#085041;font-weight:600">${c.grade}</span>:''}</div> ${(c.cores||[]).map(x=>
-<div class="ci ${checks[x.cor]?'done':''}" onclick="toggleDC('${c.id}','${x.cor}')">
-<div class="ci-l"><div class="ci-c">${x.cor}</div><div class="ci-q">${x.qtd} rolo(s)</div></div>
-<div class="ci-b"><svg class="ci-chk" width="10" height="10" viewBox="0 0 10 10" fill="none"><path d="M1.5 5L4 7.5L8.5 2.5" stroke="white" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
-</div>`).join('')}
-<div class="pb"><div class="pf" id="pf-${c.id}" style="width:${pct}%"></div></div>
-<div class="pl" id="pl-${c.id}">${done} de ${total} descansados</div>
-<button class="dbtn" style="background:#1D9E75;color:#fff" id="db-${c.id}" ${done<total?'disabled':''} onclick="event.stopPropagation();salvarDescanso('${c.id}')">Confirmar tudo descansado ✔</button>
+  const checks=c.checksDesc||{};
+  const total=c.cores?.length||0;
+  const done=Object.values(checks).filter(Boolean).length;
+  const pct=total?Math.round(done/total*100):0;
+  return`<div class="card-r" id="cd-${c.id}">
+    <div style="display:flex;justify-content:space-between;margin-bottom:4px">
+      <div>
+        ${c.ref?`<div style="font-family:'DM Mono',monospace;font-size:.88rem;font-weight:600;color:var(--ac)">${c.ref}</div>`:''}
+        <div style="font-family:'DM Mono',monospace;font-size:.88rem;font-weight:500;color:#555">${c.id}</div>
+      </div>
+      <div style="display:flex;gap:5px;align-items:center">
+        ${c.urg?'<span class="tag tur">⚡</span>':''}
+        <button onclick="event.stopPropagation();openDet('${c.id}')" style="background:none;border:.5px solid var(--bd);border-radius:6px;padding:3px 7px;font-size:.68rem;color:var(--mt);cursor:pointer">Ver detalhes</button>
+      </div>
+    </div>
+    <div class="cnome">${c.nome}</div>
+    ${(c.obs||c.encObs)?`<div style="font-size:.73rem;color:#8B4513;background:#FFF3CD;border-radius:5px;padding:3px 7px;margin-bottom:5px">⚠ ${[c.obs,c.encObs].filter(Boolean).join(' · ')}</div>`:''}
+    <div class="ctags">${c.grade?`<span style="font-size:.78rem;padding:3px 9px;border-radius:20px;font-family:'DM Mono',monospace;background:#E1F5EE;color:#085041;font-weight:600">${c.grade}</span>`:''}</div>
+    ${(c.cores||[]).map(x=>`
+      <div class="ci ${checks[x.cor]?'done':''}" onclick="toggleDC('${c.id}','${x.cor}')">
+        <div class="ci-l"><div class="ci-c">${x.cor}</div><div class="ci-q">${x.qtd} rolo(s)</div></div>
+        <div class="ci-b"><svg class="ci-chk" width="10" height="10" viewBox="0 0 10 10" fill="none"><path d="M1.5 5L4 7.5L8.5 2.5" stroke="white" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+      </div>`).join('')}
+    <div class="pb"><div class="pf" id="pf-${c.id}" style="width:${pct}%"></div></div>
+    <div class="pl" id="pl-${c.id}">${done} de ${total} descansados</div>
+    <button class="dbtn" style="background:#1D9E75;color:#fff" id="db-${c.id}" ${done<total?'disabled':''} onclick="event.stopPropagation();salvarDescanso('${c.id}')">Confirmar tudo descansado ✔</button>
+  </div>`;
+}
 
-</div>`; }
 function cardRosanaNC(c){
-return<div class="card-r" id="cn-${c.id}"> <div style="display:flex;justify-content:space-between;margin-bottom:4px"> <div> ${c.ref?<div style="font-family:'DM Mono',monospace;font-size:.88rem;font-weight:600;color:var(--ac)">${c.ref}</div>:''} <div style="font-family:'DM Mono',monospace;font-size:.88rem;font-weight:500;color:#555">${c.id}</div> </div> <button onclick="openDet('${c.id}')" style="background:none;border:.5px solid var(--bd);border-radius:6px;padding:3px 7px;font-size:.68rem;color:var(--mt);cursor:pointer">Ver detalhes</button> </div> <div class="cnome">${c.nome}</div> ${(c.obs||c.encObs)?<div style="font-size:.73rem;color:#8B4513;background:#FFF3CD;border-radius:5px;padding:3px 7px;margin-bottom:5px">⚠ ${[c.obs,c.encObs].filter(Boolean).join(' · ')}</div>`:''}
-<div style="font-size:.75rem;color:var(--c3);font-weight:500;margin-bottom:6px">✔ Tecidos descansados</div>
-<div style="font-size:.72rem;color:var(--mt);margin-bottom:4px">Nº do corte:</div>
-<div style="display:flex;gap:5px;align-items:center">
-<input style="flex:1;background:var(--s2);border:.5px solid var(--bd);border-radius:7px;padding:6px 8px;font-size:14px;color:var(--tx);outline:none;min-width:0" id="nc-${c.id}" placeholder="ex: C-0046" value="${c.numCorte||''}">
-<button style="padding:6px 10px;border-radius:7px;border:none;background:var(--c3);color:#fff;font-size:.75rem;font-weight:600;cursor:pointer;white-space:nowrap;flex-shrink:0" onclick="salvarNumCorte('${c.id}')">✔ Ok</button>
-</div>
+  return`<div class="card-r" id="cn-${c.id}">
+    <div style="display:flex;justify-content:space-between;margin-bottom:4px">
+      <div>
+        ${c.ref?`<div style="font-family:'DM Mono',monospace;font-size:.88rem;font-weight:600;color:var(--ac)">${c.ref}</div>`:''}
+        <div style="font-family:'DM Mono',monospace;font-size:.88rem;font-weight:500;color:#555">${c.id}</div>
+      </div>
+      <button onclick="openDet('${c.id}')" style="background:none;border:.5px solid var(--bd);border-radius:6px;padding:3px 7px;font-size:.68rem;color:var(--mt);cursor:pointer">Ver detalhes</button>
+    </div>
+    <div class="cnome">${c.nome}</div>
+    ${(c.obs||c.encObs)?`<div style="font-size:.73rem;color:#8B4513;background:#FFF3CD;border-radius:5px;padding:3px 7px;margin-bottom:5px">⚠ ${[c.obs,c.encObs].filter(Boolean).join(' · ')}</div>`:''}
+    <div style="font-size:.75rem;color:var(--c3);font-weight:500;margin-bottom:6px">✔ Tecidos descansados</div>
+    <div style="font-size:.72rem;color:var(--mt);margin-bottom:4px">Nº do corte:</div>
+    <div style="display:flex;gap:5px;align-items:center">
+      <input style="flex:1;background:var(--s2);border:.5px solid var(--bd);border-radius:7px;padding:6px 8px;font-size:14px;color:var(--tx);outline:none;min-width:0" id="nc-${c.id}" placeholder="ex: C-0046" value="${c.numCorte||''}">
+      <button style="padding:6px 10px;border-radius:7px;border:none;background:var(--c3);color:#fff;font-size:.75rem;font-weight:600;cursor:pointer;white-space:nowrap;flex-shrink:0" onclick="salvarNumCorte('${c.id}')">✔ Ok</button>
+    </div>
+  </div>`;
+}
 
-</div>`; }
 function cardChegou(c){
-return<div class="card-arr" id="carr-${c.id}"> <div style="display:flex;justify-content:space-between;margin-bottom:4px"> <div> ${c.ref?<div style="font-family:'DM Mono',monospace;font-size:.88rem;font-weight:600;color:var(--ac)">${c.ref}</div>:''} <div style="font-family:'DM Mono',monospace;font-size:.88rem;font-weight:500;color:#555">${c.id}</div> </div> ${c.numCorte?<span style="font-size:.78rem;padding:3px 9px;border-radius:20px;font-family:'DM Mono',monospace;background:var(--b3);color:var(--c3);font-weight:600">OP: ${c.numCorte}</span>:''} </div> <div class="cnome">${c.nome}</div> ${(c.obs||c.encObs)?<div style="font-size:.73rem;color:#8B4513;background:#FFF3CD;border-radius:5px;padding:3px 7px;margin-bottom:5px">⚠ ${[c.obs,c.encObs].filter(Boolean).join(' · ')}</div>:''} <div class="ctags">${c.grade?<span style="font-size:.78rem;padding:3px 9px;border-radius:20px;font-family:'DM Mono',monospace;background:#E1F5EE;color:#085041;font-weight:600">${c.grade}</span>`:''}</div>
-<div style="font-size:.76rem;color:var(--mt);margin-bottom:6px">Chegou da oficina?</div>
-<div class="arr-btns">
-<button class="arr-btn" style="background:var(--b2);color:var(--c2)" onclick="marcarChegada('${c.id}','reposicao')">📦 Reposição</button>
-<button class="arr-btn" style="background:var(--b6);color:var(--c6)" onclick="marcarChegada('${c.id}','novidade')">✨ Novidade</button>
-</div>
+  return`<div class="card-arr" id="carr-${c.id}">
+    <div style="display:flex;justify-content:space-between;margin-bottom:4px">
+      <div>
+        ${c.ref?`<div style="font-family:'DM Mono',monospace;font-size:.88rem;font-weight:600;color:var(--ac)">${c.ref}</div>`:''}
+        <div style="font-family:'DM Mono',monospace;font-size:.88rem;font-weight:500;color:#555">${c.id}</div>
+      </div>
+      ${c.numCorte?`<span style="font-size:.78rem;padding:3px 9px;border-radius:20px;font-family:'DM Mono',monospace;background:var(--b3);color:var(--c3);font-weight:600">OP: ${c.numCorte}</span>`:''}
+    </div>
+    <div class="cnome">${c.nome}</div>
+    ${(c.obs||c.encObs)?`<div style="font-size:.73rem;color:#8B4513;background:#FFF3CD;border-radius:5px;padding:3px 7px;margin-bottom:5px">⚠ ${[c.obs,c.encObs].filter(Boolean).join(' · ')}</div>`:''}
+    <div class="ctags">${c.grade?`<span style="font-size:.78rem;padding:3px 9px;border-radius:20px;font-family:'DM Mono',monospace;background:#E1F5EE;color:#085041;font-weight:600">${c.grade}</span>`:''}</div>
+    <div style="font-size:.76rem;color:var(--mt);margin-bottom:6px">Chegou da oficina?</div>
+    <div class="arr-btns">
+      <button class="arr-btn" style="background:var(--b2);color:var(--c2)" onclick="marcarChegada('${c.id}','reposicao')">📦 Reposição</button>
+      <button class="arr-btn" style="background:var(--b6);color:var(--c6)" onclick="marcarChegada('${c.id}','novidade')">✨ Novidade</button>
+    </div>
+  </div>`;
+}
 
-</div>`; }
 function cardCarol(c){
-const total=calcTotalPecas(c);
-return<div class="card-carol" id="ccarol-${c.id}"> <div style="display:flex;justify-content:space-between;margin-bottom:4px"> <div>${c.ref?<div class="cref">${c.ref}</div>:''}<div class="cid">${c.id}</div></div> <span style="background:var(--b6);color:var(--c6);font-size:.63rem;padding:2px 7px;border-radius:5px;font-weight:500">✨ Novidade</span> </div> <div class="cnome">${c.nome}</div> <div class="ctags"> ${c.grade?<span style="font-size:.78rem;padding:3px 9px;border-radius:20px;font-family:'DM Mono',monospace;background:#E1F5EE;color:#085041;font-weight:600">${c.grade}</span>:''} ${total?<span class="tag" style="background:var(--al);color:var(--ac)">~${total} pç</span>:''} </div> ${c.fotoLocal?<div style="margin:8px 0"><img src="${c.fotoLocal}" style="width:100%;border-radius:8px;max-height:130px;object-fit:cover"></div>`:''}
-<div style="margin-bottom:8px">
-<label style="font-size:.62rem;text-transform:uppercase;letter-spacing:.6px;color:var(--mt);display:block;margin-bottom:4px">Foto da peça</label>
-<input type="file" accept="image/*" capture="environment" id="foto-${c.id}" onchange="salvarFotoCarol('${c.id}',this)" style="font-size:.8rem;width:100%">
-</div>
-<textarea style="width:100%;background:var(--s2);border:.5px solid var(--bd);border-radius:7px;padding:7px 9px;font-size:16px;color:var(--tx);outline:none;resize:none;margin-bottom:8px" id="cobs-${c.id}" rows="2" placeholder="Observações da foto...">${c.carolObs||''}</textarea>
-<button class="dbtn" style="background:var(--c6);color:#fff" onclick="carolAprovar('${c.id}')">✔ Foto pronta — liberar envio</button>
+  const total=calcTotalPecas(c);
+  return`<div class="card-carol" id="ccarol-${c.id}">
+    <div style="display:flex;justify-content:space-between;margin-bottom:4px">
+      <div>${c.ref?`<div class="cref">${c.ref}</div>`:''}<div class="cid">${c.id}</div></div>
+      <span style="background:var(--b6);color:var(--c6);font-size:.63rem;padding:2px 7px;border-radius:5px;font-weight:500">✨ Novidade</span>
+    </div>
+    <div class="cnome">${c.nome}</div>
+    <div class="ctags">
+      ${c.grade?`<span style="font-size:.78rem;padding:3px 9px;border-radius:20px;font-family:'DM Mono',monospace;background:#E1F5EE;color:#085041;font-weight:600">${c.grade}</span>`:''}
+      ${total?`<span class="tag" style="background:var(--al);color:var(--ac)">~${total} pç</span>`:''}
+    </div>
+    ${c.fotoLocal?`<div style="margin:8px 0"><img src="${c.fotoLocal}" style="width:100%;border-radius:8px;max-height:130px;object-fit:cover"></div>`:''}
+    <div style="margin-bottom:8px">
+      <label style="font-size:.62rem;text-transform:uppercase;letter-spacing:.6px;color:var(--mt);display:block;margin-bottom:4px">Foto da peça</label>
+      <input type="file" accept="image/*" capture="environment" id="foto-${c.id}" onchange="salvarFotoCarol('${c.id}',this)" style="font-size:.8rem;width:100%">
+    </div>
+    <textarea style="width:100%;background:var(--s2);border:.5px solid var(--bd);border-radius:7px;padding:7px 9px;font-size:16px;color:var(--tx);outline:none;resize:none;margin-bottom:8px" id="cobs-${c.id}" rows="2" placeholder="Observações da foto...">${c.carolObs||''}</textarea>
+    <button class="dbtn" style="background:var(--c6);color:#fff" onclick="carolAprovar('${c.id}')">✔ Foto pronta — liberar envio</button>
+  </div>`;
+}
 
-</div>`; }
 function cardEstoque(c){
-const total=calcTotalPecas(c);
-return<div class="card-arr" id="ces-${c.id}"> <div style="display:flex;justify-content:space-between;margin-bottom:4px"> <div>${c.ref?<div class="cref">${c.ref}</div>:''}<div class="cid">${c.id}</div></div> ${c.numCorte?<span class="tag" style="background:var(--b3);color:var(--c3)">${c.numCorte}</span>:''} </div> <div class="cnome">${c.nome}</div> <div class="ctags"> ${c.grade?<span style="font-size:.78rem;padding:3px 9px;border-radius:20px;font-family:'DM Mono',monospace;background:#E1F5EE;color:#085041;font-weight:600">${c.grade}</span>:''} ${total?<span class="tag" style="background:var(--al);color:var(--ac)">~${total} pç</span>:''} ${c.tipo?<span class="tag" style="background:${c.tipo==='novidade'?'var(--b6)':'var(--b2)'};color:${c.tipo==='novidade'?'var(--c6)':'var(--c2)'}">${c.tipo}</span>`:''}
-</div>
-<button class="dbtn" style="background:var(--c7);color:#fff;margin-top:8px" onclick="estoqueSeparou('${c.id}')">✔ Separado e pronto para retirada</button>
+  const total=calcTotalPecas(c);
+  return`<div class="card-arr" id="ces-${c.id}">
+    <div style="display:flex;justify-content:space-between;margin-bottom:4px">
+      <div>${c.ref?`<div class="cref">${c.ref}</div>`:''}<div class="cid">${c.id}</div></div>
+      ${c.numCorte?`<span class="tag" style="background:var(--b3);color:var(--c3)">${c.numCorte}</span>`:''}
+    </div>
+    <div class="cnome">${c.nome}</div>
+    <div class="ctags">
+      ${c.grade?`<span style="font-size:.78rem;padding:3px 9px;border-radius:20px;font-family:'DM Mono',monospace;background:#E1F5EE;color:#085041;font-weight:600">${c.grade}</span>`:''}
+      ${total?`<span class="tag" style="background:var(--al);color:var(--ac)">~${total} pç</span>`:''}
+      ${c.tipo?`<span class="tag" style="background:${c.tipo==='novidade'?'var(--b6)':'var(--b2)'};color:${c.tipo==='novidade'?'var(--c6)':'var(--c2)'}">${c.tipo}</span>`:''}
+    </div>
+    <button class="dbtn" style="background:var(--c7);color:#fff;margin-top:8px" onclick="estoqueSeparou('${c.id}')">✔ Separado e pronto para retirada</button>
+  </div>`;
+}
 
-</div>`; }
 // ── STATS CORTES ──
 function renderStats(){
-if(section==='pedidos'){renderStatsPedidos();return;}
-const sts=[
-{s:'AGUARDANDO_ENCAIXE',l:'Encaixe'},{s:'AGUARDANDO_APROVACAO',l:'Aprovação'},
-{s:'DEFINIR_CORES',l:'Cores'},{s:'NO_CORTE',l:'Corte/Ofic.'},
-{s:'AG_FOTO',l:'Ag. foto'},{s:'SEPARAR_ENVIO',l:'Separar'},
-{s:'EMBALAR',l:'Embalar'},{s:'PRONTO_RETIRADA',l:'Retirada'},
-];
-document.getElementById('stats').innerHTML=sts.map(({s,l})=>{
-const info=csi(s);const n=cortes.filter(c=>c.status===s).length;
-return<div class="sc" style="border-top-color:${info.c}"><div class="sc-l">${l}</div><div class="sc-v" style="color:${info.c}">${n}</div></div>;
-}).join('');
+  if(section==='pedidos'){renderStatsPedidos();return;}
+  const sts=[
+    {s:'AGUARDANDO_ENCAIXE',l:'Encaixe'},{s:'AGUARDANDO_APROVACAO',l:'Aprovação'},
+    {s:'DEFINIR_CORES',l:'Cores'},{s:'NO_CORTE',l:'Corte/Ofic.'},
+    {s:'AG_FOTO',l:'Ag. foto'},{s:'SEPARAR_ENVIO',l:'Separar'},
+    {s:'EMBALAR',l:'Embalar'},{s:'PRONTO_RETIRADA',l:'Retirada'},
+  ];
+  document.getElementById('stats').innerHTML=sts.map(({s,l})=>{
+    const info=csi(s);const n=cortes.filter(c=>c.status===s).length;
+    return`<div class="sc" style="border-top-color:${info.c}"><div class="sc-l">${l}</div><div class="sc-v" style="color:${info.c}">${n}</div></div>`;
+  }).join('');
 }
 function renderStatsPedidos(){
-const sts=[{s:'PENDENTE',l:'Pendentes'},{s:'APROVADO',l:'Aprovados'},{s:'PARCIAL',l:'Parciais'},{s:'RECUSADO',l:'Recusados'},{s:'TRANSFERIDO',l:'Transferidos'}];
-document.getElementById('stats').innerHTML=sts.map(({s,l})=>{
-const info=psi(s);const n=pedidos.filter(p=>p.status===s).length;
-return<div class="sc" style="border-top-color:${info.c}"><div class="sc-l">${l}</div><div class="sc-v" style="color:${info.c}">${n}</div></div>;
-}).join('');
+  const sts=[{s:'PENDENTE',l:'Pendentes'},{s:'APROVADO',l:'Aprovados'},{s:'PARCIAL',l:'Parciais'},{s:'RECUSADO',l:'Recusados'},{s:'TRANSFERIDO',l:'Transferidos'}];
+  document.getElementById('stats').innerHTML=sts.map(({s,l})=>{
+    const info=psi(s);const n=pedidos.filter(p=>p.status===s).length;
+    return`<div class="sc" style="border-top-color:${info.c}"><div class="sc-l">${l}</div><div class="sc-v" style="color:${info.c}">${n}</div></div>`;
+  }).join('');
 }
 
 // ── AÇÕES CORTES ──
 async function salvarEncaixe(id){
-const m=document.getElementById('em-'+id)?.value;
-const pct=document.getElementById('ep-'+id)?.value;
-if(!m||!pct){toast('Preencha comprimento e aproveitamento','w');return;}
-const c=cortes.find(x=>x.id===id);
-if(!c)return;
-c.encM=m;c.encPct=pct;c.encObs=document.getElementById('eo-'+id)?.value.trim()||'';
-if(user==='taty'){
-c.status='DEFINIR_CORES';
-sl();render();
-toast('Salvando...','i');
-if(c._row){
-await apip({action:'atualizarCampos',row:c._row,campos:[['ENCAIXE_M',m],['RENDIMENTO',pct],['OBS_CAD',c.encObs],['STATUS','DEFINIR_CORES']]});
-toast('Encaixe salvo! Defina as cores.','s');
-setTimeout(()=>syncAll(true),2000);
-} else {
-toast('Encaixe salvo localmente (sem conexão com planilha)','s');
-}
-} else {
-c.status='AGUARDANDO_APROVACAO';
-sl();render();
-toast('Encaixe enviado para aprovação!','s');
-if(c._row){
-await apip({action:'atualizarCampos',row:c._row,campos:[['ENCAIXE_M',m],['RENDIMENTO',pct],['OBS_CAD',c.encObs],['STATUS','AGUARDANDO_APROVACAO']]});
-setTimeout(()=>syncAll(true),2000);
-}
-}
+  const m=document.getElementById('em-'+id)?.value;
+  const pct=document.getElementById('ep-'+id)?.value;
+  if(!m||!pct){toast('Preencha comprimento e aproveitamento','w');return;}
+  const c=cortes.find(x=>x.id===id);
+  if(!c)return;
+  c.encM=m;c.encPct=pct;c.encObs=document.getElementById('eo-'+id)?.value.trim()||'';
+  if(user==='taty'){
+    lastPushTime=Date.now();
+    c.status='DEFINIR_CORES';
+    sl();render();
+    toast('Encaixe aprovado! Defina as cores.','s');
+    if(c._row){
+      await apip({action:'atualizarCampos',row:c._row,campos:[['ENCAIXE_M',m],['RENDIMENTO',pct],['OBS_CAD',c.encObs],['STATUS','DEFINIR_CORES']]});
+      setTimeout(()=>syncAll(true),3000);
+    }
+  } else {
+    lastPushTime=Date.now();
+    c.status='AGUARDANDO_APROVACAO';
+    sl();render();
+    toast('Encaixe enviado para aprovação!','s');
+    if(c._row){
+      await apip({action:'atualizarCampos',row:c._row,campos:[['ENCAIXE_M',m],['RENDIMENTO',pct],['OBS_CAD',c.encObs],['STATUS','AGUARDANDO_APROVACAO']]});
+      setTimeout(()=>syncAll(true),3000);
+    }
+  }
 }
 
 function toggleDC(id,cor){
-const c=cortes.find(x=>x.id===id);
-if(!c)return;
-if(!c.checksDesc)c.checksDesc={};
-c.checksDesc[cor]=!c.checksDesc[cor];
-sl();
-// Re-render the specific card
-const el=document.getElementById('cd-'+id);
-if(el){
-const tmp=document.createElement('div');
-tmp.innerHTML=cardRosana(c);
-const newEl=tmp.firstChild;
-if(newEl)el.replaceWith(newEl);
-}
+  const c=cortes.find(x=>x.id===id);
+  if(!c)return;
+  if(!c.checksDesc)c.checksDesc={};
+  c.checksDesc[cor]=!c.checksDesc[cor];
+  sl();
+  const el=document.getElementById('cd-'+id);
+  if(el){
+    const tmp=document.createElement('div');
+    tmp.innerHTML=cardRosana(c);
+    const newEl=tmp.firstChild;
+    if(newEl)el.replaceWith(newEl);
+  }
 }
 async function salvarDescanso(id){
-const c=cortes.find(x=>x.id===id);
-if(!c)return;
-c.checksDesc=c.checksDesc||{};
-c.status='TECIDO_DESCANSADO';
-c.dataDesc=new Date().toLocaleDateString('pt-BR');
-sl();
-render();
-toast('Tecidos descansados! Registre o nº do corte.','s');
-await push(c._row,[['CHECKS_DESC',checksStr(c.checksDesc)],['DATA_DESCANSO',c.dataDesc],['STATUS','TECIDO_DESCANSADO']]);
+  const c=cortes.find(x=>x.id===id);
+  if(!c)return;
+  c.checksDesc=c.checksDesc||{};
+  c.status='TECIDO_DESCANSADO';
+  c.dataDesc=new Date().toLocaleDateString('pt-BR');
+  sl();
+  render();
+  toast('Tecidos descansados! Registre o nº do corte.','s');
+  await push(c._row,[['CHECKS_DESC',checksStr(c.checksDesc)],['DATA_DESCANSO',c.dataDesc],['STATUS','TECIDO_DESCANSADO']]);
 }
 async function salvarNumCorte(id){
-const el=document.getElementById('nc-'+id);
-const num=el?.value.trim();
-if(!num){toast('Preencha o número','w');return;}
-const c=cortes.find(x=>x.id===id);
-if(!c)return;
-c.numCorte=num;
-c.status='NO_CORTE';
-sl();
-render();
-toast('OP '+num+' registrado!','s');
-await push(c._row,[['NUM_CORTE',num],['STATUS','NO_CORTE']]);
+  const el=document.getElementById('nc-'+id);
+  const num=el?.value.trim();
+  if(!num){toast('Preencha o número','w');return;}
+  const c=cortes.find(x=>x.id===id);
+  if(!c)return;
+  c.numCorte=num;
+  c.status='NO_CORTE';
+  sl();
+  render();
+  toast('OP '+num+' registrado!','s');
+  await push(c._row,[['NUM_CORTE',num],['STATUS','NO_CORTE']]);
 }
 
 async function marcarChegada(id,tipo){
-const c=cortes.find(x=>x.id===id);
-c.tipo=tipo;
-if(tipo==='reposicao'){
-c.status='AGUARDANDO_GI';
-toast('Reposição → aguardando decisão de envio','s');
-await push(c._row,[['TIPO_CHEGADA','reposicao'],['STATUS','AGUARDANDO_GI']]);
-}else{
-c.status='AG_FOTO';
-toast('Novidade → avisando Carol para foto','s');
-await push(c._row,[['TIPO_CHEGADA','novidade'],['STATUS','AG_FOTO']]);
-if(cfg.wcarol){
-const msg=📸 Azpex\nNovidade para foto!\n*${c.id} — ${c.nome}*\nGrade: ${c.grade}${c.numCorte?'\nCorte: '+c.numCorte:''};
-window.open(https://wa.me/${cfg.wcarol}?text=${encodeURIComponent(msg)},'_blank');
-}
-}
-sl();render();
+  const c=cortes.find(x=>x.id===id);
+  c.tipo=tipo;
+  if(tipo==='reposicao'){
+    c.status='AGUARDANDO_GI';
+    toast('Reposição → aguardando decisão de envio','s');
+    await push(c._row,[['TIPO_CHEGADA','reposicao'],['STATUS','AGUARDANDO_GI']]);
+  }else{
+    c.status='AG_FOTO';
+    toast('Novidade → avisando Carol para foto','s');
+    await push(c._row,[['TIPO_CHEGADA','novidade'],['STATUS','AG_FOTO']]);
+    if(cfg.wcarol){
+      const msg=`📸 Azpex\nNovidade para foto!\n*${c.id} — ${c.nome}*\nGrade: ${c.grade}${c.numCorte?'\nCorte: '+c.numCorte:''}`;
+      window.open(`https://wa.me/${cfg.wcarol}?text=${encodeURIComponent(msg)}`,'_blank');
+    }
+  }
+  sl();render();
 }
 
 function salvarFotoCarol(id,input){
-const file=input.files[0];if(!file)return;
-const reader=new FileReader();
-reader.onload=function(e){
-const c=cortes.find(x=>x.id===id);if(c){c.fotoLocal=e.target.result;sl();}
-const el=document.getElementById('ccarol-'+id);
-if(el){const d=document.createElement('div');d.innerHTML=cardCarol(c);el.replaceWith(d.firstChild);}
-toast('Foto salva!','s');
-};
-reader.readAsDataURL(file);
+  const file=input.files[0];if(!file)return;
+  const reader=new FileReader();
+  reader.onload=function(e){
+    const c=cortes.find(x=>x.id===id);if(c){c.fotoLocal=e.target.result;sl();}
+    const el=document.getElementById('ccarol-'+id);
+    if(el){const d=document.createElement('div');d.innerHTML=cardCarol(c);el.replaceWith(d.firstChild);}
+    toast('Foto salva!','s');
+  };
+  reader.readAsDataURL(file);
 }
 
 async function carolAprovar(id){
-const c=cortes.find(x=>x.id===id);
-const obs=document.getElementById('cobs-'+id)?.value.trim()||'';
-c.carolObs=obs;c.status='EMBALAR';
-sl();render();toast('Foto aprovada! Indo para embalar.','s');
-await push(c._row,[['CAROL_OBS',obs],['STATUS','EMBALAR']]);
-if(cfg.wdm){
-const msg=✨ Azpex\nNovidade liberada para embalar!\n*${c.id} — ${c.nome}*\nGrade: ${c.grade};
-window.open(https://wa.me/${cfg.wdm}?text=${encodeURIComponent(msg)},'_blank');
-}
+  const c=cortes.find(x=>x.id===id);
+  const obs=document.getElementById('cobs-'+id)?.value.trim()||'';
+  c.carolObs=obs;c.status='EMBALAR';
+  sl();render();toast('Foto aprovada! Indo para embalar.','s');
+  await push(c._row,[['CAROL_OBS',obs],['STATUS','EMBALAR']]);
+  if(cfg.wdm){
+    const msg=`✨ Azpex\nNovidade liberada para embalar!\n*${c.id} — ${c.nome}*\nGrade: ${c.grade}`;
+    window.open(`https://wa.me/${cfg.wdm}?text=${encodeURIComponent(msg)}`,'_blank');
+  }
 }
 
 async function aprovarEnvio(id){
-const c=cortes.find(x=>x.id===id);c.status='EMBALAR';
-sl();render();toast('Aprovado! Indo para embalar.','s');
-await push(c._row,[['STATUS','EMBALAR']]);
+  const c=cortes.find(x=>x.id===id);c.status='EMBALAR';
+  sl();render();toast('Aprovado! Indo para embalar.','s');
+  await push(c._row,[['STATUS','EMBALAR']]);
 }
 
 async function giArquivar(id){
-const c=cortes.find(x=>x.id===id);
-if(!c)return;
-c.status='ARQUIVADO';
-sl();cl('ov-det');render();
-toast('Arquivado.','i');
-await push(c._row,[['STATUS','ARQUIVADO']]);
+  const c=cortes.find(x=>x.id===id);
+  if(!c)return;
+  c.status='ARQUIVADO';
+  sl();cl('ov-det');render();
+  toast('Arquivado.','i');
+  await push(c._row,[['STATUS','ARQUIVADO']]);
 }
 
 async function estoqueSeparou(id){
-const c=cortes.find(x=>x.id===id);c.status='PRONTO_RETIRADA';
-sl();render();toast('Separado! Pronto para retirada.','s');
-await push(c._row,[['STATUS','PRONTO_RETIRADA']]);
+  const c=cortes.find(x=>x.id===id);c.status='PRONTO_RETIRADA';
+  sl();render();toast('Separado! Pronto para retirada.','s');
+  await push(c._row,[['STATUS','PRONTO_RETIRADA']]);
 }
 
 async function transmissaoMire(id){
-const c=cortes.find(x=>x.id===id);c.status='PRONTO_RETIRADA';
-sl();render();toast('Transmissão Miré feita! Pronto para retirada.','s');
-await push(c._row,[['STATUS','PRONTO_RETIRADA']]);
-if(cfg.wgi){
-const msg=✅ Azpex\nTransferência feita!\n*${c.id} — ${c.nome}*\nPronto para retirada na fábrica.;
-window.open(https://wa.me/${cfg.wgi}?text=${encodeURIComponent(msg)},'_blank');
-}
+  const c=cortes.find(x=>x.id===id);c.status='PRONTO_RETIRADA';
+  sl();render();toast('Transmissão Miré feita! Pronto para retirada.','s');
+  await push(c._row,[['STATUS','PRONTO_RETIRADA']]);
+  if(cfg.wgi){
+    const msg=`✅ Azpex\nTransferência feita!\n*${c.id} — ${c.nome}*\nPronto para retirada na fábrica.`;
+    window.open(`https://wa.me/${cfg.wgi}?text=${encodeURIComponent(msg)}`,'_blank');
+  }
 }
 
 async function aprovar(id){
-const c=cortes.find(x=>x.id===id);c.status='DEFINIR_CORES';sl();cl('ov-det');render();
-toast('Encaixe aprovado!','s');await push(c._row,[['STATUS','DEFINIR_CORES']]);
+  const c=cortes.find(x=>x.id===id);c.status='DEFINIR_CORES';sl();cl('ov-det');render();
+  toast('Encaixe aprovado!','s');await push(c._row,[['STATUS','DEFINIR_CORES']]);
 }
 async function reprovar(id){
-const c=cortes.find(x=>x.id===id);c.status='ENCAIXE_REPROVADO';sl();cl('ov-det');render();
-toast('Reprovado — voltou para Edvaldo','w');await push(c._row,[['STATUS','ENCAIXE_REPROVADO']]);
+  const c=cortes.find(x=>x.id===id);c.status='ENCAIXE_REPROVADO';sl();cl('ov-det');render();
+  toast('Reprovado — voltou para Edvaldo','w');await push(c._row,[['STATUS','ENCAIXE_REPROVADO']]);
 }
 
 // DETALHE CORTE
 function openDet(id){
-const c=cortes.find(x=>x.id===id);if(!c)return;
-const info=csi(c.status);
-const steps=['AGUARDANDO_ENCAIXE','AGUARDANDO_APROVACAO','DEFINIR_CORES','DESCANSAR_TECIDO','TECIDO_DESCANSADO','NO_CORTE','AG_FOTO','SEPARAR_ENVIO','EMBALAR','PRONTO_RETIRADA'];
-const iStep=steps.indexOf(c.status);
-document.getElementById('det-c').innerHTML= <div class="mhd"> <div class="mti">${c.id}${c.ref?' · '+c.ref:''}</div> <div style="display:flex;gap:6px"> ${user==='taty'?<button style="border:.5px solid var(--bd);border-radius:7px;padding:4px 8px;background:none;color:var(--mt);cursor:pointer;font-size:.71rem" onclick="openEditar('${c.id}')">✏️ Editar</button>:''} ${user==='taty'?<button style="border:.5px solid #F09595;border-radius:7px;padding:4px 8px;background:none;color:#A32D2D;cursor:pointer;font-size:.71rem" onclick="deletarCorte('${c.id}')">🗑 Deletar</button>:''} <button class="xb" onclick="cl('ov-det')">×</button> </div> </div> <div style="margin-bottom:11px"> <div style="font-size:.98rem;font-weight:600;margin-bottom:4px">${c.nome}</div> <span style="background:${info.b};color:${info.c};font-size:.7rem;padding:3px 8px;border-radius:20px;font-weight:500">${info.l}</span> ${c.urg?'<span class="tag tur" style="margin-left:5px">⚡</span>':''} ${c.tipo?<span style="background:${c.tipo==='novidade'?'var(--b6)':'var(--b2)'};color:${c.tipo==='novidade'?'var(--c6)':'var(--c2)'};font-size:.7rem;padding:3px 8px;border-radius:20px;font-weight:500;margin-left:5px">${c.tipo}</span>:''} </div> <div class="spills">${steps.map((s,i)=><div class="spill ${i<iStep?'done':i===iStep?'active':''}">${csi(s).l}</div>).join('')}</div> <div class="df"><span class="dk">Data entrada</span><span class="dv">${dout(c.data)}</span></div> <div class="df"><span class="dk">Tecido</span><span class="dv">${c.tec||'—'}</span></div> <div class="df"><span class="dk">Fornecedor</span><span class="dv">${c.tin||'—'}</span></div> <div class="df"><span class="dk">Grade</span><span class="dv">${c.grade||'—'}</span></div> <div class="df"><span class="dk">Retalho</span><span class="dv">${c.ret||'—'}</span></div> ${c.rolo?<div class="df"><span class="dk">Rolo</span><span class="dv">${c.rolo}m</span></div>:''} ${c.encM?<div class="df"><span class="dk">Encaixe</span><span class="dv">${c.encM}m</span></div>:''} ${c.encPct?<div class="df"><span class="dk">Aproveitamento</span><span class="dv">${c.encPct}%</span></div>:''} ${c.numCorte?<div class="df"><span class="dk">Nº corte</span><span class="dv">${c.numCorte}</span></div>:''} ${c.cores?.length?<div style="margin-top:8px"><div class="sl">Cores e estimativa de peças</div>${(()=>{
-const enc=parseFloat(c.encM)||0;
-const sizes=(c.grade||'').split(' ').filter(Boolean);
-const folhas=enc&&c.rolo?Math.floor(parseFloat(c.rolo)/enc):0;
-return c.cores.map(x=>{
-const pecas=folhas?folhas*sizes.length:null;
-return<div class="df"><span class="dk">${x.cor} · ${x.qtd} rolo(s)</span><span class="dv">${pecas?'~'+pecas+' pç':''}</span></div>;
-}).join('');
-})()}</div>:''} ${c.obs?<div class="obs-box">Obs: ${c.obs}</div>:''} ${c.encObs?<div class="obs-box obs-bl">Obs. Edvaldo: ${c.encObs}</div>:''} ${c.carolObs?<div class="obs-box" style="background:var(--b6);color:var(--c6)">Obs. Carol: ${c.carolObs}</div>:''} ${c.giObs?<div class="obs-box" style="background:var(--b8);color:var(--c8)">Obs. envio: ${c.giObs}</div>:''} ${c.fotoLocal?<div style="margin-top:8px"><img src="${c.fotoLocal}" style="width:100%;border-radius:9px;max-height:180px;object-fit:cover"></div>:''} ${user==='taty'?calcDetalhe(c):''} <div class="agroup"> ${user==='taty'&&c.status==='AGUARDANDO_APROVACAO'?
-<button class="abtn" style="background:var(--b3);color:var(--c3)" onclick="aprovar('${c.id}')">✔ Aprovar encaixe</button>
-<button class="abtn abtn-danger" onclick="reprovar('${c.id}')">✕ Reprovar encaixe</button>:''} ${user==='taty'&&c.status==='DEFINIR_CORES'?<button class="abtn" style="background:var(--b6);color:var(--c6)" onclick="cl('ov-det');openCores('${c.id}')">Definir cores →</button>:''} ${(user==='taty'||user==='daimartha')&&c.status==='NO_CORTE'?
-<button class="abtn" style="background:var(--b2);color:var(--c2)" onclick="cl('ov-det');marcarChegada('${c.id}','reposicao')">📦 Reposição — separar envio</button>
-<button class="abtn" style="background:var(--b6);color:var(--c6)" onclick="cl('ov-det');marcarChegada('${c.id}','novidade')">✨ Novidade — avisar Carol</button>:''} ${(['gerente','taty','carol'].includes(user))&&c.status==='AGUARDANDO_GI'?<div style='display:flex;flex-direction:column;gap:7px'><button class="abtn" style="background:var(--b3);color:var(--c3)" onclick="cl('ov-det');aprovarEnvio('${c.id}')">✔ Sim, enviar para loja</button><button class="abtn abtn-danger" onclick="cl('ov-det');giArquivar('${c.id}')">✕ Não precisamos — arquivar</button></div>:''} ${user==='daimartha'&&c.status==='EMBALAR'?<button class="abtn" style="background:var(--b3);color:var(--c3)" onclick="cl('ov-det');transmissaoMire('${c.id}')">✔ Transmissão Miré feita</button>:''} ${user==='gerente'&&c.status==='PRONTO_RETIRADA'?<button class="abtn" style="background:var(--b3);color:var(--c3)" onclick="cl('ov-det');arquivar('${c.id}')">✔ Recebido — arquivar</button>:''} ${cfg.wedv&&c.status==='AGUARDANDO_ENCAIXE'?<a href="https://wa.me/${cfg.wedv}?text=${encodeURIComponent('📐 Azpex\n*'+c.id+' — '+c.nome+'*\nRef: '+c.ref+'\nAguarda encaixe.\nTecido: '+c.tec+' · Grade: '+c.grade+(c.urg?'\n⚡ URGENTE':''))}" target="_blank" style="text-decoration:none"><button class="abtn abtn-wpp">📱 Avisar Edvaldo</button></a>:''} ${cfg.wros&&(c.status==='DESCANSAR_TECIDO'||c.status==='DEFINIR_CORES')?<a href="https://wa.me/${cfg.wros}?text=${encodeURIComponent('✂️ Azpex\n*'+c.id+' — '+c.nome+'*\nRef: '+c.ref+'\nLiber. para descanso.\nCores:\n'+(c.cores||[]).map(x=>'• '+x.cor+' — '+x.qtd+' rolo(s)').join('\n')+(c.urg?'\n⚡ URGENTE':''))}" target="_blank" style="text-decoration:none"><button class="abtn abtn-wpp">📱 Avisar Rosana</button></a>:''} </div>;
-op('ov-det');
+  const c=cortes.find(x=>x.id===id);if(!c)return;
+  const info=csi(c.status);
+  const steps=['AGUARDANDO_ENCAIXE','AGUARDANDO_APROVACAO','DEFINIR_CORES','DESCANSAR_TECIDO','TECIDO_DESCANSADO','NO_CORTE','AG_FOTO','SEPARAR_ENVIO','EMBALAR','PRONTO_RETIRADA'];
+  const iStep=steps.indexOf(c.status);
+  document.getElementById('det-c').innerHTML=`
+    <div class="mhd">
+      <div class="mti">${c.id}${c.ref?' · '+c.ref:''}</div>
+      <div style="display:flex;gap:6px">
+        ${user==='taty'?`<button style="border:.5px solid var(--bd);border-radius:7px;padding:4px 8px;background:none;color:var(--mt);cursor:pointer;font-size:.71rem" onclick="openEditar('${c.id}')">✏️ Editar</button>`:''}
+        ${user==='taty'?`<button style="border:.5px solid #F09595;border-radius:7px;padding:4px 8px;background:none;color:#A32D2D;cursor:pointer;font-size:.71rem" onclick="deletarCorte('${c.id}')">🗑 Deletar</button>`:''}
+        <button class="xb" onclick="cl('ov-det')">×</button>
+      </div>
+    </div>
+    <div style="margin-bottom:11px">
+      <div style="font-size:.98rem;font-weight:600;margin-bottom:4px">${c.nome}</div>
+      <span style="background:${info.b};color:${info.c};font-size:.7rem;padding:3px 8px;border-radius:20px;font-weight:500">${info.l}</span>
+      ${c.urg?'<span class="tag tur" style="margin-left:5px">⚡</span>':''}
+      ${c.tipo?`<span style="background:${c.tipo==='novidade'?'var(--b6)':'var(--b2)'};color:${c.tipo==='novidade'?'var(--c6)':'var(--c2)'};font-size:.7rem;padding:3px 8px;border-radius:20px;font-weight:500;margin-left:5px">${c.tipo}</span>`:''}
+    </div>
+    <div class="spills">${steps.map((s,i)=>`<div class="spill ${i<iStep?'done':i===iStep?'active':''}">${csi(s).l}</div>`).join('')}</div>
+    <div class="df"><span class="dk">Data entrada</span><span class="dv">${dout(c.data)}</span></div>
+    <div class="df"><span class="dk">Tecido</span><span class="dv">${c.tec||'—'}</span></div>
+    <div class="df"><span class="dk">Fornecedor</span><span class="dv">${c.tin||'—'}</span></div>
+    <div class="df"><span class="dk">Grade</span><span class="dv">${c.grade||'—'}</span></div>
+    <div class="df"><span class="dk">Retalho</span><span class="dv">${c.ret||'—'}</span></div>
+    ${c.rolo?`<div class="df"><span class="dk">Rolo</span><span class="dv">${c.rolo}m</span></div>`:''}
+    ${c.encM?`<div class="df"><span class="dk">Encaixe</span><span class="dv">${c.encM}m</span></div>`:''}
+    ${c.encPct?`<div class="df"><span class="dk">Aproveitamento</span><span class="dv">${c.encPct}%</span></div>`:''}
+    ${c.numCorte?`<div class="df"><span class="dk">Nº corte</span><span class="dv">${c.numCorte}</span></div>`:''}
+    ${c.cores?.length?`<div style="margin-top:8px"><div class="sl">Cores e estimativa de peças</div>${(()=>{
+      const enc=parseFloat(c.encM)||0;
+      const sizes=(c.grade||'').split(' ').filter(Boolean);
+      const folhas=enc&&c.rolo?Math.floor(parseFloat(c.rolo)/enc):0;
+      return c.cores.map(x=>{
+        const pecas=folhas?folhas*sizes.length:null;
+        return`<div class="df"><span class="dk">${x.cor} · ${x.qtd} rolo(s)</span><span class="dv">${pecas?'~'+pecas+' pç':''}</span></div>`;
+      }).join('');
+    })()}</div>`:''}
+    ${c.obs?`<div class="obs-box">Obs: ${c.obs}</div>`:''}
+    ${c.encObs?`<div class="obs-box obs-bl">Obs. Edvaldo: ${c.encObs}</div>`:''}
+    ${c.carolObs?`<div class="obs-box" style="background:var(--b6);color:var(--c6)">Obs. Carol: ${c.carolObs}</div>`:''}
+    ${c.giObs?`<div class="obs-box" style="background:var(--b8);color:var(--c8)">Obs. envio: ${c.giObs}</div>`:''}
+    ${c.fotoLocal?`<div style="margin-top:8px"><img src="${c.fotoLocal}" style="width:100%;border-radius:9px;max-height:180px;object-fit:cover"></div>`:''}
+    ${user==='taty'?calcDetalhe(c):''}
+    <div class="agroup">
+      ${user==='taty'&&c.status==='AGUARDANDO_APROVACAO'?`
+        <button class="abtn" style="background:var(--b3);color:var(--c3)" onclick="aprovar('${c.id}')">✔ Aprovar encaixe</button>
+        <button class="abtn abtn-danger" onclick="reprovar('${c.id}')">✕ Reprovar encaixe</button>`:''}
+      ${user==='taty'&&c.status==='DEFINIR_CORES'?`<button class="abtn" style="background:var(--b6);color:var(--c6)" onclick="cl('ov-det');openCores('${c.id}')">Definir cores →</button>`:''}
+      ${(user==='taty'||user==='daimartha')&&c.status==='NO_CORTE'?`
+        <button class="abtn" style="background:var(--b2);color:var(--c2)" onclick="cl('ov-det');marcarChegada('${c.id}','reposicao')">📦 Reposição — separar envio</button>
+        <button class="abtn" style="background:var(--b6);color:var(--c6)" onclick="cl('ov-det');marcarChegada('${c.id}','novidade')">✨ Novidade — avisar Carol</button>`:''}
+      ${(['gerente','taty','carol'].includes(user))&&c.status==='AGUARDANDO_GI'?`<div style="display:flex;flex-direction:column;gap:7px"><button class="abtn" style="background:var(--b3);color:var(--c3)" onclick="cl('ov-det');aprovarEnvio('${c.id}')">✔ Sim, enviar para loja</button><button class="abtn abtn-danger" onclick="cl('ov-det');giArquivar('${c.id}')">✕ Não precisamos — arquivar</button></div>`:''}
+      ${user==='daimartha'&&c.status==='EMBALAR'?`<button class="abtn" style="background:var(--b3);color:var(--c3)" onclick="cl('ov-det');transmissaoMire('${c.id}')">✔ Transmissão Miré feita</button>`:''}
+      ${user==='gerente'&&c.status==='PRONTO_RETIRADA'?`<button class="abtn" style="background:var(--b3);color:var(--c3)" onclick="cl('ov-det');arquivar('${c.id}')">✔ Recebido — arquivar</button>`:''}
+      ${cfg.wedv&&c.status==='AGUARDANDO_ENCAIXE'?`<a href="https://wa.me/${cfg.wedv}?text=${encodeURIComponent('📐 Azpex\n*'+c.id+' — '+c.nome+'*\nRef: '+c.ref+'\nAguarda encaixe.\nTecido: '+c.tec+' · Grade: '+c.grade+(c.urg?'\n⚡ URGENTE':''))}" target="_blank" style="text-decoration:none"><button class="abtn abtn-wpp">📱 Avisar Edvaldo</button></a>`:''}
+      ${cfg.wros&&(c.status==='DESCANSAR_TECIDO'||c.status==='DEFINIR_CORES')?`<a href="https://wa.me/${cfg.wros}?text=${encodeURIComponent('✂️ Azpex\n*'+c.id+' — '+c.nome+'*\nRef: '+c.ref+'\nLiber. para descanso.\nCores:\n'+(c.cores||[]).map(x=>'• '+x.cor+' — '+x.qtd+' rolo(s)').join('\n')+(c.urg?'\n⚡ URGENTE':''))}" target="_blank" style="text-decoration:none"><button class="abtn abtn-wpp">📱 Avisar Rosana</button></a>`:''}
+    </div>`;
+  op('ov-det');
 }
 
 async function marcarImpresso(id){
-const c=cortes.find(x=>x.id===id);
-if(!c)return;
-c.impresso=c.impresso==='sim'?'nao':'sim';
-sl();render();
-toast(c.impresso==='sim'?'✔ Marcado como impresso':'Desmarcado','s');
-await push(c._row,[['IMPRESSO',c.impresso]]);
+  const c=cortes.find(x=>x.id===id);if(!c)return;
+  c.impresso=c.impresso==='sim'?'nao':'sim';
+  sl();render();
+  toast(c.impresso==='sim'?'✔ Marcado como impresso':'Desmarcado','s');
+  await push(c._row,[['IMPRESSO',c.impresso]]);
 }
 
 async function arquivar(id){
-const c=cortes.find(x=>x.id===id);
-if(!c)return;
-c.status='ARQUIVADO';
-sl();cl('ov-det');render();
-toast('Recebido e arquivado!','s');
-await push(c._row,[['STATUS','ARQUIVADO']]);
+  const c=cortes.find(x=>x.id===id);if(!c)return;
+  c.status='ARQUIVADO';
+  sl();cl('ov-det');render();
+  toast('Recebido e arquivado!','s');
+  await push(c._row,[['STATUS','ARQUIVADO']]);
 }
 
 async function deletarCorte(id){
-if(!confirm('Tem certeza que quer deletar este corte? Esta ação não pode ser desfeita.'))return;
-const c=cortes.find(x=>x.id===id);
-if(!c)return;
-cortes=cortes.filter(x=>x.id!==id);
-sl();cl('ov-det');render();
-toast('Corte deletado.','i');
-// Delete from sheets - set status to DELETADO so it won't appear on sync
-if(c._row)await push(c._row,[['STATUS','DELETADO'],['NOME','[DELETADO] '+c.nome]]);
+  if(!confirm('Tem certeza que quer deletar este corte?'))return;
+  const c=cortes.find(x=>x.id===id);if(!c)return;
+  cortes=cortes.filter(x=>x.id!==id);
+  sl();cl('ov-det');render();toast('Corte deletado.','i');
+  if(c._row)await push(c._row,[['STATUS','DELETADO'],['NOME','[DELETADO] '+c.nome]]);
 }
 
-// NOVO CORTE
 function autoFillRolo(){
-const tec=(document.getElementById('f-tec')?.value||'').toLowerCase();
-const roloEl=document.getElementById('f-rolo');
-if(!roloEl||roloEl.value)return;
-const is30=tec==='montaria'||tec==='montaria light'||tec==='canelado montaria'||tec==='montaria pes'||tec.includes('montaria');
-if(is30)roloEl.value='30';
-else if(tec.includes('jeans'))roloEl.value='35';
-calcPreview();
+  const tec=(document.getElementById('f-tec')?.value||'').toLowerCase();
+  const roloEl=document.getElementById('f-rolo');
+  if(!roloEl||roloEl.value)return;
+  const is30=tec==='montaria'||tec==='montaria light'||tec==='canelado montaria'||tec==='montaria pes'||tec.includes('montaria');
+  if(is30)roloEl.value='30';
+  else if(tec.includes('jeans'))roloEl.value='35';
+  calcPreview();
 }
 
 function openNovo(){
-editId=null;
-document.getElementById('form-ti').textContent='Novo corte';
-['f-id','f-ref','f-nome','f-ret','f-obs','f-rolo'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});
-['f-tec','f-tin','f-grade'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});
-document.getElementById('f-urg').value='nao';
-document.getElementById('f-data').value=new Date().toISOString().split('T')[0];
-document.getElementById('calc-preview').innerHTML='';
-op('ov-novo');
-}
-function openEditar(id){
-cl('ov-det');const c=cortes.find(x=>x.id===id);editId=id;
-document.getElementById('form-ti').textContent='Editar corte';
-document.getElementById('f-id').value=c.id;
-document.getElementById('f-ref').value=c.ref||'';
-document.getElementById('f-nome').value=c.nome;
-document.getElementById('f-data').value=c.data||'';
-document.getElementById('f-tec').value=c.tec||'';
-document.getElementById('f-tin').value=c.tin||'';
-document.getElementById('f-grade').value=c.grade||'';
-document.getElementById('f-ret').value=c.ret||'';
-document.getElementById('f-obs').value=c.obs||'';
-document.getElementById('f-rolo').value=c.rolo||'';
-document.getElementById('f-urg').value=c.urg?'sim':'nao';
-document.getElementById('calc-preview').innerHTML='';
-// Pre-select grade in dropdown
-const gsel=document.getElementById('f-grade');
-if(gsel){
-let found=false;
-for(let i=0;i<gsel.options.length;i++){
-if(gsel.options[i].value===c.grade){gsel.selectedIndex=i;found=true;break;}
-}
-if(!found&&c.grade){
-const opt=document.createElement('option');opt.value=c.grade;opt.text=c.grade;
-gsel.appendChild(opt);gsel.value=c.grade;
-}
-}
-op('ov-novo');
-}
-function setHoje(){document.getElementById('f-data').value=new Date().toISOString().split('T')[0];}
-async function salvarCorte(){
-const nome=document.getElementById('f-nome').value.trim();
-if(!nome){toast('Preencha o nome','w');return;}
-// Generate ID based on max existing ID to avoid collisions after deletions
-function nextId(){
-let max=0;
-cortes.forEach(c=>{const n=parseInt((c.id||'').replace(/[^0-9]/g,''));if(n>max)max=n;});
-return 'ID-'+String(max+1).padStart(3,'0');
-}
-const id=document.getElementById('f-id').value.trim()||nextId();
-const obj={
-id,ref:document.getElementById('f-ref').value.trim(),nome,
-data:document.getElementById('f-data').value,
-tec:document.getElementById('f-tec').value,tin:document.getElementById('f-tin').value,
-grade:document.getElementById('f-grade').value,ret:document.getElementById('f-ret').value.trim(),
-obs:document.getElementById('f-obs').value.trim(),
-rolo:parseFloat(document.getElementById('f-rolo').value)||0,
-urg:document.getElementById('f-urg').value==='sim',
-encM:'',encPct:'',encObs:'',cores:[],checksDesc:{},numCorte:'',dataDesc:'',
-tipo:'',carolObs:'',fotoLocal:'',status:'AGUARDANDO_ENCAIXE',
-};
-if(editId){
-const idx=cortes.findIndex(x=>x.id===editId);
-if(idx>-1){
-const o=cortes[idx];
-// Preserve all fields that are not in the edit form
-['status','encM','encPct','encObs','cores','checksDesc','numCorte','dataDesc',
-'tipo','carolObs','giObs','fotoLocal','impresso','_row'].forEach(k=>{obj[k]=o[k];});
-cortes[idx]=obj;
-}
-}else cortes.unshift(obj);
-sl();cl('ov-novo');render();toast(editId?'✏️ Atualizado!':'✅ Criado!','s');
-if(!editId){const r=await pushNew({REF:obj.ref,NOME:obj.nome,DATA_ENTRADA:dout(obj.data).replace(/—/,''),TECIDO:obj.tec,TINTURARIA:obj.tin,GRADE:obj.grade,RETALHO:obj.ret,OBS:obj.obs,ROLO:obj.rolo,URGENTE:obj.urg?'sim':'nao'});if(r?.ok)setTimeout(()=>syncAll(true),800);}
-else await push(obj._row,[['TECIDO',obj.tec],['TINTURARIA',obj.tin],['GRADE',obj.grade],['RETALHO',obj.ret],['OBS',obj.obs],['ROLO',obj.rolo],['URGENTE',obj.urg?'sim':'nao']]);
+  editId=null;
+  document.getElementById('form-ti').textContent='Novo corte';
+  ['f-id','f-ref','f-nome','f-ret','f-obs','f-rolo'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});
+  ['f-tec','f-tin','f-grade'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});
+  document.getElementById('f-urg').value='nao';
+  document.getElementById('f-data').value=new Date().toISOString().split('T')[0];
+  document.getElementById('calc-preview').innerHTML='';
+  op('ov-novo');
 }
 
-// CORES
+function openEditar(id){
+  cl('ov-det');const c=cortes.find(x=>x.id===id);editId=id;
+  document.getElementById('form-ti').textContent='Editar corte';
+  document.getElementById('f-id').value=c.id;
+  document.getElementById('f-ref').value=c.ref||'';
+  document.getElementById('f-nome').value=c.nome;
+  document.getElementById('f-data').value=c.data||'';
+  document.getElementById('f-tec').value=c.tec||'';
+  document.getElementById('f-tin').value=c.tin||'';
+  document.getElementById('f-grade').value=c.grade||'';
+  document.getElementById('f-ret').value=c.ret||'';
+  document.getElementById('f-obs').value=c.obs||'';
+  document.getElementById('f-rolo').value=c.rolo||'';
+  document.getElementById('f-urg').value=c.urg?'sim':'nao';
+  document.getElementById('calc-preview').innerHTML='';
+  const gsel=document.getElementById('f-grade');
+  if(gsel){
+    let found=false;
+    for(let i=0;i<gsel.options.length;i++){if(gsel.options[i].value===c.grade){gsel.selectedIndex=i;found=true;break;}}
+    if(!found&&c.grade){const opt=document.createElement('option');opt.value=c.grade;opt.text=c.grade;gsel.appendChild(opt);gsel.value=c.grade;}
+  }
+  op('ov-novo');
+}
+
+function setHoje(){document.getElementById('f-data').value=new Date().toISOString().split('T')[0];}
+
+async function salvarCorte(){
+  const nome=document.getElementById('f-nome').value.trim();
+  if(!nome){toast('Preencha o nome','w');return;}
+  function nextId(){let max=0;cortes.forEach(c=>{const n=parseInt((c.id||'').replace(/[^0-9]/g,''));if(n>max)max=n;});return 'ID-'+String(max+1).padStart(3,'0');}
+  const id=document.getElementById('f-id').value.trim()||nextId();
+  const obj={
+    id,ref:document.getElementById('f-ref').value.trim(),nome,
+    data:document.getElementById('f-data').value,
+    tec:document.getElementById('f-tec').value,tin:document.getElementById('f-tin').value,
+    grade:document.getElementById('f-grade').value,ret:document.getElementById('f-ret').value.trim(),
+    obs:document.getElementById('f-obs').value.trim(),
+    rolo:parseFloat(document.getElementById('f-rolo').value)||0,
+    urg:document.getElementById('f-urg').value==='sim',
+    encM:'',encPct:'',encObs:'',cores:[],checksDesc:{},numCorte:'',dataDesc:'',
+    tipo:'',carolObs:'',giObs:'',fotoLocal:'',impresso:'',status:'AGUARDANDO_ENCAIXE',
+  };
+  if(editId){
+    const idx=cortes.findIndex(x=>x.id===editId);
+    if(idx>-1){
+      const o=cortes[idx];
+      ['status','encM','encPct','encObs','cores','checksDesc','numCorte','dataDesc','tipo','carolObs','giObs','fotoLocal','impresso','_row'].forEach(k=>{obj[k]=o[k];});
+      cortes[idx]=obj;
+    }
+  }else cortes.unshift(obj);
+  sl();cl('ov-novo');render();toast(editId?'✏️ Atualizado!':'✅ Criado!','s');
+  if(!editId){const r=await pushNew({REF:obj.ref,NOME:obj.nome,DATA_ENTRADA:dout(obj.data).replace(/—/,''),TECIDO:obj.tec,TINTURARIA:obj.tin,GRADE:obj.grade,RETALHO:obj.ret,OBS:obj.obs,ROLO:obj.rolo,URGENTE:obj.urg?'sim':'nao'});if(r?.ok)setTimeout(()=>syncAll(true),800);}
+  else await push(obj._row,[['TECIDO',obj.tec],['TINTURARIA',obj.tin],['GRADE',obj.grade],['RETALHO',obj.ret],['OBS',obj.obs],['ROLO',obj.rolo],['URGENTE',obj.urg?'sim':'nao']]);
+}
+
 function openCores(id){
-coresId=id;corCount=0;
-const c=cortes.find(x=>x.id===id);
-if(!c){console.error('openCores: corte nao encontrado',id);return;}
-const enc=parseFloat(c.encM)||0;
-const sizes=(c.grade||'').split(' ').filter(Boolean);
-const rolo=parseFloat(c.rolo)||0;
-let estimaInfo='';
-let estimaHTML='';
-if(enc&&rolo&&sizes.length){
-const folhas=Math.floor(rolo/enc);
-const total=folhassizes.length;
-estimaHTML=<div class="calc-box" style="margin:8px 0"> <div class="calc-ti">Estimativa de corte</div> <div class="calc-row"><span class="calc-k">Rolo</span><span class="calc-v">${rolo}m</span></div> <div class="calc-row"><span class="calc-k">Encaixe</span><span class="calc-v">${enc}m</span></div> <div class="calc-row"><span class="calc-k">Folhas</span><span class="calc-v">${folhas}</span></div> ${sizes.map(s=><div class="calc-row"><span class="calc-k">Tam. ${s}</span><span class="calc-v">${folhas} pç</span></div>).join('')} <div class="calc-row"><span class="calc-k">Total</span><span class="calc-v">${total} peças</span></div> </div>;
-} else if(!enc){
-estimaHTML=<div style="font-size:.76rem;color:var(--mt);background:var(--s2);border-radius:7px;padding:8px;margin:6px 0">Preencha o comprimento do encaixe para ver a estimativa de folhas</div>;
+  coresId=id;corCount=0;
+  const c=cortes.find(x=>x.id===id);
+  if(!c){console.error('openCores: not found',id);return;}
+  const enc=parseFloat(c.encM)||0;
+  const sizes=(c.grade||'').split(' ').filter(Boolean);
+  const rolo=parseFloat(c.rolo)||0;
+  let estimaHTML='';
+  if(enc&&rolo&&sizes.length){
+    const folhas=Math.floor(rolo/enc);
+    const total=folhas*sizes.length;
+    estimaHTML=`<div class="calc-box" style="margin:8px 0"><div class="calc-ti">Estimativa de corte</div>
+      <div class="calc-row"><span class="calc-k">Rolo</span><span class="calc-v">${rolo}m</span></div>
+      <div class="calc-row"><span class="calc-k">Encaixe</span><span class="calc-v">${enc}m</span></div>
+      <div class="calc-row"><span class="calc-k">Folhas</span><span class="calc-v">${folhas}</span></div>
+      ${sizes.map(s=>`<div class="calc-row"><span class="calc-k">Tam. ${s}</span><span class="calc-v">${folhas} pç</span></div>`).join('')}
+      <div class="calc-row"><span class="calc-k">Total</span><span class="calc-v">${total} peças</span></div>
+    </div>`;
+  }else if(!enc){
+    estimaHTML=`<div style="font-size:.76rem;color:var(--mt);background:var(--s2);border-radius:7px;padding:8px;margin:6px 0">Preencha o comprimento do encaixe para ver a estimativa</div>`;
+  }
+  document.getElementById('cores-info').innerHTML=`
+    <strong>${c.nome}</strong> · Grade: ${c.grade||'—'}<br>
+    <span style="font-size:.78rem;color:var(--mt)">Encaixe: ${c.encM||'—'}m · Aproveit.: ${c.encPct||'—'}%</span>
+    ${c.encObs?`<div style="font-size:.74rem;color:var(--c2);margin-top:3px">Obs: ${c.encObs}</div>`:''}
+    ${estimaHTML}
+    <div style="font-size:.74rem;color:var(--mt);margin-top:4px">Insira a cor e quantos rolos. A estimativa por cor aparece automaticamente.</div>`;
+  const list=document.getElementById('cores-list');list.innerHTML='';
+  if(c.cores?.length)c.cores.forEach(x=>addCor(x.cor,x.qtd));else addCor();
+  const wppDiv=document.getElementById('cores-wpp-btns');
+  if(wppDiv&&cfg.wros){
+    const msg=encodeURIComponent('✂️ Azpex\n*'+c.nome+'*\nGrade: '+c.grade+(c.numCorte?' · OP: '+c.numCorte:'')+'\nCores para descansar serão definidas agora.');
+    wppDiv.innerHTML=`<a href="https://wa.me/${cfg.wros}?text=${msg}" target="_blank" style="text-decoration:none"><button class="abtn abtn-wpp" style="width:100%;padding:8px;border-radius:8px">📱 Avisar Rosana</button></a>`;
+  }
+  op('ov-cores');
 }
-document.getElementById('cores-info').innerHTML= <strong>${c.nome}</strong> · Grade: ${c.grade||'—'}<br> <span style="font-size:.78rem;color:var(--mt)">Encaixe: ${c.encM||'—'}m · Aproveit.: ${c.encPct||'—'}%</span> ${c.encObs?<div style="font-size:.74rem;color:var(--c2);margin-top:3px">Obs: ${c.encObs}</div>:''} ${estimaHTML} <div style="font-size:.74rem;color:var(--mt);margin-top:4px">Insira a cor e quantos rolos. A estimativa por cor aparece automaticamente.</div>;
-const list=document.getElementById('cores-list');list.innerHTML='';
-if(c.cores?.length)c.cores.forEach(x=>addCor(x.cor,x.qtd));else addCor();
-// WhatsApp buttons
-const wppDiv=document.getElementById('cores-wpp-btns');
-if(wppDiv){
-const msgs=[];
-if(cfg.wros){
-const msg=encodeURIComponent('✂️ Azpex\n'+c.nome+'*\nGrade: '+c.grade+(c.numCorte?' · Corte: '+c.numCorte:'')+'\nCores para descansar serão definidas agora.');
-msgs.push(<a href="https://wa.me/${cfg.wros}?text=${msg}" target="_blank" style="text-decoration:none"><button class="abtn abtn-wpp" style="width:100%;padding:8px;border-radius:8px">📱 Avisar Rosana</button></a>);
-}
-wppDiv.innerHTML=msgs.join('');
-}
-op('ov-cores');
-}
+
 function addCor(cor='',qtd=''){
-corCount++;
-const n=corCount;
-const div=document.createElement('div');div.className='cor-row';div.id='cor-'+n;
-div.style.cssText='display:flex;gap:7px;align-items:center;margin-bottom:6px;flex-wrap:wrap';
-div.innerHTML= <input class="cor-i" placeholder="Nome da cor" value="${cor}" style="flex:2;min-width:100px"> <input class="qtd-i" type="number" min="1" step="1" placeholder="Rolos" value="${qtd}" id="qtd-${n}" oninput="updateCorEstima(${n})"> <span id="estima-${n}" style="font-size:.72rem;color:var(--ac);font-weight:500;min-width:50px"></span> <button class="rmv" onclick="document.getElementById('cor-${n}').remove()">✕</button>;
-document.getElementById('cores-list').appendChild(div);
-if(qtd)updateCorEstima(n);
+  corCount++;const n=corCount;
+  const div=document.createElement('div');div.className='cor-row';div.id='cor-'+n;
+  div.style.cssText='display:flex;gap:7px;align-items:center;margin-bottom:6px;flex-wrap:wrap';
+  div.innerHTML=`
+    <input class="cor-i" placeholder="Nome da cor" value="${cor}" style="flex:2;min-width:100px">
+    <input class="qtd-i" type="number" min="1" step="1" placeholder="Rolos" value="${qtd}" id="qtd-${n}" oninput="updateCorEstima(${n})">
+    <span id="estima-${n}" style="font-size:.72rem;color:var(--ac);font-weight:500;min-width:50px"></span>
+    <button class="rmv" onclick="document.getElementById('cor-${n}').remove()">✕</button>`;
+  document.getElementById('cores-list').appendChild(div);
+  if(qtd)updateCorEstima(n);
 }
 
 function updateCorEstima(n){
-const c=cortes.find(x=>x.id===coresId);
-if(!c)return;
-const enc=parseFloat(c.encM)||0;
-const sizes=(c.grade||'').split(' ').filter(Boolean);
-const rolos=parseFloat(document.getElementById('qtd-'+n)?.value)||0;
-const el=document.getElementById('estima-'+n);
-if(!el)return;
-if(enc&&sizes.length&&rolos){
-const folhas=Math.floor((parseFloat(c.rolo)||30)/enc);
-el.textContent='~'+(folhassizes.lengthrolos)+' pç';
-}else{el.textContent='';}
+  const c=cortes.find(x=>x.id===coresId);if(!c)return;
+  const enc=parseFloat(c.encM)||0;
+  const sizes=(c.grade||'').split(' ').filter(Boolean);
+  const rolos=parseFloat(document.getElementById('qtd-'+n)?.value)||0;
+  const el=document.getElementById('estima-'+n);if(!el)return;
+  if(enc&&sizes.length&&rolos){
+    const folhas=Math.floor((parseFloat(c.rolo)||30)/enc);
+    el.textContent='~'+(folhas*sizes.length*rolos)+' pç';
+  }else el.textContent='';
 }
+
 async function salvarCores(){
-const rows=[...document.querySelectorAll('.cor-row')];
-const cores=rows.map(r=>{const i=r.querySelectorAll('input');return{cor:i[0].value.trim(),qtd:i[1].value.trim()||'1'};}).filter(x=>x.cor);
-if(!cores.length){toast('Adicione pelo menos uma cor','w');return;}
-const c=cortes.find(x=>x.id===coresId);c.cores=cores;c.status='DESCANSAR_TECIDO';
-sl();cl('ov-cores');render();toast('Cores definidas!','s');
-await push(c._row,[['CORES',coresStr(cores)],['STATUS','DESCANSAR_TECIDO']]);
+  const rows=[...document.querySelectorAll('.cor-row')];
+  const cores=rows.map(r=>{const i=r.querySelectorAll('input');return{cor:i[0].value.trim(),qtd:i[1].value.trim()||'1'};}).filter(x=>x.cor);
+  if(!cores.length){toast('Adicione pelo menos uma cor','w');return;}
+  const c=cortes.find(x=>x.id===coresId);c.cores=cores;c.status='DESCANSAR_TECIDO';
+  sl();cl('ov-cores');render();toast('Cores definidas!','s');
+  await push(c._row,[['CORES',coresStr(cores)],['STATUS','DESCANSAR_TECIDO']]);
 }
 
-// ── PEDIDOS ──
 function renderPedidos(){
-const isLoja=['vendA','vendB','vendC','gerente'].includes(user);
-let list=[...pedidos].sort((a,b)=>b.ts-a.ts);
-const q=(document.getElementById('srch')?.value||'').toLowerCase();
-if(q)list=list.filter(p=>(p.cod+p.nome+p.cor).toLowerCase().includes(q));
-if(filtro==='minha'){
-if(['vendA','vendB','vendC'].includes(user))list=list.filter(p=>p.autor===user);
-if(user==='estoque'||user==='taty'||user==='daimartha')list=list.filter(p=>p.status==='PENDENTE'||p.status==='APROVADO'||p.status==='PARCIAL');
-if(user==='gerente')list=list.filter(p=>p.status!=='ARQUIVADO');
-}
-if(['vendA','vendB','vendC'].includes(user)&&filtro==='todos')list=list.filter(p=>p.autor===user);
-if(filtro==='pendente')list=list.filter(p=>p.status==='PENDENTE');
-
-const canResp=user==='estoque'||user==='taty'||user==='daimartha'||user==='carol';
-const canTransf=user==='daimartha';
-const canRec=user==='gerente';
-
-document.getElementById('main-content').innerHTML=<div style="padding:0 16px 28px">${list.length?list.map(p=>{ const info=psi(p.status); return<div class="pcard" onclick="openDetPedido('${p.id}')">
-<div class="pcard-hd">
-<div><div style="font-size:.68rem;color:var(--mt);font-family:'DM Mono',monospace">${p.id} · ${p.dataStr}</div><div class="pcard-cod">${p.cod}</div></div>
-<span class="sbadge" style="background:${info.b};color:${info.c}">${info.l}</span>
-</div>
-<div style="font-weight:600;font-size:.88rem;margin-bottom:4px">${p.nome}</div>
-<div style="font-size:.78rem;color:var(--mt);margin-bottom:6px">Cor: <strong>${p.cor}</strong> · ${UNAMES[p.autor]||p.autor}</div>
-<div style="margin-top:4px;font-size:.77rem;color:var(--mt)">
-${(p.cores||[]).map(x=><div style="margin-bottom:2px"><strong style="color:var(--tx)">${x.cor}</strong> — ${Object.entries(x.qtds||{}).map(([t,q])=>${t}:${q}).join(' · ')}</div>).join('')}
-</div>
-<div style="display:flex;justify-content:flex-end;gap:7px;margin-top:6px">
-${canResp&&p.status==='PENDENTE'?<button class="bs" style="font-size:.73rem;padding:5px 11px" onclick="event.stopPropagation();openResp('${p.id}')">Responder →</button>:''}
-${canTransf&&(p.status==='APROVADO'||p.status==='PARCIAL')?<button class="bs" style="font-size:.73rem;padding:5px 11px;background:#1D9E75" onclick="event.stopPropagation();confirmarTransf('${p.id}')">Transmissão Miré ✔</button>:''}
-${canRec&&p.status==='TRANSFERIDO'?<button class="bs" style="font-size:.73rem;padding:5px 11px;background:var(--c7)" onclick="event.stopPropagation();receberPedido('${p.id}')">✔ Recebido</button>:''}
-</div>
-</div>; }).join(''):'<div class="empty">Nenhum pedido</div>'}</div>;
-renderStatsPedidos();
+  let list=[...pedidos].sort((a,b)=>b.ts-a.ts);
+  const q=(document.getElementById('srch')?.value||'').toLowerCase();
+  if(q)list=list.filter(p=>(p.cod+p.nome).toLowerCase().includes(q));
+  if(filtro==='minha'){
+    if(['vendA','vendB','vendC'].includes(user))list=list.filter(p=>p.autor===user);
+    if(['estoque','taty','daimartha'].includes(user))list=list.filter(p=>['PENDENTE','APROVADO','PARCIAL'].includes(p.status));
+    if(user==='gerente')list=list.filter(p=>p.status!=='ARQUIVADO');
+  }
+  if(['vendA','vendB','vendC'].includes(user)&&filtro==='todos')list=list.filter(p=>p.autor===user);
+  const canResp=['estoque','taty','daimartha','carol'].includes(user);
+  const canTransf=user==='daimartha';
+  const canRec=user==='gerente';
+  document.getElementById('main-content').innerHTML=`<div style="padding:0 16px 28px">${list.length?list.map(p=>{
+    const info=psi(p.status);
+    return`<div class="pcard" onclick="openDetPedido('${p.id}')">
+      <div class="pcard-hd">
+        <div><div style="font-size:.68rem;color:var(--mt);font-family:'DM Mono',monospace">${p.id} · ${p.dataStr}</div><div class="pcard-cod">${p.cod}</div></div>
+        <span class="sbadge" style="background:${info.b};color:${info.c}">${info.l}</span>
+      </div>
+      <div style="font-weight:600;font-size:.88rem;margin-bottom:4px">${p.nome}</div>
+      <div style="margin-top:4px;font-size:.77rem;color:var(--mt)">
+        ${(p.cores||[]).map(x=>`<div style="margin-bottom:2px"><strong style="color:var(--tx)">${x.cor}</strong> — ${Object.entries(x.qtds||{}).map(([t,q])=>t+':'+q).join(' · ')}</div>`).join('')}
+      </div>
+      <div style="display:flex;justify-content:flex-end;gap:7px;margin-top:6px">
+        ${canResp&&p.status==='PENDENTE'?`<button class="bs" style="font-size:.73rem;padding:5px 11px" onclick="event.stopPropagation();openResp('${p.id}')">Responder →</button>`:''}
+        ${canTransf&&(p.status==='APROVADO'||p.status==='PARCIAL')?`<button class="bs" style="font-size:.73rem;padding:5px 11px;background:#1D9E75" onclick="event.stopPropagation();confirmarTransf('${p.id}')">Transmissão Miré ✔</button>`:''}
+        ${canRec&&p.status==='TRANSFERIDO'?`<button class="bs" style="font-size:.73rem;padding:5px 11px;background:var(--c7)" onclick="event.stopPropagation();receberPedido('${p.id}')">✔ Recebido</button>`:''}
+      </div>
+    </div>`;
+  }).join(''):'<div class="empty">Nenhum pedido</div>'}</div>`;
+  renderStatsPedidos();
 }
 
 function openNovoPedido(){
-['p-cod','p-nome','p-obs'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});
-const gsel=document.getElementById('p-grade-sel');
-if(gsel){gsel.innerHTML='<option value="">Selecionar grade...</option>'+getGrades().map(g=><option>${g}</option>).join('');gsel.value='';}
-document.getElementById('p-tabela-area').innerHTML='';
-pedCorCount=1;pedGradeSizes=[];
-op('ov-pedido');
+  ['p-cod','p-nome','p-obs'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});
+  const gsel=document.getElementById('p-grade-sel');
+  if(gsel){gsel.innerHTML='<option value="">Selecionar grade...</option>'+getGrades().map(g=>`<option>${g}</option>`).join('');gsel.value='';}
+  document.getElementById('p-tabela-area').innerHTML='';
+  pedCorCount=1;pedGradeSizes=[];
+  op('ov-pedido');
 }
-let pedCorCount=0;
-let pedGradeSizes=[];
+
+let pedCorCount=0,pedGradeSizes=[];
 
 function buildPedidoTabela(){
-const grade=document.getElementById('p-grade-sel').value;
-pedGradeSizes=grade.split(' ').filter(Boolean);
-const area=document.getElementById('p-tabela-area');
-if(!pedGradeSizes.length){area.innerHTML='';return;}
-pedCorCount=1;
-renderPedidoTabela();
+  const grade=document.getElementById('p-grade-sel').value;
+  pedGradeSizes=grade.split(' ').filter(Boolean);
+  const area=document.getElementById('p-tabela-area');
+  if(!pedGradeSizes.length){area.innerHTML='';return;}
+  pedCorCount=1;renderPedidoTabela();
 }
 
 function renderPedidoTabela(){
-const area=document.getElementById('p-tabela-area');
-if(!pedGradeSizes.length){area.innerHTML='';return;}
-// Build table
-let rows='';
-for(let i=1;i<=pedCorCount;i++){
-rows+=<tr> <td style="padding:4px 5px"><input style="width:100%;background:var(--s2);border:.5px solid var(--bd);border-radius:6px;padding:5px 7px;font-size:15px;color:var(--tx);outline:none" id="pcor-${i}" placeholder="Cor..."></td> ${pedGradeSizes.map(s=><td style="padding:4px 5px;text-align:center"><input style="width:48px;background:var(--s2);border:.5px solid var(--bd);border-radius:6px;padding:5px 4px;font-size:15px;color:var(--tx);outline:none;text-align:center" id="pq-${i}-${s}" type="number" min="0" step="1" placeholder="0"></td>).join('')} <td style="padding:4px 5px"><button onclick="removePedidoRow(${i})" style="background:none;border:none;color:var(--mt);cursor:pointer;font-size:.9rem">✕</button></td> </tr>;
-}
-area.innerHTML= <div class="sl">Quantidades por cor e tamanho</div> <div style="overflow-x:auto"> <table style="width:100%;border-collapse:collapse;min-width:300px"> <thead> <tr> <th style="padding:5px 5px;text-align:left;font-size:.65rem;text-transform:uppercase;letter-spacing:.6px;color:var(--mt);font-weight:500;white-space:nowrap">Cor</th> ${pedGradeSizes.map(s=><th style="padding:5px 5px;text-align:center;font-size:.65rem;text-transform:uppercase;letter-spacing:.6px;color:var(--mt);font-weight:500;font-family:'DM Mono',monospace">${s}</th>).join('')} <th></th> </tr> </thead> <tbody id="p-tabela-body">${rows}</tbody> </table> </div> <button onclick="addPedidoRow()" style="margin-top:8px;background:none;border:1px dashed var(--bd);border-radius:8px;color:var(--mt);padding:6px;width:100%;font-size:.76rem;cursor:pointer">+ Adicionar cor</button>;
+  const area=document.getElementById('p-tabela-area');
+  if(!pedGradeSizes.length){area.innerHTML='';return;}
+  let rows='';
+  for(let i=1;i<=pedCorCount;i++){
+    rows+=`<tr>
+      <td style="padding:4px 5px"><input style="width:100%;background:var(--s2);border:.5px solid var(--bd);border-radius:6px;padding:5px 7px;font-size:15px;color:var(--tx);outline:none" id="pcor-${i}" placeholder="Cor..."></td>
+      ${pedGradeSizes.map(s=>`<td style="padding:4px 5px;text-align:center"><input style="width:48px;background:var(--s2);border:.5px solid var(--bd);border-radius:6px;padding:5px 4px;font-size:15px;color:var(--tx);outline:none;text-align:center" id="pq-${i}-${s}" type="number" min="0" step="1" placeholder="0"></td>`).join('')}
+      <td style="padding:4px 5px"><button onclick="removePedidoRow(${i})" style="background:none;border:none;color:var(--mt);cursor:pointer;font-size:.9rem">✕</button></td>
+    </tr>`;
+  }
+  area.innerHTML=`<div class="sl">Quantidades por cor e tamanho</div>
+    <div style="overflow-x:auto"><table style="width:100%;border-collapse:collapse;min-width:300px">
+      <thead><tr>
+        <th style="padding:5px;text-align:left;font-size:.65rem;text-transform:uppercase;color:var(--mt);font-weight:500">Cor</th>
+        ${pedGradeSizes.map(s=>`<th style="padding:5px;text-align:center;font-size:.65rem;font-family:'DM Mono',monospace;color:var(--mt)">${s}</th>`).join('')}
+        <th></th>
+      </tr></thead>
+      <tbody>${rows}</tbody>
+    </table></div>
+    <button onclick="addPedidoRow()" style="margin-top:8px;background:none;border:1px dashed var(--bd);border-radius:8px;color:var(--mt);padding:6px;width:100%;font-size:.76rem;cursor:pointer">+ Adicionar cor</button>`;
 }
 
 function addPedidoRow(){
-pedCorCount++;
-renderPedidoTabela();
-// Restore existing values
+  pedCorCount++;renderPedidoTabela();
 }
 
 function removePedidoRow(i){
-if(pedCorCount<=1)return;
-// Collect current values
-const vals=[];
-for(let r=1;r<=pedCorCount;r++){
-if(r===i)continue;
-const cor=document.getElementById('pcor-'+r)?.value||'';
-const qtds={};
-pedGradeSizes.forEach(s=>{qtds[s]=document.getElementById('pq-'+r+'-'+s)?.value||'';});
-vals.push({cor,qtds});
-}
-pedCorCount--;
-renderPedidoTabela();
-// Restore values
-vals.forEach((v,idx)=>{
-const n=idx+1;
-const el=document.getElementById('pcor-'+n);
-if(el)el.value=v.cor;
-pedGradeSizes.forEach(s=>{
-const qel=document.getElementById('pq-'+n+'-'+s);
-if(qel)qel.value=v.qtds[s]||'';
-});
-});
+  if(pedCorCount<=1)return;
+  const vals=[];
+  for(let r=1;r<=pedCorCount;r++){
+    if(r===i)continue;
+    const cor=document.getElementById('pcor-'+r)?.value||'';
+    const qtds={};
+    pedGradeSizes.forEach(s=>{qtds[s]=document.getElementById('pq-'+r+'-'+s)?.value||'';});
+    vals.push({cor,qtds});
+  }
+  pedCorCount--;renderPedidoTabela();
+  vals.forEach((v,idx)=>{
+    const n=idx+1;
+    const el=document.getElementById('pcor-'+n);if(el)el.value=v.cor;
+    pedGradeSizes.forEach(s=>{const qel=document.getElementById('pq-'+n+'-'+s);if(qel)qel.value=v.qtds[s]||'';});
+  });
 }
 
 function addPedidoCor(){}
 function buildPedidoGrade(){}
+
 function salvarPedido(){
-const cod=document.getElementById('p-cod').value.trim();
-const nome=document.getElementById('p-nome').value.trim();
-if(!cod||!nome){toast('Preencha código e nome','w');return;}
-if(!pedGradeSizes.length){toast('Selecione a grade','w');return;}
-// Collect from table
-const coresList=[];
-for(let i=1;i<=pedCorCount;i++){
-const cor=document.getElementById('pcor-'+i)?.value.trim();
-if(!cor)continue;
-const qtds={};
-let hasQtd=false;
-pedGradeSizes.forEach(s=>{
-const v=document.getElementById('pq-'+i+'-'+s)?.value;
-if(v&&parseInt(v)>0){qtds[s]=v;hasQtd=true;}
-});
-if(cor&&hasQtd)coresList.push({cor,qtds});
-}
-if(!coresList.length){toast('Preencha pelo menos uma cor com quantidade','w');return;}
-const p={
-id:'PED-'+String(pedidos.length+1).padStart(3,'0'),
-ts:Date.now(),
-dataStr:new Date().toLocaleDateString('pt-BR'),
-cod,nome,grade:pedGradeSizes.join(' '),
-cores:coresList,
-obs:document.getElementById('p-obs').value.trim(),
-autor:user,status:'PENDENTE',respObs:'',respCores:{},respondidoPor:'',
-};
-pedidos.unshift(p);sl();cl('ov-pedido');render();toast('Pedido enviado!','s');
-// Save to sheets
-if(cfg.url){
-apip({action:'adicionarPedido',pedido:{autor:p.autor,cod:p.cod,nome:p.nome,grade:p.grade,cores:p.cores,obs:p.obs}})
-.then(r=>{if(r?.ok)setTimeout(()=>syncAll(true),800);})
-.catch(e=>console.error(e));
-}
-}
-function openDetPedido(id){
-const p=pedidos.find(x=>x.id===id);if(!p)return;
-const info=psi(p.status);
-const canResp=(user==='estoque'||user==='taty')&&p.status==='PENDENTE';
-const canTransf=user==='daimartha'&&(p.status==='APROVADO'||p.status==='PARCIAL');
-const canRec=user==='gerente'&&p.status==='TRANSFERIDO';
-document.getElementById('det-c').innerHTML= <div class="mhd"><div class="mti">${p.id}</div><button class="xb" onclick="cl('ov-det')">×</button></div> <div style="margin-bottom:11px"> <div style="font-size:.98rem;font-weight:600;margin-bottom:4px">${p.nome}</div> <span style="background:${info.b};color:${info.c};font-size:.7rem;padding:3px 8px;border-radius:20px;font-weight:500">${info.l}</span> </div> <div class="df"><span class="dk">Código</span><span class="dv">${p.cod}</span></div> <div class="df"><span class="dk">Cor</span><span class="dv">${p.cor}</span></div> <div class="df"><span class="dk">Data</span><span class="dv">${p.dataStr}</span></div> <div class="df"><span class="dk">Solicitado por</span><span class="dv">${UNAMES[p.autor]||p.autor}</span></div> ${p.respondidoPor?<div class="df"><span class="dk">Respondido por</span><span class="dv">${UNAMES[p.respondidoPor]||p.respondidoPor}</span></div>:''} <div style="margin-top:8px"><div class="sl">Itens pedidos</div> ${(p.cores||[]).map(x=><div style="background:var(--s2);border-radius:7px;padding:7px 9px;margin-bottom:5px"><div style="font-weight:500;font-size:.82rem;margin-bottom:3px">${x.cor}</div>${Object.entries(x.qtds||{}).map(([t,q])=><div class="df"><span class="dk">Tam. ${t}</span><span class="dv">${q} pç</span></div>).join('')}</div>).join('')} </div> ${Object.keys(p.respCores||{}).length?<div style="margin-top:8px"><div class="sl">Encontrado no estoque</div>
-${Object.entries(p.respCores).map(([cor,qtds])=><div style="background:var(--s2);border-radius:7px;padding:7px 9px;margin-bottom:5px"><div style="font-weight:500;font-size:.82rem;margin-bottom:3px">${cor}</div>${Object.entries(qtds).map(([t,q])=><div class="df"><span class="dk">Tam. ${t}</span><span class="dv">${q} pç</span></div>).join('')}</div>).join('')}
-</div>:''} ${p.obs?<div class="obs-box">Obs pedido: ${p.obs}</div>:''} ${p.respObs?<div class="obs-box obs-bl">Obs estoque: ${p.respObs}</div>:''} <div class="agroup"> ${canResp?<button class="abtn" style="background:var(--b2);color:var(--c2)" onclick="cl('ov-det');openResp('${p.id}')">Responder pedido →</button>:''} ${canTransf?<button class="abtn" style="background:var(--b3);color:var(--c3)" onclick="cl('ov-det');confirmarTransf('${p.id}')">✔ Transmissão Miré feita</button>:''} ${canRec?<button class="abtn" style="background:var(--b3);color:var(--c3)" onclick="cl('ov-det');receberPedido('${p.id}')">✔ Recebido — arquivar</button>:''} </div>;
-op('ov-det');
-}
-function openResp(id){
-const p=pedidos.find(x=>x.id===id);respId=id;
-document.getElementById('resp-ti').textContent=${p.cod} — ${p.nome};
-document.getElementById('resp-info').textContent=Cor: ${p.cor} · ${UNAMES[p.autor]};
-document.getElementById('resp-obs').value='';
-const sizes2=(p.grade||'').split(' ').filter(Boolean);
-document.getElementById('resp-grades').innerHTML= <div style="overflow-x:auto;margin-bottom:8px"> <table style="width:100%;border-collapse:collapse"> <thead><tr> <th style="padding:5px;text-align:left;font-size:.63rem;text-transform:uppercase;letter-spacing:.5px;color:var(--mt);font-weight:500">Cor</th> ${sizes2.map(s=><th style="padding:5px;text-align:center;font-size:.63rem;font-family:'DM Mono',monospace;color:var(--mt)">${s}<br><span style="font-size:.58rem">ped / enc</span></th>).join('')} </tr></thead> <tbody> ${(p.cores||[]).map(x=><tr>
-<td style="padding:5px;font-weight:500;font-size:.82rem">${x.cor}</td>
-${sizes2.map(s=><td style="padding:5px;text-align:center"> <div style="font-size:.7rem;color:var(--mt);margin-bottom:2px">${x.qtds?.[s]||'—'}</div> <input style="width:46px;background:var(--s2);border:.5px solid var(--bd);border-radius:5px;padding:4px;font-size:14px;text-align:center;outline:none" id="rq-${x.cor}-${s}" type="number" min="0" step="1" value="${x.qtds?.[s]||0}"> </td>).join('')}
-</tr>).join('')} </tbody> </table> </div>;
-op('ov-resp');
-}
-function responderPedido(tipo){
-const p=pedidos.find(x=>x.id===respId);
-const rc={};
-(p.cores||[]).forEach(x=>{
-rc[x.cor]={};
-Object.keys(x.qtds||{}).forEach(t=>{
-rc[x.cor][t]=document.getElementById('rq-'+x.cor+'-'+t)?.value||'0';
-});
-});
-p.respCores=rc;p.respObs=document.getElementById('resp-obs').value.trim();
-p.status=tipo==='aprovado'?'APROVADO':tipo==='parcial'?'PARCIAL':'RECUSADO';
-p.respondidoPor=user;sl();cl('ov-resp');render();
-toast({aprovado:'✔ Aprovado!',parcial:'⚡ Aprovado parcialmente',recusado:'Não disponível'}[tipo],'s');
-if(cfg.url&&p._row){
-push2(p._row,[['STATUS',p.status],['RESP_OBS',p.respObs],['RESP_CORES',JSON.stringify(p.respCores)],['RESPONDIDO_POR',p.respondidoPor]]);
-}
-}
-function confirmarTransf(id){
-const p=pedidos.find(x=>x.id===id);p.status='TRANSFERIDO';sl();cl('ov-det');render();toast('Transferência feita!','s');
-if(cfg.url&&p._row)push2(p._row,[['STATUS','TRANSFERIDO']]);
-}
-function receberPedido(id){
-const p=pedidos.find(x=>x.id===id);p.status='ARQUIVADO';sl();cl('ov-det');render();toast('Recebido e arquivado!','s');
-if(cfg.url&&p._row)push2(p._row,[['STATUS','ARQUIVADO']]);
+  const cod=document.getElementById('p-cod').value.trim();
+  const nome=document.getElementById('p-nome').value.trim();
+  if(!cod||!nome){toast('Preencha código e nome','w');return;}
+  if(!pedGradeSizes.length){toast('Selecione a grade','w');return;}
+  const coresList=[];
+  for(let i=1;i<=pedCorCount;i++){
+    const cor=document.getElementById('pcor-'+i)?.value.trim();if(!cor)continue;
+    const qtds={};let hasQtd=false;
+    pedGradeSizes.forEach(s=>{const v=document.getElementById('pq-'+i+'-'+s)?.value;if(v&&parseInt(v)>0){qtds[s]=v;hasQtd=true;}});
+    if(cor&&hasQtd)coresList.push({cor,qtds});
+  }
+  if(!coresList.length){toast('Preencha pelo menos uma cor com quantidade','w');return;}
+  const p={
+    id:'PED-'+String(pedidos.length+1).padStart(3,'0'),ts:Date.now(),
+    dataStr:new Date().toLocaleDateString('pt-BR'),
+    cod,nome,grade:pedGradeSizes.join(' '),cores:coresList,
+    obs:document.getElementById('p-obs').value.trim(),
+    autor:user,status:'PENDENTE',respObs:'',respCores:{},respondidoPor:'',
+  };
+  pedidos.unshift(p);sl();cl('ov-pedido');render();toast('Pedido enviado!','s');
+  if(cfg.url){
+    apip({action:'adicionarPedido',pedido:{autor:p.autor,cod:p.cod,nome:p.nome,grade:p.grade,cores:p.cores,obs:p.obs}})
+      .then(r=>{if(r?.ok)setTimeout(()=>syncAll(true),800);}).catch(e=>console.error(e));
+  }
 }
 
-// ── CFG ──
+function openDetPedido(id){
+  const p=pedidos.find(x=>x.id===id);if(!p)return;
+  const info=psi(p.status);
+  const canResp=['estoque','taty','carol'].includes(user)&&p.status==='PENDENTE';
+  const canTransf=user==='daimartha'&&(p.status==='APROVADO'||p.status==='PARCIAL');
+  const canRec=user==='gerente'&&p.status==='TRANSFERIDO';
+  document.getElementById('det-c').innerHTML=`
+    <div class="mhd"><div class="mti">${p.id}</div><button class="xb" onclick="cl('ov-det')">×</button></div>
+    <div style="margin-bottom:11px">
+      <div style="font-size:.98rem;font-weight:600;margin-bottom:4px">${p.nome}</div>
+      <span style="background:${info.b};color:${info.c};font-size:.7rem;padding:3px 8px;border-radius:20px;font-weight:500">${info.l}</span>
+    </div>
+    <div class="df"><span class="dk">Código</span><span class="dv">${p.cod}</span></div>
+    <div class="df"><span class="dk">Data</span><span class="dv">${p.dataStr}</span></div>
+    <div class="df"><span class="dk">Solicitado por</span><span class="dv">${UNAMES[p.autor]||p.autor}</span></div>
+    ${p.respondidoPor?`<div class="df"><span class="dk">Respondido por</span><span class="dv">${UNAMES[p.respondidoPor]||p.respondidoPor}</span></div>`:''}
+    <div style="margin-top:8px"><div class="sl">Itens pedidos</div>
+      ${(p.cores||[]).map(x=>`<div style="background:var(--s2);border-radius:7px;padding:7px 9px;margin-bottom:5px">
+        <div style="font-weight:500;font-size:.82rem;margin-bottom:3px">${x.cor}</div>
+        ${Object.entries(x.qtds||{}).map(([t,q])=>`<div class="df"><span class="dk">Tam. ${t}</span><span class="dv">${q} pç</span></div>`).join('')}
+      </div>`).join('')}
+    </div>
+    ${Object.keys(p.respCores||{}).length?`<div style="margin-top:8px"><div class="sl">Encontrado no estoque</div>
+      ${Object.entries(p.respCores).map(([cor,qtds])=>`<div style="background:var(--s2);border-radius:7px;padding:7px 9px;margin-bottom:5px">
+        <div style="font-weight:500;font-size:.82rem;margin-bottom:3px">${cor}</div>
+        ${Object.entries(qtds).map(([t,q])=>`<div class="df"><span class="dk">Tam. ${t}</span><span class="dv">${q} pç</span></div>`).join('')}
+      </div>`).join('')}</div>`:''}
+    ${p.obs?`<div class="obs-box">Obs pedido: ${p.obs}</div>`:''}
+    ${p.respObs?`<div class="obs-box obs-bl">Obs estoque: ${p.respObs}</div>`:''}
+    <div class="agroup">
+      ${canResp?`<button class="abtn" style="background:var(--b2);color:var(--c2)" onclick="cl('ov-det');openResp('${p.id}')">Responder pedido →</button>`:''}
+      ${canTransf?`<button class="abtn" style="background:var(--b3);color:var(--c3)" onclick="cl('ov-det');confirmarTransf('${p.id}')">✔ Transmissão Miré feita</button>`:''}
+      ${canRec?`<button class="abtn" style="background:var(--b3);color:var(--c3)" onclick="cl('ov-det');receberPedido('${p.id}')">✔ Recebido — arquivar</button>`:''}
+    </div>`;
+  op('ov-det');
+}
+
+function openResp(id){
+  const p=pedidos.find(x=>x.id===id);respId=id;
+  document.getElementById('resp-ti').textContent=`${p.cod} — ${p.nome}`;
+  document.getElementById('resp-info').textContent=UNAMES[p.autor]||p.autor;
+  document.getElementById('resp-obs').value='';
+  const sizes2=(p.grade||'').split(' ').filter(Boolean);
+  document.getElementById('resp-grades').innerHTML=`
+    <div style="overflow-x:auto;margin-bottom:8px">
+      <table style="width:100%;border-collapse:collapse">
+        <thead><tr>
+          <th style="padding:5px;text-align:left;font-size:.63rem;text-transform:uppercase;color:var(--mt);font-weight:500">Cor</th>
+          ${sizes2.map(s=>`<th style="padding:5px;text-align:center;font-size:.63rem;font-family:'DM Mono',monospace;color:var(--mt)">${s}<br><span style="font-size:.58rem">ped/enc</span></th>`).join('')}
+        </tr></thead>
+        <tbody>${(p.cores||[]).map(x=>`<tr>
+          <td style="padding:5px;font-weight:500;font-size:.82rem">${x.cor}</td>
+          ${sizes2.map(s=>`<td style="padding:5px;text-align:center">
+            <div style="font-size:.7rem;color:var(--mt);margin-bottom:2px">${x.qtds?.[s]||'—'}</div>
+            <input style="width:46px;background:var(--s2);border:.5px solid var(--bd);border-radius:5px;padding:4px;font-size:14px;text-align:center;outline:none" id="rq-${x.cor}-${s}" type="number" min="0" step="1" value="${x.qtds?.[s]||0}">
+          </td>`).join('')}
+        </tr>`).join('')}</tbody>
+      </table>
+    </div>`;
+  op('ov-resp');
+}
+
+function responderPedido(tipo){
+  const p=pedidos.find(x=>x.id===respId);
+  const rc={};
+  (p.cores||[]).forEach(x=>{rc[x.cor]={};Object.keys(x.qtds||{}).forEach(t=>{rc[x.cor][t]=document.getElementById('rq-'+x.cor+'-'+t)?.value||'0';});});
+  p.respCores=rc;p.respObs=document.getElementById('resp-obs').value.trim();
+  p.status=tipo==='aprovado'?'APROVADO':tipo==='parcial'?'PARCIAL':'RECUSADO';
+  p.respondidoPor=user;sl();cl('ov-resp');render();
+  toast({aprovado:'✔ Aprovado!',parcial:'⚡ Aprovado parcialmente',recusado:'Não disponível'}[tipo],'s');
+  if(cfg.url&&p._row)push2(p._row,[['STATUS',p.status],['RESP_OBS',p.respObs],['RESP_CORES',JSON.stringify(p.respCores)],['RESPONDIDO_POR',p.respondidoPor]]);
+}
+
+function confirmarTransf(id){
+  const p=pedidos.find(x=>x.id===id);p.status='TRANSFERIDO';sl();cl('ov-det');render();toast('Transferência feita!','s');
+  if(cfg.url&&p._row)push2(p._row,[['STATUS','TRANSFERIDO']]);
+}
+
+function receberPedido(id){
+  const p=pedidos.find(x=>x.id===id);p.status='ARQUIVADO';sl();cl('ov-det');render();toast('Recebido e arquivado!','s');
+  if(cfg.url&&p._row)push2(p._row,[['STATUS','ARQUIVADO']]);
+}
+
 function openCfg(){
-document.getElementById('cfg-pins-sec').style.display=user==='taty'?'':'none';
-if(cfg.url)document.getElementById('cfg-url').value=cfg.url;
-['wcarol','wdm','wgi','wedv','wros'].forEach(k=>{const el=document.getElementById('cfg-'+k);if(el&&cfg[k])el.value=cfg[k];});
-if(cfg.customGrades)document.getElementById('cfg-grades').value=cfg.customGrades;
-op('ov-cfg');
+  document.getElementById('cfg-pins-sec').style.display=user==='taty'?'':'none';
+  if(cfg.url)document.getElementById('cfg-url').value=cfg.url;
+  ['wcarol','wdm','wgi','wedv','wros'].forEach(k=>{const el=document.getElementById('cfg-'+k);if(el&&cfg[k])el.value=cfg[k];});
+  if(cfg.customGrades)document.getElementById('cfg-grades').value=cfg.customGrades;
+  op('ov-cfg');
 }
 function saveCfgUrl(){cfg.url=document.getElementById('cfg-url').value.trim();localStorage.setItem('az_cfg',JSON.stringify(cfg));toast('Conectado!','i');cl('ov-cfg');setTimeout(syncAll,400);}
 function saveCfgWpp(){
-['wcarol','wdm','wgi','wedv','wros'].forEach(k=>{const v=document.getElementById('cfg-'+k)?.value.trim();if(v)cfg[k]=v;});
-localStorage.setItem('az_cfg',JSON.stringify(cfg));toast('Números salvos!','s');
+  ['wcarol','wdm','wgi','wedv','wros'].forEach(k=>{const v=document.getElementById('cfg-'+k)?.value.trim();if(v)cfg[k]=v;});
+  localStorage.setItem('az_cfg',JSON.stringify(cfg));toast('Números salvos!','s');
 }
 function savePins(){
-const map={pt:'taty',pe:'edvaldo',pr:'rosana',pd:'daimartha',pc:'carol',pes:'estoque',pva:'vendA',pvb:'vendB',pvc:'vendC',pge:'gerente'};
-Object.entries(map).forEach(([k,u])=>{const v=document.getElementById('cfg-'+k)?.value.trim();if(v&&v.length===4)localStorage.setItem('az_pin_'+u,v);});
-toast('PINs salvos!','s');
+  const map={pt:'taty',pe:'edvaldo',pr:'rosana',pd:'daimartha',pc:'carol',pes:'estoque',pva:'vendA',pvb:'vendB',pvc:'vendC',pge:'gerente'};
+  Object.entries(map).forEach(([k,u])=>{const v=document.getElementById('cfg-'+k)?.value.trim();if(v&&v.length===4)localStorage.setItem('az_pin_'+u,v);});
+  toast('PINs salvos!','s');
 }
 function saveGrades(){cfg.customGrades=document.getElementById('cfg-grades').value.trim();localStorage.setItem('az_cfg',JSON.stringify(cfg));populateSels();toast('Grades atualizadas!','s');}
 
-// ── UTILS ──
 function op(id){document.getElementById(id)?.classList.add('open');}
 function cl(id){document.getElementById(id)?.classList.remove('open');}
-function toast(msg,type='i'){const c=document.getElementById('toasts');const t=document.createElement('div');t.className=toast ${type};t.textContent=msg;c.appendChild(t);setTimeout(()=>t.remove(),3500);}
+function toast(msg,type='i'){const c=document.getElementById('toasts');const t=document.createElement('div');t.className=`toast ${type}`;t.textContent=msg;c.appendChild(t);setTimeout(()=>t.remove(),3500);}
 ['ov-novo','ov-det','ov-cores','ov-pedido','ov-resp','ov-cfg','ov-decisao','ov-envio'].forEach(id=>{document.getElementById(id)?.addEventListener('click',e=>{if(e.target===e.currentTarget)cl(id);});});
-
-// Fix novo button for initial state - will be overridden by initApp
-// btn-novo onclick set in initApp
-
-// Fix novo button for initial state - will be overridden by initApp
-// btn-novo onclick set in initApp
 </script>
-
-</body> </html>
+</body>
+</html>
