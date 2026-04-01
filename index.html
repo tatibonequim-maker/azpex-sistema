@@ -696,14 +696,14 @@ async function pushNew(dados){if(!cfg.url)return null;try{return await apip({act
 
 async function syncAll(silent){
   if(!cfg.url){if(!silent)toast('Configure o URL primeiro','w');return;}
-  if(silent&&Date.now()-lastPushTime<8000)return;
+  if(silent&&Date.now()-lastPushTime<10000)return;
   if(!silent)toast('Sincronizando...','i');
   try{
     const[c,l,p]=await Promise.all([apig({action:'getCortes'}),apig({action:'getListas'}),apig({action:'getPedidos'})]);
     if(Array.isArray(c)&&c.length>0){
       const fotoMap={};cortes.forEach(x=>{if(x.fotoLocal)fotoMap[x.id]=x.fotoLocal;});
-      cortes=c.filter(r=>r.STATUS!=='DELETADO').map(r=>({
-        id:str(r.ID),ref:str(r.REF),nome:str(r.NOME),
+      const mapped=c.filter(r=>r.STATUS!=='DELETADO').map(r=>({
+        id:str(r.ID),ref:str(r.REF).replace(/\.0$/,''),nome:str(r.NOME),
         data:din(str(r.DATA_ENTRADA)),tec:str(r.TECIDO),tin:str(r.TINTURARIA),
         grade:str(r.GRADE),ret:str(r.RETALHO),obs:str(r.OBS),
         urg:str(r.URGENTE).toLowerCase()==='sim',
@@ -716,6 +716,14 @@ async function syncAll(silent){
         status:mapStatus(str(r.STATUS)),_row:r._row,
         fotoLocal:fotoMap[str(r.ID)]||'',
       }));
+      // Deduplicate by ID - keep the one with highest _row (most recent in sheet)
+      const seen={};
+      cortes=mapped.filter(x=>{
+        if(!x.id)return false;
+        if(!seen[x.id]||x._row>seen[x.id]._row){seen[x.id]=x;return false;}
+        return false;
+      });
+      cortes=Object.values(seen);
     }
     if(Array.isArray(p)&&p.length>0){
       pedidos=p.map(r=>({
@@ -1168,19 +1176,29 @@ function renderStatsPedidos(){
 
 // ── AÇÕES CORTES ──
 async function salvarEncaixe(id){
-  const m=document.getElementById('em-'+id)?.value;
-  const pct=document.getElementById('ep-'+id)?.value;
+  const m=document.getElementById('em-'+id)?.value?.trim();
+  const pct=document.getElementById('ep-'+id)?.value?.trim();
   if(!m||!pct){toast('Preencha comprimento e aproveitamento','w');return;}
+  // Find by id - if duplicate IDs, pick the one matching the card's row
   const c=cortes.find(x=>x.id===id);
-  if(!c){toast('Corte não encontrado','w');return;}
-  c.encM=m;c.encPct=pct;c.encObs=document.getElementById('eo-'+id)?.value.trim()||'';
+  if(!c){toast('Corte não encontrado: '+id,'w');return;}
+  c.encM=m;c.encPct=pct;c.encObs=document.getElementById('eo-'+id)?.value?.trim()||'';
   c.status='AGUARDANDO_APROVACAO';
   lastPushTime=Date.now();
   sl();render();
   toast('Encaixe enviado! Aguardando aprovação.','s');
   if(c._row){
-    await apip({action:'atualizarCampos',row:c._row,campos:[['ENCAIXE_M',m],['RENDIMENTO',pct],['OBS_CAD',c.encObs],['STATUS','AGUARDANDO_APROVACAO']]});
-    setTimeout(()=>syncAll(true),3000);
+    try{
+      await apip({action:'atualizarCampos',row:c._row,campos:[['ENCAIXE_M',m],['RENDIMENTO',pct],['OBS_CAD',c.encObs],['STATUS','AGUARDANDO_APROVACAO']]});
+      toast('Salvo na planilha ✔','s');
+      // Wait longer before sync to avoid reverting
+      setTimeout(()=>syncAll(true),5000);
+    }catch(e){
+      toast('Erro ao salvar — tente novamente','w');
+      console.error(e);
+    }
+  } else {
+    toast('Sem conexão com planilha — salvo localmente','i');
   }
 }
 
