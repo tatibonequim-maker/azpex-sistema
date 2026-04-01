@@ -724,6 +724,10 @@ async function syncAll(silent){
         return false;
       });
       cortes=Object.values(seen);
+      // Track max ID ever seen (including deletados) to avoid reuse
+      const maxSeen=c.reduce((mx,r)=>{const n=parseInt((str(r.ID)||'').replace(/[^0-9]/g,''))||0;return Math.max(mx,n);},0);
+      const storedMax=parseInt(localStorage.getItem('az_max_id')||'0');
+      if(maxSeen>storedMax)localStorage.setItem('az_max_id',String(maxSeen));
     }
     if(Array.isArray(p)&&p.length>0){
       pedidos=p.map(r=>({
@@ -1461,7 +1465,14 @@ function setHoje(){document.getElementById('f-data').value=new Date().toISOStrin
 async function salvarCorte(){
   const nome=document.getElementById('f-nome').value.trim();
   if(!nome){toast('Preencha o nome','w');return;}
-  function nextId(){let max=0;cortes.forEach(c=>{const n=parseInt((c.id||'').replace(/[^0-9]/g,''));if(n>max)max=n;});return 'ID-'+String(max+1).padStart(3,'0');}
+  function nextId(){
+    // Use max from all sources: current cortes, localStorage tracker
+    let max=parseInt(localStorage.getItem('az_max_id')||'0');
+    cortes.forEach(c=>{const n=parseInt((c.id||'').replace(/[^0-9]/g,''))||0;if(n>max)max=n;});
+    const next=max+1;
+    localStorage.setItem('az_max_id',String(next));
+    return 'ID-'+String(next).padStart(3,'0');
+  }
   const id=document.getElementById('f-id').value.trim()||nextId();
   const obj={
     id,ref:document.getElementById('f-ref').value.trim(),nome,
