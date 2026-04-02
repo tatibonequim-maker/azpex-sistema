@@ -1039,6 +1039,11 @@ function cardEdvaldo(c){
     <button class="ebtn" onclick="salvarEncaixe('${c.id}')" style="background:${user==='taty'?'var(--ac)':'var(--c2)'}">
       ${user==='taty'?'Salvar e aprovar encaixe ✔':'Enviar para aprovação →'}
     </button>
+    ${(()=>{
+      if(!cfg.wedv)return'';
+      const msg=encodeURIComponent('📐 Azpex\n*'+c.id+' — '+c.nome+'*\nRef: '+c.ref+'\nAguardando encaixe.\nTecido: '+c.tec+' · Grade: '+(c.grade||'—')+(c.urg?'\n⚡ URGENTE':''));
+      return '<a href="https://wa.me/'+cfg.wedv+'?text='+msg+'" target="_blank" onclick="event.stopPropagation()" style="text-decoration:none;display:block;margin-top:8px"><button style="width:100%;padding:7px;border-radius:7px;border:1px solid #25D366;background:rgba(37,211,102,.08);color:#25D366;font-size:.76rem;font-weight:600;cursor:pointer">📱 Avisar Edvaldo</button></a>';
+    })()}
   </div>`;
 }
 
@@ -1081,6 +1086,12 @@ function cardRosana(c){
     <div class="pb"><div class="pf" id="pf-${c.id}" style="width:${pct}%"></div></div>
     <div class="pl" id="pl-${c.id}">${done} de ${total} descansados</div>
     <button class="dbtn" style="background:#1D9E75;color:#fff" id="db-${c.id}" ${done<total?'disabled':''} onclick="event.stopPropagation();salvarDescanso('${c.id}')">Confirmar tudo descansado ✔</button>
+    ${(()=>{
+      if(!cfg.wros)return'';
+      const cores=(c.cores||[]).map(x=>'• '+x.cor+' — '+x.qtd+' rolo(s)').join('\n');
+      const msg=encodeURIComponent('✂️ Azpex\n*'+c.id+' — '+c.nome+'*\nRef: '+c.ref+'\nTecido para descansar.\nCores:\n'+cores+(c.urg?'\n⚡ URGENTE':''));
+      return '<a href="https://wa.me/'+cfg.wros+'?text='+msg+'" target="_blank" onclick="event.stopPropagation()" style="text-decoration:none;display:block;margin-top:8px"><button style="width:100%;padding:7px;border-radius:7px;border:1px solid #25D366;background:rgba(37,211,102,.08);color:#25D366;font-size:.76rem;font-weight:600;cursor:pointer">📱 Avisar Rosana</button></a>';
+    })()}
   </div>`;
 }
 
@@ -1143,6 +1154,11 @@ function cardCarol(c){
     </div>
     <textarea style="width:100%;background:var(--s2);border:.5px solid var(--bd);border-radius:7px;padding:7px 9px;font-size:16px;color:var(--tx);outline:none;resize:none;margin-bottom:8px" id="cobs-${c.id}" rows="2" placeholder="Observações da foto...">${c.carolObs||''}</textarea>
     <button class="dbtn" style="background:var(--c6);color:#fff" onclick="carolAprovar('${c.id}')">✔ Foto pronta — liberar envio</button>
+    ${(()=>{
+      if(!cfg.wcarol)return'';
+      const msg=encodeURIComponent('📸 Azpex\n*'+c.id+' — '+c.nome+'*\nRef: '+c.ref+'\nNovidade aguardando foto!\nGrade: '+(c.grade||'—')+(c.numCorte?' · OP: '+c.numCorte:'')+(c.urg?'\n⚡ URGENTE':''));
+      return '<a href="https://wa.me/'+cfg.wcarol+'?text='+msg+'" target="_blank" onclick="event.stopPropagation()" style="text-decoration:none;display:block;margin-top:8px"><button style="width:100%;padding:7px;border-radius:7px;border:1px solid #25D366;background:rgba(37,211,102,.08);color:#25D366;font-size:.76rem;font-weight:600;cursor:pointer">📱 Avisar Carol</button></a>';
+    })()}
   </div>`;
 }
 
