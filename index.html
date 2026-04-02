@@ -702,6 +702,13 @@ async function syncAll(silent){
     const[c,l,p]=await Promise.all([apig({action:'getCortes'}),apig({action:'getListas'}),apig({action:'getPedidos'})]);
     if(Array.isArray(c)&&c.length>0){
       const fotoMap={};cortes.forEach(x=>{if(x.fotoLocal)fotoMap[x.id]=x.fotoLocal;});
+      // Track max ID BEFORE filtering deletados
+      const allIds=c.map(r=>parseInt((str(r.ID)||'').replace(/[^0-9]/g,''))||0);
+      const maxIdSeen=Math.max(0,...allIds);
+      const storedMax=parseInt(localStorage.getItem('az_max_id')||'0');
+      const newMax=Math.max(maxIdSeen,storedMax);
+      localStorage.setItem('az_max_id',String(newMax));
+
       const mapped=c.filter(r=>r.STATUS!=='DELETADO').map(r=>({
         id:str(r.ID),ref:str(r.REF).replace(/\.0$/,''),nome:str(r.NOME),
         data:din(str(r.DATA_ENTRADA)),tec:str(r.TECIDO),tin:str(r.TINTURARIA),
@@ -724,10 +731,7 @@ async function syncAll(silent){
         return false;
       });
       cortes=Object.values(seen);
-      // Track max ID ever seen (including deletados) to avoid reuse
-      const maxSeen=c.reduce((mx,r)=>{const n=parseInt((str(r.ID)||'').replace(/[^0-9]/g,''))||0;return Math.max(mx,n);},0);
-      const storedMax=parseInt(localStorage.getItem('az_max_id')||'0');
-      if(maxSeen>storedMax)localStorage.setItem('az_max_id',String(maxSeen));
+
     }
     if(Array.isArray(p)&&p.length>0){
       pedidos=p.map(r=>({
@@ -976,6 +980,9 @@ function cardBase(c){
       ${canGi?`<div style="display:flex;gap:5px"><button style="background:var(--b3);color:var(--c3);border:none;border-radius:6px;padding:3px 8px;font-size:.63rem;font-weight:500;cursor:pointer" onclick="event.stopPropagation();aprovarEnvio('${c.id}')">✔ Enviar</button><button style="background:var(--b4);color:var(--c4);border:none;border-radius:6px;padding:3px 8px;font-size:.63rem;font-weight:500;cursor:pointer" onclick="event.stopPropagation();giArquivar('${c.id}')">✕ Não precisa</button></div>`:''}
       ${canDM?`<button style="background:var(--b3);color:var(--c3);border:none;border-radius:6px;padding:3px 8px;font-size:.63rem;font-weight:500;cursor:pointer" onclick="event.stopPropagation();transmissaoMire('${c.id}')">Transmissão Miré ✔</button>`:''}
     </div>
+    ${cfg.wedv&&c.status==='AGUARDANDO_ENCAIXE'?wppBtn(cfg.wedv,'Avisar Edvaldo','📐 Azpex\n*'+c.id+' — '+c.nome+'*\nRef: '+c.ref+'\nAguardando encaixe.\nTecido: '+c.tec+' · Grade: '+(c.grade||'—')+(c.urg?'\n⚡ URGENTE':'')):''}
+    ${cfg.wros&&c.status==='DESCANSAR_TECIDO'?wppBtn(cfg.wros,'Avisar Rosana','✂️ Azpex\n*'+c.id+' — '+c.nome+'*\nRef: '+c.ref+'\nTecido para descansar.\nCores:\n'+(c.cores||[]).map(x=>'• '+x.cor+' — '+x.qtd+' rolo(s)').join('\n')+(c.urg?'\n⚡ URGENTE':'')):''}
+    ${cfg.wcarol&&c.status==='AG_FOTO'?wppBtn(cfg.wcarol,'Avisar Carol','📸 Azpex\n*'+c.id+' — '+c.nome+'*\nRef: '+c.ref+'\nNovidade aguardando foto!\nGrade: '+(c.grade||'—')+(c.numCorte?' · OP: '+c.numCorte:'')+(c.urg?'\n⚡ URGENTE':'')):''}
   </div>`;
 }
 
@@ -1385,8 +1392,9 @@ function openDet(id){
       ${(['gerente','taty','carol'].includes(user))&&c.status==='AGUARDANDO_GI'?`<div style="display:flex;flex-direction:column;gap:7px"><button class="abtn" style="background:var(--b3);color:var(--c3)" onclick="cl('ov-det');aprovarEnvio('${c.id}')">✔ Sim, enviar para loja</button><button class="abtn abtn-danger" onclick="cl('ov-det');giArquivar('${c.id}')">✕ Não precisamos — arquivar</button></div>`:''}
       ${user==='daimartha'&&c.status==='EMBALAR'?`<button class="abtn" style="background:var(--b3);color:var(--c3)" onclick="cl('ov-det');transmissaoMire('${c.id}')">✔ Transmissão Miré feita</button>`:''}
       ${user==='gerente'&&c.status==='PRONTO_RETIRADA'?`<button class="abtn" style="background:var(--b3);color:var(--c3)" onclick="cl('ov-det');arquivar('${c.id}')">✔ Recebido — arquivar</button>`:''}
-      ${cfg.wedv&&c.status==='AGUARDANDO_ENCAIXE'?`<a href="https://wa.me/${cfg.wedv}?text=${encodeURIComponent('📐 Azpex\n*'+c.id+' — '+c.nome+'*\nRef: '+c.ref+'\nAguarda encaixe.\nTecido: '+c.tec+' · Grade: '+c.grade+(c.urg?'\n⚡ URGENTE':''))}" target="_blank" style="text-decoration:none"><button class="abtn abtn-wpp">📱 Avisar Edvaldo</button></a>`:''}
-      ${cfg.wros&&(c.status==='DESCANSAR_TECIDO'||c.status==='DEFINIR_CORES')?`<a href="https://wa.me/${cfg.wros}?text=${encodeURIComponent('✂️ Azpex\n*'+c.id+' — '+c.nome+'*\nRef: '+c.ref+'\nLiber. para descanso.\nCores:\n'+(c.cores||[]).map(x=>'• '+x.cor+' — '+x.qtd+' rolo(s)').join('\n')+(c.urg?'\n⚡ URGENTE':''))}" target="_blank" style="text-decoration:none"><button class="abtn abtn-wpp">📱 Avisar Rosana</button></a>`:''}
+      ${cfg.wedv&&c.status==='AGUARDANDO_ENCAIXE'?`<a href="https://wa.me/${cfg.wedv}?text=${encodeURIComponent('📐 Azpex\n*'+c.id+' — '+c.nome+'*\nRef: '+c.ref+'\nAguardando encaixe.\nTecido: '+c.tec+' · Fornecedor: '+c.tin+'\nGrade: '+c.grade+(c.rolo?' · Rolo: '+c.rolo+'m':'')+(c.urg?'\n⚡ URGENTE':''))}" target="_blank" style="text-decoration:none"><button class="abtn abtn-wpp">📱 Avisar Edvaldo</button></a>`:''}
+      ${cfg.wros&&(c.status==='DESCANSAR_TECIDO'||c.status==='DEFINIR_CORES')?`<a href="https://wa.me/${cfg.wros}?text=${encodeURIComponent('✂️ Azpex\n*'+c.id+' — '+c.nome+'*\nRef: '+c.ref+'\nTecido para descansar.\nCores:\n'+(c.cores||[]).map(x=>'• '+x.cor+' — '+x.qtd+' rolo(s)').join('\n')+(c.urg?'\n⚡ URGENTE':''))}" target="_blank" style="text-decoration:none"><button class="abtn abtn-wpp">📱 Avisar Rosana</button></a>`:''}
+      ${cfg.wcarol&&c.status==='AG_FOTO'?`<a href="https://wa.me/${cfg.wcarol}?text=${encodeURIComponent('📸 Azpex\n*'+c.id+' — '+c.nome+'*\nRef: '+c.ref+'\nNovidade aguardando foto!\nGrade: '+c.grade+(c.numCorte?' · OP: '+c.numCorte:'')+(c.urg?'\n⚡ URGENTE':''))}" target="_blank" style="text-decoration:none"><button class="abtn abtn-wpp">📱 Avisar Carol</button></a>`:''}
     </div>`;
   op('ov-det');
 }
@@ -1466,10 +1474,12 @@ async function salvarCorte(){
   const nome=document.getElementById('f-nome').value.trim();
   if(!nome){toast('Preencha o nome','w');return;}
   function nextId(){
-    // Use max from all sources: current cortes, localStorage tracker
+    // Always use max from: localStorage (tracks all IDs ever seen including deletados)
     let max=parseInt(localStorage.getItem('az_max_id')||'0');
+    // Also check current in-memory cortes
     cortes.forEach(c=>{const n=parseInt((c.id||'').replace(/[^0-9]/g,''))||0;if(n>max)max=n;});
     const next=max+1;
+    // Save immediately so two quick creations don't get same ID
     localStorage.setItem('az_max_id',String(next));
     return 'ID-'+String(next).padStart(3,'0');
   }
@@ -1798,6 +1808,16 @@ function savePins(){
   toast('PINs salvos!','s');
 }
 function saveGrades(){cfg.customGrades=document.getElementById('cfg-grades').value.trim();localStorage.setItem('az_cfg',JSON.stringify(cfg));populateSels();toast('Grades atualizadas!','s');}
+
+function wppLink(numero,msg){
+  if(!numero)return'';
+  return`<a href="https://wa.me/${numero}?text=${encodeURIComponent(msg)}" target="_blank" style="text-decoration:none"><button class="abtn abtn-wpp" style="width:100%;padding:9px;border-radius:9px;margin-top:0">📱 ${msg.split('\n')[0]}</button></a>`;
+}
+
+function wppBtn(numero,label,msg){
+  if(!numero)return'';
+  return`<a href="https://wa.me/${numero}?text=${encodeURIComponent(msg)}" target="_blank" onclick="event.stopPropagation()" style="text-decoration:none;display:block;margin-top:5px"><button style="width:100%;padding:6px 9px;border-radius:7px;border:1px solid var(--wpp);background:rgba(37,211,102,.08);color:var(--wpp);font-size:.73rem;font-weight:600;cursor:pointer">📱 ${label}</button></a>`;
+}
 
 function op(id){document.getElementById(id)?.classList.add('open');}
 function cl(id){document.getElementById(id)?.classList.remove('open');}
