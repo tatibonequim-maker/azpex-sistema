@@ -1730,7 +1730,26 @@ function renderPedidoTabela(){
 }
 
 function addPedidoRow(){
-  pedCorCount++;renderPedidoTabela();
+  // Save current values before rebuilding
+  const vals=[];
+  for(let i=1;i<=pedCorCount;i++){
+    const cor=document.getElementById('pcor-'+i)?.value||'';
+    const qtds={};
+    pedGradeSizes.forEach(s=>{qtds[s]=document.getElementById('pq-'+i+'-'+s)?.value||'';});
+    vals.push({cor,qtds});
+  }
+  pedCorCount++;
+  renderPedidoTabela();
+  // Restore values
+  vals.forEach((v,idx)=>{
+    const n=idx+1;
+    const el=document.getElementById('pcor-'+n);
+    if(el)el.value=v.cor;
+    pedGradeSizes.forEach(s=>{
+      const qel=document.getElementById('pq-'+n+'-'+s);
+      if(qel)qel.value=v.qtds[s]||'';
+    });
+  });
 }
 
 function removePedidoRow(i){
