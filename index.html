@@ -495,7 +495,7 @@ input,select,textarea,button{font-family:'DM Sans',sans-serif}
 // ── CONSTANTS ──
 const DURL='https://script.google.com/macros/s/AKfycbxPBTjdEM04daObzVy7j1qV4qkQjn1-4WUav0mKMuvWp6v6O3YI1Pwjh0G2mdcF7GDh/exec';
 const DPINS={taty:'1234',edvaldo:'5678',rosana:'9012',daimartha:'3456',carol:'2468',estoque:'1357',vendA:'1111',vendB:'2222',vendC:'3333',gerente:'4444'};
-const GRADES_DEF=['PP','P','M','G','GG','PP P','P M','M G','G GG','PP P M','P M G','M G GG','PP P M G','P M G GG','PP P M G GG'];
+const GRADES_DEF=['PP','P','M','G','GG','PP GG','PP P','P M','M G','G GG','PP P M','P M G','M G GG','PP P M G','P M G GG','PP P M G GG','PP P M G GG XG'];
 const UNAMES={taty:'Cinthia / Taty',edvaldo:'Edvaldo',rosana:'Rosana',daimartha:'Dai / Martha',carol:'Carol',estoque:'Estoque',vendA:'Vendedora A',vendB:'Vendedora B',vendC:'Vendedora C',gerente:'Gi — Bonequim'};
 
 // Cortes status
@@ -1496,12 +1496,16 @@ function openEditar(id){
   document.getElementById('f-rolo').value=c.rolo||'';
   document.getElementById('f-urg').value=c.urg?'sim':'nao';
   document.getElementById('calc-preview').innerHTML='';
-  const gsel=document.getElementById('f-grade');
-  if(gsel){
+  // Ensure grade, tecido, tinturaria values exist in dropdowns
+  ['f-grade','f-tec','f-tin'].forEach(selId=>{
+    const sel=document.getElementById(selId);
+    if(!sel)return;
+    const val=selId==='f-grade'?c.grade:selId==='f-tec'?c.tec:c.tin;
+    if(!val)return;
     let found=false;
-    for(let i=0;i<gsel.options.length;i++){if(gsel.options[i].value===c.grade){gsel.selectedIndex=i;found=true;break;}}
-    if(!found&&c.grade){const opt=document.createElement('option');opt.value=c.grade;opt.text=c.grade;gsel.appendChild(opt);gsel.value=c.grade;}
-  }
+    for(let i=0;i<sel.options.length;i++){if(sel.options[i].value===val){sel.selectedIndex=i;found=true;break;}}
+    if(!found){const opt=document.createElement('option');opt.value=val;opt.text=val;sel.appendChild(opt);sel.value=val;}
+  });
   op('ov-novo');
 }
 
@@ -1515,11 +1519,15 @@ async function salvarCorte(){
     return 'ID-tmp-'+Date.now();
   }
   const id=document.getElementById('f-id').value.trim()||nextId();
+  const existente=editId?cortes.find(x=>x.id===editId):null;
+  const tecVal=document.getElementById('f-tec').value||existente?.tec||'';
+  const tinVal=document.getElementById('f-tin').value||existente?.tin||'';
+  const gradeVal=document.getElementById('f-grade').value||existente?.grade||'';
   const obj={
     id,ref:document.getElementById('f-ref').value.trim(),nome,
     data:document.getElementById('f-data').value,
-    tec:document.getElementById('f-tec').value,tin:document.getElementById('f-tin').value,
-    grade:document.getElementById('f-grade').value,ret:document.getElementById('f-ret').value.trim(),
+    tec:tecVal,tin:tinVal,grade:gradeVal,
+    ret:document.getElementById('f-ret').value.trim(),
     obs:document.getElementById('f-obs').value.trim(),
     rolo:parseFloat(document.getElementById('f-rolo').value)||0,
     urg:document.getElementById('f-urg').value==='sim',
@@ -1532,20 +1540,29 @@ async function salvarCorte(){
       const o=cortes[idx];
       ['status','encM','encPct','encObs','cores','checksDesc','numCorte','dataDesc','tipo','carolObs','giObs','fotoLocal','impresso','_row'].forEach(k=>{obj[k]=o[k];});
       cortes[idx]=obj;
-    }
-  }else cortes.unshift(obj);
-  sl();cl('ov-novo');render();toast(editId?'✏️ Atualizado!':'✅ Criado!','s');
-  if(!editId){
-    // ID comes from server counter — never repeats even after deletions
-    const r=await pushNew({REF:obj.ref,NOME:obj.nome,DATA_ENTRADA:dout(obj.data).replace(/—/,''),TECIDO:obj.tec,TINTURARIA:obj.tin,GRADE:obj.grade,RETALHO:obj.ret,OBS:obj.obs,ROLO:obj.rolo,URGENTE:obj.urg?'sim':'nao'});
-    if(r?.ok){
-      // Update local ID with the one from server
-      const idx=cortes.findIndex(x=>x.id===obj.id);
-      if(idx>-1&&r.id){cortes[idx].id=r.id;sl();}
-      setTimeout(()=>syncAll(true),1000);
+      sl();cl('ov-novo');render();toast('✏️ Atualizado!','s');
+      await push(obj._row,[['TECIDO',obj.tec],['TINTURARIA',obj.tin],['GRADE',obj.grade],['RETALHO',obj.ret],['OBS',obj.obs],['ROLO',obj.rolo],['URGENTE',obj.urg?'sim':'nao']]);
     }
   } else {
-    await push(obj._row,[['TECIDO',obj.tec],['TINTURARIA',obj.tin],['GRADE',obj.grade],['RETALHO',obj.ret],['OBS',obj.obs],['ROLO',obj.rolo],['URGENTE',obj.urg?'sim':'nao']]);
+    // For new: show saving state, wait for server ID before adding to list
+    cl('ov-novo');
+    toast('Salvando...','i');
+    try{
+      const r=await pushNew({REF:obj.ref,NOME:obj.nome,DATA_ENTRADA:dout(obj.data).replace(/—/,''),TECIDO:obj.tec,TINTURARIA:obj.tin,GRADE:obj.grade,RETALHO:obj.ret,OBS:obj.obs,ROLO:obj.rolo,URGENTE:obj.urg?'sim':'nao'});
+      if(r?.ok&&r.id){
+        obj.id=r.id; // Use server ID
+        cortes.unshift(obj);
+        sl();render();
+        toast('✅ Criado! '+r.id,'s');
+        setTimeout(()=>syncAll(true),1000);
+      } else {
+        toast('Erro ao criar — tente novamente','w');
+        console.error('pushNew response:',r);
+      }
+    }catch(e){
+      toast('Erro de conexão ao criar corte','w');
+      console.error(e);
+    }
   }
 }
 
