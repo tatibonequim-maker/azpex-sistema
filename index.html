@@ -725,10 +725,9 @@ async function syncAll(silent){
       }));
       // Deduplicate by ID - keep the one with highest _row (most recent in sheet)
       const seen={};
-      cortes=mapped.filter(x=>{
-        if(!x.id)return false;
-        if(!seen[x.id]||x._row>seen[x.id]._row){seen[x.id]=x;return false;}
-        return false;
+      mapped.forEach(x=>{
+        if(!x.id)return;
+        if(!seen[x.id]||x._row>seen[x.id]._row)seen[x.id]=x;
       });
       cortes=Object.values(seen);
 
@@ -1116,6 +1115,7 @@ function cardRosanaNC(c){
 }
 
 function cardChegou(c){
+  const coresList=(c.cores||[]).map(x=>x.cor).filter(Boolean);
   return`<div class="card-arr" id="carr-${c.id}">
     <div style="display:flex;justify-content:space-between;margin-bottom:4px">
       <div>
@@ -1126,7 +1126,13 @@ function cardChegou(c){
     </div>
     <div class="cnome">${c.nome}</div>
     ${(c.obs||c.encObs)?`<div style="font-size:.73rem;color:#8B4513;background:#FFF3CD;border-radius:5px;padding:3px 7px;margin-bottom:5px">⚠ ${[c.obs,c.encObs].filter(Boolean).join(' · ')}</div>`:''}
-    <div class="ctags">${c.grade?`<span style="font-size:.78rem;padding:3px 9px;border-radius:20px;font-family:'DM Mono',monospace;background:#E1F5EE;color:#085041;font-weight:600">${c.grade}</span>`:''}</div>
+    <div class="ctags">
+      ${c.grade?`<span style="font-size:.78rem;padding:3px 9px;border-radius:20px;font-family:'DM Mono',monospace;background:#E1F5EE;color:#085041;font-weight:600">${c.grade}</span>`:''}
+      ${c.tec?`<span class="tag tg">${c.tec}</span>`:''}
+    </div>
+    ${coresList.length?`<div style="display:flex;gap:4px;flex-wrap:wrap;margin-bottom:7px">
+      ${coresList.map(cor=>`<span style="font-size:.72rem;padding:2px 8px;border-radius:20px;background:var(--b5);color:var(--c5);font-weight:500">${cor}</span>`).join('')}
+    </div>`:''}
     <div style="font-size:.76rem;color:var(--mt);margin-bottom:6px">Chegou da oficina?</div>
     <div class="arr-btns">
       <button class="arr-btn" style="background:var(--b2);color:var(--c2)" onclick="marcarChegada('${c.id}','reposicao')">📦 Reposição</button>
@@ -1216,16 +1222,31 @@ async function salvarEncaixe(id){
   toast('Encaixe enviado! Aguardando aprovação.','s');
   if(c._row){
     try{
-      await apip({action:'atualizarCampos',row:c._row,campos:[['ENCAIXE_M',m],['RENDIMENTO',pct],['OBS_CAD',c.encObs],['STATUS','AGUARDANDO_APROVACAO']]});
-      toast('Salvo na planilha ✔','s');
-      // Wait longer before sync to avoid reverting
+      const resp=await apip({action:'atualizarCampos',row:c._row,campos:[['ENCAIXE_M',m],['RENDIMENTO',pct],['OBS_CAD',c.encObs],['STATUS','AGUARDANDO_APROVACAO']]});
+      if(resp&&resp.ok){
+        toast('Encaixe salvo ✔','s');
+      } else {
+        toast('Resposta inesperada da planilha: '+(resp?.error||'tente novamente'),'w');
+      }
       setTimeout(()=>syncAll(true),5000);
     }catch(e){
-      toast('Erro ao salvar — tente novamente','w');
-      console.error(e);
+      toast('Erro de conexão: '+e.message,'w');
+      console.error('salvarEncaixe error:',e);
     }
   } else {
-    toast('Sem conexão com planilha — salvo localmente','i');
+    // No _row = not synced yet, force sync first
+    toast('Sincronizando antes de salvar...','i');
+    await syncAll(false);
+    const c2=cortes.find(x=>x.id===id);
+    if(c2&&c2._row){
+      try{
+        await apip({action:'atualizarCampos',row:c2._row,campos:[['ENCAIXE_M',m],['RENDIMENTO',pct],['OBS_CAD',c2.encObs||''],['STATUS','AGUARDANDO_APROVACAO']]});
+        c2.encM=m;c2.encPct=pct;c2.status='AGUARDANDO_APROVACAO';
+        sl();render();toast('Encaixe salvo ✔','s');
+      }catch(e){toast('Erro ao salvar','w');console.error(e);}
+    } else {
+      toast('Não foi possível salvar — verifique a conexão','w');
+    }
   }
 }
 
@@ -1490,14 +1511,8 @@ async function salvarCorte(){
   const nome=document.getElementById('f-nome').value.trim();
   if(!nome){toast('Preencha o nome','w');return;}
   function nextId(){
-    // Always use max from: localStorage (tracks all IDs ever seen including deletados)
-    let max=parseInt(localStorage.getItem('az_max_id')||'0');
-    // Also check current in-memory cortes
-    cortes.forEach(c=>{const n=parseInt((c.id||'').replace(/[^0-9]/g,''))||0;if(n>max)max=n;});
-    const next=max+1;
-    // Save immediately so two quick creations don't get same ID
-    localStorage.setItem('az_max_id',String(next));
-    return 'ID-'+String(next).padStart(3,'0');
+    // Temp placeholder - real ID assigned by server counter
+    return 'ID-tmp-'+Date.now();
   }
   const id=document.getElementById('f-id').value.trim()||nextId();
   const obj={
@@ -1520,8 +1535,18 @@ async function salvarCorte(){
     }
   }else cortes.unshift(obj);
   sl();cl('ov-novo');render();toast(editId?'✏️ Atualizado!':'✅ Criado!','s');
-  if(!editId){const r=await pushNew({REF:obj.ref,NOME:obj.nome,DATA_ENTRADA:dout(obj.data).replace(/—/,''),TECIDO:obj.tec,TINTURARIA:obj.tin,GRADE:obj.grade,RETALHO:obj.ret,OBS:obj.obs,ROLO:obj.rolo,URGENTE:obj.urg?'sim':'nao'});if(r?.ok)setTimeout(()=>syncAll(true),800);}
-  else await push(obj._row,[['TECIDO',obj.tec],['TINTURARIA',obj.tin],['GRADE',obj.grade],['RETALHO',obj.ret],['OBS',obj.obs],['ROLO',obj.rolo],['URGENTE',obj.urg?'sim':'nao']]);
+  if(!editId){
+    // ID comes from server counter — never repeats even after deletions
+    const r=await pushNew({REF:obj.ref,NOME:obj.nome,DATA_ENTRADA:dout(obj.data).replace(/—/,''),TECIDO:obj.tec,TINTURARIA:obj.tin,GRADE:obj.grade,RETALHO:obj.ret,OBS:obj.obs,ROLO:obj.rolo,URGENTE:obj.urg?'sim':'nao'});
+    if(r?.ok){
+      // Update local ID with the one from server
+      const idx=cortes.findIndex(x=>x.id===obj.id);
+      if(idx>-1&&r.id){cortes[idx].id=r.id;sl();}
+      setTimeout(()=>syncAll(true),1000);
+    }
+  } else {
+    await push(obj._row,[['TECIDO',obj.tec],['TINTURARIA',obj.tin],['GRADE',obj.grade],['RETALHO',obj.ret],['OBS',obj.obs],['ROLO',obj.rolo],['URGENTE',obj.urg?'sim':'nao']]);
+  }
 }
 
 function openCores(id){
