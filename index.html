@@ -746,7 +746,11 @@ async function syncAll(silent){
       }));
     }
     if(l&&l.tecidos){localStorage.setItem('az_listas',JSON.stringify(l));populateSels();}
-    sl();render();if(!silent)toast('Sincronizado ✔','s');
+    sl();
+    // Don't re-render if user is filling a form
+    const novoOpen=document.getElementById('ov-novo')?.classList.contains('open');
+    if(!novoOpen)render();
+    if(!silent)toast('Sincronizado ✔','s');
   }catch(e){console.error(e);if(!silent)toast('Erro ao sincronizar','w');}
 }
 
@@ -799,14 +803,25 @@ function getGrades(){
   return[...GRADES_DEF,...custom.filter(g=>!GRADES_DEF.includes(g))];
 }
 
-function populateSels(){
+function populateSels(force){
   const stored=JSON.parse(localStorage.getItem('az_listas')||'{}');
   const tecs=stored.tecidos?.length?stored.tecidos:['Montaria','Montaria Light','Canelado Montaria','Visco Caneladinho','Canelado 70','Canelado Visco','New Light','Fluity','Flamê','Jeans','Viscose','Cirrê','Moletinho'];
   const tins=stored.tinturarias?.length?stored.tinturarias:['GUARA','MAR','N/A'];
   const grades=getGrades();
-  ['f-tec','p-tec'].forEach(id=>{const el=document.getElementById(id);if(el)el.innerHTML='<option value="">Selecionar...</option>'+tecs.map(t=>`<option>${t}</option>`).join('');});
-  ['f-tin'].forEach(id=>{const el=document.getElementById(id);if(el)el.innerHTML='<option value="">Selecionar...</option>'+tins.map(t=>`<option>${t}</option>`).join('');});
-  ['f-grade','p-grade'].forEach(id=>{const el=document.getElementById(id);if(el)el.innerHTML='<option value="">Selecionar...</option>'+grades.map(g=>`<option>${g}</option>`).join('');});
+  function rebuildSel(id,opts){
+    const el=document.getElementById(id);if(!el)return;
+    const prev=el.value; // save current value
+    el.innerHTML='<option value="">Selecionar...</option>'+opts.map(t=>`<option>${t}</option>`).join('');
+    if(prev){
+      // Restore previous value
+      let found=false;
+      for(let i=0;i<el.options.length;i++){if(el.options[i].value===prev){el.selectedIndex=i;found=true;break;}}
+      if(!found&&prev){const opt=document.createElement('option');opt.value=prev;opt.text=prev;el.appendChild(opt);el.value=prev;}
+    }
+  }
+  ['f-tec','p-tec'].forEach(id=>rebuildSel(id,tecs));
+  ['f-tin'].forEach(id=>rebuildSel(id,tins));
+  ['f-grade','p-grade'].forEach(id=>rebuildSel(id,grades));
 }
 
 // ── CALC ──
@@ -1515,7 +1530,8 @@ async function salvarCorte(){
   const nome=document.getElementById('f-nome').value.trim();
   if(!nome){toast('Preencha o nome','w');return;}
   function nextId(){
-    // Temp placeholder - real ID assigned by server counter
+    // This is only used as temp display - real ID comes from server
+    // Using timestamp ensures no two local IDs clash
     return 'ID-tmp-'+Date.now();
   }
   const id=document.getElementById('f-id').value.trim()||nextId();
