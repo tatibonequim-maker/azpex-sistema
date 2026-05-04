@@ -495,7 +495,7 @@ input,select,textarea,button{font-family:'DM Sans',sans-serif}
 // ── CONSTANTS ──
 const DURL='https://script.google.com/macros/s/AKfycbxPBTjdEM04daObzVy7j1qV4qkQjn1-4WUav0mKMuvWp6v6O3YI1Pwjh0G2mdcF7GDh/exec';
 const DPINS={taty:'1234',edvaldo:'5678',rosana:'9012',daimartha:'3456',carol:'2468',estoque:'1357',vendA:'1111',vendB:'2222',vendC:'3333',gerente:'4444'};
-const GRADES_DEF=['PP','P','M','G','GG','PP GG','PP P','P M','M G','G GG','PP P M','P M G','M G GG','PP P M G','P M G GG','PP P M G GG','PP P M G GG XG'];
+const GRADES_DEF=['PP','P','M','G','GG','PP P','P M','M G','G GG','PP P M','P M G','M G GG','PP P M G','P M G GG','PP P M G GG'];
 const UNAMES={taty:'Cinthia / Taty',edvaldo:'Edvaldo',rosana:'Rosana',daimartha:'Dai / Martha',carol:'Carol',estoque:'Estoque',vendA:'Vendedora A',vendB:'Vendedora B',vendC:'Vendedora C',gerente:'Gi — Bonequim'};
 
 // Cortes status
@@ -696,21 +696,14 @@ async function pushNew(dados){if(!cfg.url)return null;try{return await apip({act
 
 async function syncAll(silent){
   if(!cfg.url){if(!silent)toast('Configure o URL primeiro','w');return;}
-  if(silent&&Date.now()-lastPushTime<10000)return;
+  if(silent&&Date.now()-lastPushTime<8000)return;
   if(!silent)toast('Sincronizando...','i');
   try{
     const[c,l,p]=await Promise.all([apig({action:'getCortes'}),apig({action:'getListas'}),apig({action:'getPedidos'})]);
     if(Array.isArray(c)&&c.length>0){
       const fotoMap={};cortes.forEach(x=>{if(x.fotoLocal)fotoMap[x.id]=x.fotoLocal;});
-      // Track max ID BEFORE filtering deletados
-      const allIds=c.map(r=>parseInt((str(r.ID)||'').replace(/[^0-9]/g,''))||0);
-      const maxIdSeen=Math.max(0,...allIds);
-      const storedMax=parseInt(localStorage.getItem('az_max_id')||'0');
-      const newMax=Math.max(maxIdSeen,storedMax);
-      localStorage.setItem('az_max_id',String(newMax));
-
-      const mapped=c.filter(r=>r.STATUS!=='DELETADO').map(r=>({
-        id:str(r.ID),ref:str(r.REF).replace(/\.0$/,''),nome:str(r.NOME),
+      cortes=c.filter(r=>r.STATUS!=='DELETADO').map(r=>({
+        id:str(r.ID),ref:str(r.REF),nome:str(r.NOME),
         data:din(str(r.DATA_ENTRADA)),tec:str(r.TECIDO),tin:str(r.TINTURARIA),
         grade:str(r.GRADE),ret:str(r.RETALHO),obs:str(r.OBS),
         urg:str(r.URGENTE).toLowerCase()==='sim',
@@ -723,14 +716,6 @@ async function syncAll(silent){
         status:mapStatus(str(r.STATUS)),_row:r._row,
         fotoLocal:fotoMap[str(r.ID)]||'',
       }));
-      // Deduplicate by ID - keep the one with highest _row (most recent in sheet)
-      const seen={};
-      mapped.forEach(x=>{
-        if(!x.id)return;
-        if(!seen[x.id]||x._row>seen[x.id]._row)seen[x.id]=x;
-      });
-      cortes=Object.values(seen);
-
     }
     if(Array.isArray(p)&&p.length>0){
       pedidos=p.map(r=>({
@@ -746,11 +731,7 @@ async function syncAll(silent){
       }));
     }
     if(l&&l.tecidos){localStorage.setItem('az_listas',JSON.stringify(l));populateSels();}
-    sl();
-    // Don't re-render if user is filling a form
-    const novoOpen=document.getElementById('ov-novo')?.classList.contains('open');
-    if(!novoOpen)render();
-    if(!silent)toast('Sincronizado ✔','s');
+    sl();render();if(!silent)toast('Sincronizado ✔','s');
   }catch(e){console.error(e);if(!silent)toast('Erro ao sincronizar','w');}
 }
 
@@ -803,25 +784,14 @@ function getGrades(){
   return[...GRADES_DEF,...custom.filter(g=>!GRADES_DEF.includes(g))];
 }
 
-function populateSels(force){
+function populateSels(){
   const stored=JSON.parse(localStorage.getItem('az_listas')||'{}');
   const tecs=stored.tecidos?.length?stored.tecidos:['Montaria','Montaria Light','Canelado Montaria','Visco Caneladinho','Canelado 70','Canelado Visco','New Light','Fluity','Flamê','Jeans','Viscose','Cirrê','Moletinho'];
   const tins=stored.tinturarias?.length?stored.tinturarias:['GUARA','MAR','N/A'];
   const grades=getGrades();
-  function rebuildSel(id,opts){
-    const el=document.getElementById(id);if(!el)return;
-    const prev=el.value; // save current value
-    el.innerHTML='<option value="">Selecionar...</option>'+opts.map(t=>`<option>${t}</option>`).join('');
-    if(prev){
-      // Restore previous value
-      let found=false;
-      for(let i=0;i<el.options.length;i++){if(el.options[i].value===prev){el.selectedIndex=i;found=true;break;}}
-      if(!found&&prev){const opt=document.createElement('option');opt.value=prev;opt.text=prev;el.appendChild(opt);el.value=prev;}
-    }
-  }
-  ['f-tec','p-tec'].forEach(id=>rebuildSel(id,tecs));
-  ['f-tin'].forEach(id=>rebuildSel(id,tins));
-  ['f-grade','p-grade'].forEach(id=>rebuildSel(id,grades));
+  ['f-tec','p-tec'].forEach(id=>{const el=document.getElementById(id);if(el)el.innerHTML='<option value="">Selecionar...</option>'+tecs.map(t=>`<option>${t}</option>`).join('');});
+  ['f-tin'].forEach(id=>{const el=document.getElementById(id);if(el)el.innerHTML='<option value="">Selecionar...</option>'+tins.map(t=>`<option>${t}</option>`).join('');});
+  ['f-grade','p-grade'].forEach(id=>{const el=document.getElementById(id);if(el)el.innerHTML='<option value="">Selecionar...</option>'+grades.map(g=>`<option>${g}</option>`).join('');});
 }
 
 // ── CALC ──
@@ -952,7 +922,7 @@ function renderCortes(){
 }
 
 function corteCardHTML(c){
-  if(user==='edvaldo'&&(c.status==='AGUARDANDO_ENCAIXE'||c.status==='ENCAIXE_REPROVADO'))return cardEdvaldo(c);
+  if(user==='edvaldo')return cardEdvaldo(c);
   if(user==='taty'&&(c.status==='AGUARDANDO_ENCAIXE'||c.status==='ENCAIXE_REPROVADO'))return cardEdvaldo(c);
   if((user==='rosana'||user==='taty')&&c.status==='DESCANSAR_TECIDO')return cardRosana(c);
   if((user==='rosana'||user==='taty')&&c.status==='TECIDO_DESCANSADO'&&!c.numCorte)return cardRosanaNC(c);
@@ -986,7 +956,7 @@ function cardBase(c){
       ${total?`<span class="tag" style="background:var(--al);color:var(--ac)">~${total} pç</span>`:''}
       ${c.tipo?`<span class="tag" style="background:${c.tipo==='novidade'?'var(--b6)':'var(--b2)'};color:${c.tipo==='novidade'?'var(--c6)':'var(--c2)'}">${c.tipo}</span>`:''}
     </div>
-    ${(canCores||(user==='taty'&&c.status==='AGUARDANDO_APROVACAO'))?calcDetalhe(c):''}
+    ${canCores?calcDetalhe(c):''}
     <div class="cfoot">
       <span class="cdate">${dout(c.data)}</span>
       ${canApr?`<span style="background:var(--b2);color:var(--c2);font-size:.62rem;padding:2px 7px;border-radius:5px;font-weight:500">${c.encM}m·${c.encPct}%</span>`:''}
@@ -994,9 +964,6 @@ function cardBase(c){
       ${canGi?`<div style="display:flex;gap:5px"><button style="background:var(--b3);color:var(--c3);border:none;border-radius:6px;padding:3px 8px;font-size:.63rem;font-weight:500;cursor:pointer" onclick="event.stopPropagation();aprovarEnvio('${c.id}')">✔ Enviar</button><button style="background:var(--b4);color:var(--c4);border:none;border-radius:6px;padding:3px 8px;font-size:.63rem;font-weight:500;cursor:pointer" onclick="event.stopPropagation();giArquivar('${c.id}')">✕ Não precisa</button></div>`:''}
       ${canDM?`<button style="background:var(--b3);color:var(--c3);border:none;border-radius:6px;padding:3px 8px;font-size:.63rem;font-weight:500;cursor:pointer" onclick="event.stopPropagation();transmissaoMire('${c.id}')">Transmissão Miré ✔</button>`:''}
     </div>
-    ${cfg.wedv&&c.status==='AGUARDANDO_ENCAIXE'?wppBtn(cfg.wedv,'Avisar Edvaldo','📐 Azpex\n*'+c.id+' — '+c.nome+'*\nRef: '+c.ref+'\nAguardando encaixe.\nTecido: '+c.tec+' · Grade: '+(c.grade||'—')+(c.urg?'\n⚡ URGENTE':'')):''}
-    ${cfg.wros&&c.status==='DESCANSAR_TECIDO'?wppBtn(cfg.wros,'Avisar Rosana','✂️ Azpex\n*'+c.id+' — '+c.nome+'*\nRef: '+c.ref+'\nTecido para descansar.\nCores:\n'+(c.cores||[]).map(x=>'• '+x.cor+' — '+x.qtd+' rolo(s)').join('\n')+(c.urg?'\n⚡ URGENTE':'')):''}
-    ${cfg.wcarol&&c.status==='AG_FOTO'?wppBtn(cfg.wcarol,'Avisar Carol','📸 Azpex\n*'+c.id+' — '+c.nome+'*\nRef: '+c.ref+'\nNovidade aguardando foto!\nGrade: '+(c.grade||'—')+(c.numCorte?' · OP: '+c.numCorte:'')+(c.urg?'\n⚡ URGENTE':'')):''}
   </div>`;
 }
 
@@ -1053,11 +1020,6 @@ function cardEdvaldo(c){
     <button class="ebtn" onclick="salvarEncaixe('${c.id}')" style="background:${user==='taty'?'var(--ac)':'var(--c2)'}">
       ${user==='taty'?'Salvar e aprovar encaixe ✔':'Enviar para aprovação →'}
     </button>
-    ${(()=>{
-      if(!cfg.wedv)return'';
-      const msg=encodeURIComponent('📐 Azpex\n*'+c.id+' — '+c.nome+'*\nRef: '+c.ref+'\nAguardando encaixe.\nTecido: '+c.tec+' · Grade: '+(c.grade||'—')+(c.urg?'\n⚡ URGENTE':''));
-      return '<a href="https://wa.me/'+cfg.wedv+'?text='+msg+'" target="_blank" onclick="event.stopPropagation()" style="text-decoration:none;display:block;margin-top:8px"><button style="width:100%;padding:7px;border-radius:7px;border:1px solid #25D366;background:rgba(37,211,102,.08);color:#25D366;font-size:.76rem;font-weight:600;cursor:pointer">📱 Avisar Edvaldo</button></a>';
-    })()}
   </div>`;
 }
 
@@ -1100,12 +1062,6 @@ function cardRosana(c){
     <div class="pb"><div class="pf" id="pf-${c.id}" style="width:${pct}%"></div></div>
     <div class="pl" id="pl-${c.id}">${done} de ${total} descansados</div>
     <button class="dbtn" style="background:#1D9E75;color:#fff" id="db-${c.id}" ${done<total?'disabled':''} onclick="event.stopPropagation();salvarDescanso('${c.id}')">Confirmar tudo descansado ✔</button>
-    ${(()=>{
-      if(!cfg.wros)return'';
-      const cores=(c.cores||[]).map(x=>'• '+x.cor+' — '+x.qtd+' rolo(s)').join('\n');
-      const msg=encodeURIComponent('✂️ Azpex\n*'+c.id+' — '+c.nome+'*\nRef: '+c.ref+'\nTecido para descansar.\nCores:\n'+cores+(c.urg?'\n⚡ URGENTE':''));
-      return '<a href="https://wa.me/'+cfg.wros+'?text='+msg+'" target="_blank" onclick="event.stopPropagation()" style="text-decoration:none;display:block;margin-top:8px"><button style="width:100%;padding:7px;border-radius:7px;border:1px solid #25D366;background:rgba(37,211,102,.08);color:#25D366;font-size:.76rem;font-weight:600;cursor:pointer">📱 Avisar Rosana</button></a>';
-    })()}
   </div>`;
 }
 
@@ -1130,7 +1086,6 @@ function cardRosanaNC(c){
 }
 
 function cardChegou(c){
-  const coresList=(c.cores||[]).map(x=>x.cor).filter(Boolean);
   return`<div class="card-arr" id="carr-${c.id}">
     <div style="display:flex;justify-content:space-between;margin-bottom:4px">
       <div>
@@ -1141,13 +1096,7 @@ function cardChegou(c){
     </div>
     <div class="cnome">${c.nome}</div>
     ${(c.obs||c.encObs)?`<div style="font-size:.73rem;color:#8B4513;background:#FFF3CD;border-radius:5px;padding:3px 7px;margin-bottom:5px">⚠ ${[c.obs,c.encObs].filter(Boolean).join(' · ')}</div>`:''}
-    <div class="ctags">
-      ${c.grade?`<span style="font-size:.78rem;padding:3px 9px;border-radius:20px;font-family:'DM Mono',monospace;background:#E1F5EE;color:#085041;font-weight:600">${c.grade}</span>`:''}
-      ${c.tec?`<span class="tag tg">${c.tec}</span>`:''}
-    </div>
-    ${coresList.length?`<div style="display:flex;gap:4px;flex-wrap:wrap;margin-bottom:7px">
-      ${coresList.map(cor=>`<span style="font-size:.72rem;padding:2px 8px;border-radius:20px;background:var(--b5);color:var(--c5);font-weight:500">${cor}</span>`).join('')}
-    </div>`:''}
+    <div class="ctags">${c.grade?`<span style="font-size:.78rem;padding:3px 9px;border-radius:20px;font-family:'DM Mono',monospace;background:#E1F5EE;color:#085041;font-weight:600">${c.grade}</span>`:''}</div>
     <div style="font-size:.76rem;color:var(--mt);margin-bottom:6px">Chegou da oficina?</div>
     <div class="arr-btns">
       <button class="arr-btn" style="background:var(--b2);color:var(--c2)" onclick="marcarChegada('${c.id}','reposicao')">📦 Reposição</button>
@@ -1175,11 +1124,6 @@ function cardCarol(c){
     </div>
     <textarea style="width:100%;background:var(--s2);border:.5px solid var(--bd);border-radius:7px;padding:7px 9px;font-size:16px;color:var(--tx);outline:none;resize:none;margin-bottom:8px" id="cobs-${c.id}" rows="2" placeholder="Observações da foto...">${c.carolObs||''}</textarea>
     <button class="dbtn" style="background:var(--c6);color:#fff" onclick="carolAprovar('${c.id}')">✔ Foto pronta — liberar envio</button>
-    ${(()=>{
-      if(!cfg.wcarol)return'';
-      const msg=encodeURIComponent('📸 Azpex\n*'+c.id+' — '+c.nome+'*\nRef: '+c.ref+'\nNovidade aguardando foto!\nGrade: '+(c.grade||'—')+(c.numCorte?' · OP: '+c.numCorte:'')+(c.urg?'\n⚡ URGENTE':''));
-      return '<a href="https://wa.me/'+cfg.wcarol+'?text='+msg+'" target="_blank" onclick="event.stopPropagation()" style="text-decoration:none;display:block;margin-top:8px"><button style="width:100%;padding:7px;border-radius:7px;border:1px solid #25D366;background:rgba(37,211,102,.08);color:#25D366;font-size:.76rem;font-weight:600;cursor:pointer">📱 Avisar Carol</button></a>';
-    })()}
   </div>`;
 }
 
@@ -1224,43 +1168,29 @@ function renderStatsPedidos(){
 
 // ── AÇÕES CORTES ──
 async function salvarEncaixe(id){
-  const m=document.getElementById('em-'+id)?.value?.trim();
-  const pct=document.getElementById('ep-'+id)?.value?.trim();
+  const m=document.getElementById('em-'+id)?.value;
+  const pct=document.getElementById('ep-'+id)?.value;
   if(!m||!pct){toast('Preencha comprimento e aproveitamento','w');return;}
-  // Find by id - if duplicate IDs, pick the one matching the card's row
   const c=cortes.find(x=>x.id===id);
-  if(!c){toast('Corte não encontrado: '+id,'w');return;}
-  c.encM=m;c.encPct=pct;c.encObs=document.getElementById('eo-'+id)?.value?.trim()||'';
-  c.status='AGUARDANDO_APROVACAO';
-  lastPushTime=Date.now();
-  sl();render();
-  toast('Encaixe enviado! Aguardando aprovação.','s');
-  if(c._row){
-    try{
-      const resp=await apip({action:'atualizarCampos',row:c._row,campos:[['ENCAIXE_M',m],['RENDIMENTO',pct],['OBS_CAD',c.encObs],['STATUS','AGUARDANDO_APROVACAO']]});
-      if(resp&&resp.ok){
-        toast('Encaixe salvo ✔','s');
-      } else {
-        toast('Resposta inesperada da planilha: '+(resp?.error||'tente novamente'),'w');
-      }
-      setTimeout(()=>syncAll(true),5000);
-    }catch(e){
-      toast('Erro de conexão: '+e.message,'w');
-      console.error('salvarEncaixe error:',e);
+  if(!c)return;
+  c.encM=m;c.encPct=pct;c.encObs=document.getElementById('eo-'+id)?.value.trim()||'';
+  if(user==='taty'){
+    lastPushTime=Date.now();
+    c.status='DEFINIR_CORES';
+    sl();render();
+    toast('Encaixe aprovado! Defina as cores.','s');
+    if(c._row){
+      await apip({action:'atualizarCampos',row:c._row,campos:[['ENCAIXE_M',m],['RENDIMENTO',pct],['OBS_CAD',c.encObs],['STATUS','DEFINIR_CORES']]});
+      setTimeout(()=>syncAll(true),3000);
     }
   } else {
-    // No _row = not synced yet, force sync first
-    toast('Sincronizando antes de salvar...','i');
-    await syncAll(false);
-    const c2=cortes.find(x=>x.id===id);
-    if(c2&&c2._row){
-      try{
-        await apip({action:'atualizarCampos',row:c2._row,campos:[['ENCAIXE_M',m],['RENDIMENTO',pct],['OBS_CAD',c2.encObs||''],['STATUS','AGUARDANDO_APROVACAO']]});
-        c2.encM=m;c2.encPct=pct;c2.status='AGUARDANDO_APROVACAO';
-        sl();render();toast('Encaixe salvo ✔','s');
-      }catch(e){toast('Erro ao salvar','w');console.error(e);}
-    } else {
-      toast('Não foi possível salvar — verifique a conexão','w');
+    lastPushTime=Date.now();
+    c.status='AGUARDANDO_APROVACAO';
+    sl();render();
+    toast('Encaixe enviado para aprovação!','s');
+    if(c._row){
+      await apip({action:'atualizarCampos',row:c._row,campos:[['ENCAIXE_M',m],['RENDIMENTO',pct],['OBS_CAD',c.encObs],['STATUS','AGUARDANDO_APROVACAO']]});
+      setTimeout(()=>syncAll(true),3000);
     }
   }
 }
@@ -1439,12 +1369,12 @@ function openDet(id){
         <button class="abtn abtn-danger" onclick="reprovar('${c.id}')">✕ Reprovar encaixe</button>`:''}
       ${user==='taty'&&c.status==='DEFINIR_CORES'?`<button class="abtn" style="background:var(--b6);color:var(--c6)" onclick="cl('ov-det');openCores('${c.id}')">Definir cores →</button>`:''}
       ${(user==='taty'||user==='daimartha')&&c.status==='NO_CORTE'?`
-        <button class="abtn" style="background:var(--b2);color:var(--c2)" onclick="cl('ov-det');marcarChegada('${c.id}','reposicao')">📦 Reposição — separar envio</button>
-        <button class="abtn" style="background:var(--b6);color:var(--c6)" onclick="cl('ov-det');marcarChegada('${c.id}','novidade')">✨ Novidade — avisar Carol</button>`:''}
-      ${(['gerente','taty','carol'].includes(user))&&c.status==='AGUARDANDO_GI'?`<div style="display:flex;flex-direction:column;gap:7px"><button class="abtn" style="background:var(--b3);color:var(--c3)" onclick="cl('ov-det');aprovarEnvio('${c.id}')">✔ Sim, enviar para loja</button><button class="abtn abtn-danger" onclick="cl('ov-det');giArquivar('${c.id}')">✕ Não precisamos — arquivar</button></div>`:''}
+        <button class="abtn" style="background:var(--b2);color:var(--c2)" onclick="cl('ov-det');marcarChegada('${c.id}','reposicao')">📦 Reposição</button>
+        <button class="abtn" style="background:var(--b6);color:var(--c6)" onclick="cl('ov-det');marcarChegada('${c.id}','novidade')">✨ Novidade</button>`:''}
+      ${(['gerente','taty','carol'].includes(user))&&c.status==='AGUARDANDO_GI'?`<div style="display:flex;flex-direction:column;gap:7px"><button class="abtn" style="background:var(--b3);color:var(--c3)" onclick="cl('ov-det');aprovarEnvio('${c.id}')">✔ Enviar para loja</button><button class="abtn abtn-danger" onclick="cl('ov-det');giArquivar('${c.id}')">✕ Não precisamos</button></div>`:''}
       ${user==='daimartha'&&c.status==='EMBALAR'?`<button class="abtn" style="background:var(--b3);color:var(--c3)" onclick="cl('ov-det');transmissaoMire('${c.id}')">✔ Transmissão Miré feita</button>`:''}
       ${user==='gerente'&&c.status==='PRONTO_RETIRADA'?`<button class="abtn" style="background:var(--b3);color:var(--c3)" onclick="cl('ov-det');arquivar('${c.id}')">✔ Recebido — arquivar</button>`:''}
-      ${cfg.wedv&&c.status==='AGUARDANDO_ENCAIXE'?`<a href="https://wa.me/${cfg.wedv}?text=${encodeURIComponent('📐 Azpex\n*'+c.id+' — '+c.nome+'*\nRef: '+c.ref+'\nAguardando encaixe.\nTecido: '+c.tec+' · Fornecedor: '+c.tin+'\nGrade: '+c.grade+(c.rolo?' · Rolo: '+c.rolo+'m':'')+(c.urg?'\n⚡ URGENTE':''))}" target="_blank" style="text-decoration:none"><button class="abtn abtn-wpp">📱 Avisar Edvaldo</button></a>`:''}
+      ${cfg.wedv&&c.status==='AGUARDANDO_ENCAIXE'?`<a href="https://wa.me/${cfg.wedv}?text=${encodeURIComponent('📐 Azpex\n*'+c.id+' — '+c.nome+'*\nRef: '+c.ref+'\nAguardando encaixe.\nTecido: '+c.tec+' · Grade: '+c.grade+(c.urg?'\n⚡ URGENTE':''))}" target="_blank" style="text-decoration:none"><button class="abtn abtn-wpp">📱 Avisar Edvaldo</button></a>`:''}
       ${cfg.wros&&(c.status==='DESCANSAR_TECIDO'||c.status==='DEFINIR_CORES')?`<a href="https://wa.me/${cfg.wros}?text=${encodeURIComponent('✂️ Azpex\n*'+c.id+' — '+c.nome+'*\nRef: '+c.ref+'\nTecido para descansar.\nCores:\n'+(c.cores||[]).map(x=>'• '+x.cor+' — '+x.qtd+' rolo(s)').join('\n')+(c.urg?'\n⚡ URGENTE':''))}" target="_blank" style="text-decoration:none"><button class="abtn abtn-wpp">📱 Avisar Rosana</button></a>`:''}
       ${cfg.wcarol&&c.status==='AG_FOTO'?`<a href="https://wa.me/${cfg.wcarol}?text=${encodeURIComponent('📸 Azpex\n*'+c.id+' — '+c.nome+'*\nRef: '+c.ref+'\nNovidade aguardando foto!\nGrade: '+c.grade+(c.numCorte?' · OP: '+c.numCorte:'')+(c.urg?'\n⚡ URGENTE':''))}" target="_blank" style="text-decoration:none"><button class="abtn abtn-wpp">📱 Avisar Carol</button></a>`:''}
     </div>`;
@@ -1461,17 +1391,16 @@ async function marcarImpresso(id){
 
 async function arquivar(id){
   const c=cortes.find(x=>x.id===id);if(!c)return;
-  c.status='ARQUIVADO';
-  sl();cl('ov-det');render();
-  toast('Recebido e arquivado!','s');
+  c.status='ARQUIVADO';sl();cl('ov-det');render();
+  toast('Arquivado!','s');
   await push(c._row,[['STATUS','ARQUIVADO']]);
 }
 
 async function deletarCorte(id){
-  if(!confirm('Tem certeza que quer deletar este corte?'))return;
+  if(!confirm('Deletar este corte?'))return;
   const c=cortes.find(x=>x.id===id);if(!c)return;
   cortes=cortes.filter(x=>x.id!==id);
-  sl();cl('ov-det');render();toast('Corte deletado.','i');
+  sl();cl('ov-det');render();toast('Deletado.','i');
   if(c._row)await push(c._row,[['STATUS','DELETADO'],['NOME','[DELETADO] '+c.nome]]);
 }
 
@@ -1479,8 +1408,7 @@ function autoFillRolo(){
   const tec=(document.getElementById('f-tec')?.value||'').toLowerCase();
   const roloEl=document.getElementById('f-rolo');
   if(!roloEl||roloEl.value)return;
-  const is30=tec==='montaria'||tec==='montaria light'||tec==='canelado montaria'||tec==='montaria pes'||tec.includes('montaria');
-  if(is30)roloEl.value='30';
+  if(tec.includes('montaria'))roloEl.value='30';
   else if(tec.includes('jeans'))roloEl.value='35';
   calcPreview();
 }
@@ -1503,18 +1431,13 @@ function openEditar(id){
   document.getElementById('f-ref').value=c.ref||'';
   document.getElementById('f-nome').value=c.nome;
   document.getElementById('f-data').value=c.data||'';
-  document.getElementById('f-tec').value=c.tec||'';
-  document.getElementById('f-tin').value=c.tin||'';
-  document.getElementById('f-grade').value=c.grade||'';
+  document.getElementById('f-rolo').value=c.rolo||'';
   document.getElementById('f-ret').value=c.ret||'';
   document.getElementById('f-obs').value=c.obs||'';
-  document.getElementById('f-rolo').value=c.rolo||'';
   document.getElementById('f-urg').value=c.urg?'sim':'nao';
   document.getElementById('calc-preview').innerHTML='';
-  // Ensure grade, tecido, tinturaria values exist in dropdowns
   ['f-grade','f-tec','f-tin'].forEach(selId=>{
-    const sel=document.getElementById(selId);
-    if(!sel)return;
+    const sel=document.getElementById(selId);if(!sel)return;
     const val=selId==='f-grade'?c.grade:selId==='f-tec'?c.tec:c.tin;
     if(!val)return;
     let found=false;
@@ -1529,23 +1452,18 @@ function setHoje(){document.getElementById('f-data').value=new Date().toISOStrin
 async function salvarCorte(){
   const nome=document.getElementById('f-nome').value.trim();
   if(!nome){toast('Preencha o nome','w');return;}
-  function nextId(){
-    // This is only used as temp display - real ID comes from server
-    // Using timestamp ensures no two local IDs clash
-    return 'ID-tmp-'+Date.now();
-  }
-  const id=document.getElementById('f-id').value.trim()||nextId();
   const existente=editId?cortes.find(x=>x.id===editId):null;
   const tecVal=document.getElementById('f-tec').value||existente?.tec||'';
   const tinVal=document.getElementById('f-tin').value||existente?.tin||'';
   const gradeVal=document.getElementById('f-grade').value||existente?.grade||'';
   const obj={
-    id,ref:document.getElementById('f-ref').value.trim(),nome,
+    id:document.getElementById('f-id').value.trim()||'ID-tmp-'+Date.now(),
+    ref:document.getElementById('f-ref').value.trim(),nome,
     data:document.getElementById('f-data').value,
     tec:tecVal,tin:tinVal,grade:gradeVal,
     ret:document.getElementById('f-ret').value.trim(),
     obs:document.getElementById('f-obs').value.trim(),
-    rolo:parseFloat(document.getElementById('f-rolo').value)||0,
+    rolo:parseFloat((document.getElementById('f-rolo').value||'').replace(',','.'))||0,
     urg:document.getElementById('f-urg').value==='sim',
     encM:'',encPct:'',encObs:'',cores:[],checksDesc:{},numCorte:'',dataDesc:'',
     tipo:'',carolObs:'',giObs:'',fotoLocal:'',impresso:'',status:'AGUARDANDO_ENCAIXE',
@@ -1560,61 +1478,47 @@ async function salvarCorte(){
       await push(obj._row,[['TECIDO',obj.tec],['TINTURARIA',obj.tin],['GRADE',obj.grade],['RETALHO',obj.ret],['OBS',obj.obs],['ROLO',obj.rolo],['URGENTE',obj.urg?'sim':'nao']]);
     }
   } else {
-    // For new: show saving state, wait for server ID before adding to list
-    cl('ov-novo');
-    toast('Salvando...','i');
+    cl('ov-novo');toast('Salvando...','i');
     try{
       const r=await pushNew({REF:obj.ref,NOME:obj.nome,DATA_ENTRADA:dout(obj.data).replace(/—/,''),TECIDO:obj.tec,TINTURARIA:obj.tin,GRADE:obj.grade,RETALHO:obj.ret,OBS:obj.obs,ROLO:obj.rolo,URGENTE:obj.urg?'sim':'nao'});
       if(r?.ok&&r.id){
-        obj.id=r.id; // Use server ID
-        cortes.unshift(obj);
-        sl();render();
+        obj.id=r.id;cortes.unshift(obj);sl();render();
         toast('✅ Criado! '+r.id,'s');
         setTimeout(()=>syncAll(true),1000);
-      } else {
-        toast('Erro ao criar — tente novamente','w');
-        console.error('pushNew response:',r);
-      }
-    }catch(e){
-      toast('Erro de conexão ao criar corte','w');
-      console.error(e);
-    }
+      } else {toast('Erro ao criar — tente novamente','w');console.error(r);}
+    }catch(e){toast('Erro de conexão','w');console.error(e);}
   }
 }
 
 function openCores(id){
   coresId=id;corCount=0;
-  const c=cortes.find(x=>x.id===id);
-  if(!c){console.error('openCores: not found',id);return;}
+  const c=cortes.find(x=>x.id===id);if(!c)return;
   const enc=parseFloat(c.encM)||0;
   const sizes=(c.grade||'').split(' ').filter(Boolean);
   const rolo=parseFloat(c.rolo)||0;
   let estimaHTML='';
   if(enc&&rolo&&sizes.length){
     const folhas=Math.floor(rolo/enc);
-    const total=folhas*sizes.length;
     estimaHTML=`<div class="calc-box" style="margin:8px 0"><div class="calc-ti">Estimativa de corte</div>
       <div class="calc-row"><span class="calc-k">Rolo</span><span class="calc-v">${rolo}m</span></div>
       <div class="calc-row"><span class="calc-k">Encaixe</span><span class="calc-v">${enc}m</span></div>
       <div class="calc-row"><span class="calc-k">Folhas</span><span class="calc-v">${folhas}</span></div>
       ${sizes.map(s=>`<div class="calc-row"><span class="calc-k">Tam. ${s}</span><span class="calc-v">${folhas} pç</span></div>`).join('')}
-      <div class="calc-row"><span class="calc-k">Total</span><span class="calc-v">${total} peças</span></div>
+      <div class="calc-row"><span class="calc-k">Total</span><span class="calc-v">${folhas*sizes.length} peças</span></div>
     </div>`;
   }else if(!enc){
-    estimaHTML=`<div style="font-size:.76rem;color:var(--mt);background:var(--s2);border-radius:7px;padding:8px;margin:6px 0">Preencha o comprimento do encaixe para ver a estimativa</div>`;
+    estimaHTML=`<div style="font-size:.76rem;color:var(--mt);background:var(--s2);border-radius:7px;padding:8px;margin:6px 0">Preencha o encaixe para ver a estimativa</div>`;
   }
-  document.getElementById('cores-info').innerHTML=`
-    <strong>${c.nome}</strong> · Grade: ${c.grade||'—'}<br>
+  document.getElementById('cores-info').innerHTML=`<strong>${c.nome}</strong> · Grade: ${c.grade||'—'}<br>
     <span style="font-size:.78rem;color:var(--mt)">Encaixe: ${c.encM||'—'}m · Aproveit.: ${c.encPct||'—'}%</span>
-    ${c.encObs?`<div style="font-size:.74rem;color:var(--c2);margin-top:3px">Obs: ${c.encObs}</div>`:''}
     ${estimaHTML}
-    <div style="font-size:.74rem;color:var(--mt);margin-top:4px">Insira a cor e quantos rolos. A estimativa por cor aparece automaticamente.</div>`;
+    <div style="font-size:.74rem;color:var(--mt);margin-top:4px">Insira cor e quantos rolos.</div>`;
   const list=document.getElementById('cores-list');list.innerHTML='';
   if(c.cores?.length)c.cores.forEach(x=>addCor(x.cor,x.qtd));else addCor();
   const wppDiv=document.getElementById('cores-wpp-btns');
   if(wppDiv&&cfg.wros){
-    const msg=encodeURIComponent('✂️ Azpex\n*'+c.nome+'*\nGrade: '+c.grade+(c.numCorte?' · OP: '+c.numCorte:'')+'\nCores para descansar serão definidas agora.');
-    wppDiv.innerHTML=`<a href="https://wa.me/${cfg.wros}?text=${msg}" target="_blank" style="text-decoration:none"><button class="abtn abtn-wpp" style="width:100%;padding:8px;border-radius:8px">📱 Avisar Rosana</button></a>`;
+    const msg=encodeURIComponent('✂️ Azpex\n*'+c.nome+'*\nGrade: '+c.grade+'\nCores para descansar.');
+    wppDiv.innerHTML=`<a href="https://wa.me/${cfg.wros}?text=${msg}" target="_blank" style="text-decoration:none"><button class="abtn abtn-wpp" style="width:100%;padding:8px">📱 Avisar Rosana</button></a>`;
   }
   op('ov-cores');
 }
@@ -1623,9 +1527,8 @@ function addCor(cor='',qtd=''){
   corCount++;const n=corCount;
   const div=document.createElement('div');div.className='cor-row';div.id='cor-'+n;
   div.style.cssText='display:flex;gap:7px;align-items:center;margin-bottom:6px;flex-wrap:wrap';
-  div.innerHTML=`
-    <input class="cor-i" placeholder="Nome da cor" value="${cor}" style="flex:2;min-width:100px">
-    <input class="qtd-i" type="number" min="1" step="1" placeholder="Rolos" value="${qtd}" id="qtd-${n}" oninput="updateCorEstima(${n})">
+  div.innerHTML=`<input class="cor-i" placeholder="Nome da cor" value="${cor}" style="flex:2;min-width:100px">
+    <input class="qtd-i" type="text" inputmode="decimal" placeholder="Rolos" value="${qtd}" id="qtd-${n}" oninput="updateCorEstima(${n})">
     <span id="estima-${n}" style="font-size:.72rem;color:var(--ac);font-weight:500;min-width:50px"></span>
     <button class="rmv" onclick="document.getElementById('cor-${n}').remove()">✕</button>`;
   document.getElementById('cores-list').appendChild(div);
@@ -1653,38 +1556,59 @@ async function salvarCores(){
   await push(c._row,[['CORES',coresStr(cores)],['STATUS','DESCANSAR_TECIDO']]);
 }
 
+// ── PEDIDOS ──
 function renderPedidos(){
   let list=[...pedidos].sort((a,b)=>b.ts-a.ts);
   const q=(document.getElementById('srch')?.value||'').toLowerCase();
-  if(q)list=list.filter(p=>(p.cod+p.nome).toLowerCase().includes(q));
-  if(filtro==='minha'){
-    if(['vendA','vendB','vendC'].includes(user))list=list.filter(p=>p.autor===user);
-    if(['estoque','taty','daimartha'].includes(user))list=list.filter(p=>['PENDENTE','APROVADO','PARCIAL'].includes(p.status));
-    if(user==='gerente')list=list.filter(p=>p.status!=='ARQUIVADO');
-  }
-  if(['vendA','vendB','vendC'].includes(user)&&filtro==='todos')list=list.filter(p=>p.autor===user);
-  const canResp=['estoque','taty','daimartha','carol'].includes(user);
+  if(q)list=list.filter(p=>(p.cod+p.nome+(p.autor||'')).toLowerCase().includes(q));
+  const isVend=['vendA','vendB','vendC'].includes(user);
+  if(isVend)list=list.filter(p=>p.autor===user);
+  if((user==='estoque'||user==='daimartha')&&filtro==='minha')
+    list=list.filter(p=>['PENDENTE','SEPARANDO'].includes(p.status));
+  if(user==='gerente'&&filtro==='minha')
+    list=list.filter(p=>p.status!=='ARQUIVADO');
+  const canResp=['estoque','daimartha'].includes(user);
   const canTransf=user==='daimartha';
   const canRec=user==='gerente';
   document.getElementById('main-content').innerHTML=`<div style="padding:0 16px 28px">${list.length?list.map(p=>{
     const info=psi(p.status);
-    return`<div class="pcard" onclick="openDetPedido('${p.id}')">
+    return`<div class="pcard" onclick="openDetPedido('${p.id}')" style="${p.status==='PENDENTE'&&canResp?'border-left:3px solid var(--c1)':''}">
       <div class="pcard-hd">
-        <div><div style="font-size:.68rem;color:var(--mt);font-family:'DM Mono',monospace">${p.id} · ${p.dataStr}</div><div class="pcard-cod">${p.cod}</div></div>
+        <div>
+          <div style="font-size:.68rem;color:var(--mt);font-family:'DM Mono',monospace">${p.id} · ${p.dataStr} · ${UNAMES[p.autor]||p.autor}</div>
+          <div class="pcard-cod">${p.cod}</div>
+        </div>
         <span class="sbadge" style="background:${info.b};color:${info.c}">${info.l}</span>
       </div>
-      <div style="font-weight:600;font-size:.88rem;margin-bottom:4px">${p.nome}</div>
-      <div style="margin-top:4px;font-size:.77rem;color:var(--mt)">
-        ${(p.cores||[]).map(x=>`<div style="margin-bottom:2px"><strong style="color:var(--tx)">${x.cor}</strong> — ${Object.entries(x.qtds||{}).map(([t,q])=>t+':'+q).join(' · ')}</div>`).join('')}
+      <div style="font-weight:600;font-size:.88rem;margin-bottom:6px">${p.nome}</div>
+      <div style="font-size:.77rem;color:var(--mt);margin-bottom:4px">
+        ${(p.cores||[]).map(x=>`<div style="margin-bottom:2px">
+          <strong style="color:var(--tx)">${x.cor}</strong>
+          <span style="color:var(--mt)"> — ${Object.entries(x.qtds||{}).map(([t,q])=>t+':'+q).join(' · ')}</span>
+          ${p.respCores?.[x.cor]?`<span style="color:var(--c3);margin-left:4px">✔ ${Object.entries(p.respCores[x.cor]).map(([t,q])=>t+':'+q).join(' · ')}</span>`:''}
+        </div>`).join('')}
       </div>
-      <div style="display:flex;justify-content:flex-end;gap:7px;margin-top:6px">
-        ${canResp&&p.status==='PENDENTE'?`<button class="bs" style="font-size:.73rem;padding:5px 11px" onclick="event.stopPropagation();openResp('${p.id}')">Responder →</button>`:''}
-        ${canTransf&&(p.status==='APROVADO'||p.status==='PARCIAL')?`<button class="bs" style="font-size:.73rem;padding:5px 11px;background:#1D9E75" onclick="event.stopPropagation();confirmarTransf('${p.id}')">Transmissão Miré ✔</button>`:''}
-        ${canRec&&p.status==='TRANSFERIDO'?`<button class="bs" style="font-size:.73rem;padding:5px 11px;background:var(--c7)" onclick="event.stopPropagation();receberPedido('${p.id}')">✔ Recebido</button>`:''}
+      ${p.obs?`<div style="font-size:.73rem;color:#8B4513;background:#FFF3CD;border-radius:5px;padding:3px 7px;margin-bottom:5px">⚠ ${p.obs}</div>`:''}
+      ${p.respObs?`<div style="font-size:.73rem;color:var(--c2);background:var(--b2);border-radius:5px;padding:3px 7px;margin-bottom:5px">💬 ${p.respObs}</div>`:''}
+      <div style="display:flex;justify-content:flex-end;gap:7px;margin-top:6px;flex-wrap:wrap">
+        ${canResp&&p.status==='PENDENTE'?`<button class="bs" style="font-size:.73rem;padding:5px 11px;background:var(--c1)" onclick="event.stopPropagation();openResp('${p.id}')">📋 Responder</button>`:''}
+        ${canResp&&p.status==='SEPARANDO'?`<button class="bs" style="font-size:.73rem;padding:5px 11px;background:var(--c3)" onclick="event.stopPropagation();marcarPronto('${p.id}')">✔ Separado</button>`:''}
+        ${canTransf&&p.status==='PRONTO'?`<button class="bs" style="font-size:.73rem;padding:5px 11px;background:var(--c7)" onclick="event.stopPropagation();confirmarTransf('${p.id}')">🚚 Transferido</button>`:''}
+        ${canRec&&p.status==='TRANSFERIDO'?`<button class="bs" style="font-size:.73rem;padding:5px 11px;background:var(--c3)" onclick="event.stopPropagation();receberPedido('${p.id}')">✔ Recebido</button>`:''}
       </div>
     </div>`;
   }).join(''):'<div class="empty">Nenhum pedido</div>'}</div>`;
   renderStatsPedidos();
+}
+
+function renderPedidoBadge(){
+  if(!['estoque','daimartha'].includes(user))return;
+  const pending=pedidos.filter(p=>p.status==='PENDENTE').length;
+  document.querySelectorAll('.stab').forEach(t=>{
+    if(t.textContent.includes('Pedidos')||t.innerHTML.includes('Pedidos')){
+      t.innerHTML=pending>0?`Pedidos <span style="background:var(--c4);color:#fff;border-radius:20px;padding:1px 6px;font-size:.65rem;margin-left:3px">${pending}</span>`:'Pedidos';
+    }
+  });
 }
 
 function openNovoPedido(){
@@ -1714,7 +1638,7 @@ function renderPedidoTabela(){
     rows+=`<tr>
       <td style="padding:4px 5px"><input style="width:100%;background:var(--s2);border:.5px solid var(--bd);border-radius:6px;padding:5px 7px;font-size:15px;color:var(--tx);outline:none" id="pcor-${i}" placeholder="Cor..."></td>
       ${pedGradeSizes.map(s=>`<td style="padding:4px 5px;text-align:center"><input style="width:48px;background:var(--s2);border:.5px solid var(--bd);border-radius:6px;padding:5px 4px;font-size:15px;color:var(--tx);outline:none;text-align:center" id="pq-${i}-${s}" type="number" min="0" step="1" placeholder="0"></td>`).join('')}
-      <td style="padding:4px 5px"><button onclick="removePedidoRow(${i})" style="background:none;border:none;color:var(--mt);cursor:pointer;font-size:.9rem">✕</button></td>
+      <td><button onclick="removePedidoRow(${i})" style="background:none;border:none;color:var(--mt);cursor:pointer">✕</button></td>
     </tr>`;
   }
   area.innerHTML=`<div class="sl">Quantidades por cor e tamanho</div>
@@ -1730,7 +1654,6 @@ function renderPedidoTabela(){
 }
 
 function addPedidoRow(){
-  // Save current values before rebuilding
   const vals=[];
   for(let i=1;i<=pedCorCount;i++){
     const cor=document.getElementById('pcor-'+i)?.value||'';
@@ -1738,17 +1661,11 @@ function addPedidoRow(){
     pedGradeSizes.forEach(s=>{qtds[s]=document.getElementById('pq-'+i+'-'+s)?.value||'';});
     vals.push({cor,qtds});
   }
-  pedCorCount++;
-  renderPedidoTabela();
-  // Restore values
+  pedCorCount++;renderPedidoTabela();
   vals.forEach((v,idx)=>{
     const n=idx+1;
-    const el=document.getElementById('pcor-'+n);
-    if(el)el.value=v.cor;
-    pedGradeSizes.forEach(s=>{
-      const qel=document.getElementById('pq-'+n+'-'+s);
-      if(qel)qel.value=v.qtds[s]||'';
-    });
+    const el=document.getElementById('pcor-'+n);if(el)el.value=v.cor;
+    pedGradeSizes.forEach(s=>{const qel=document.getElementById('pq-'+n+'-'+s);if(qel)qel.value=v.qtds[s]||'';});
   });
 }
 
@@ -1787,8 +1704,8 @@ function salvarPedido(){
   }
   if(!coresList.length){toast('Preencha pelo menos uma cor com quantidade','w');return;}
   const p={
-    id:'PED-'+String(pedidos.length+1).padStart(3,'0'),ts:Date.now(),
-    dataStr:new Date().toLocaleDateString('pt-BR'),
+    id:'PED-'+String(pedidos.length+1).padStart(3,'0'),
+    ts:Date.now(),dataStr:new Date().toLocaleDateString('pt-BR'),
     cod,nome,grade:pedGradeSizes.join(' '),cores:coresList,
     obs:document.getElementById('p-obs').value.trim(),
     autor:user,status:'PENDENTE',respObs:'',respCores:{},respondidoPor:'',
@@ -1803,8 +1720,9 @@ function salvarPedido(){
 function openDetPedido(id){
   const p=pedidos.find(x=>x.id===id);if(!p)return;
   const info=psi(p.status);
-  const canResp=['estoque','taty','carol'].includes(user)&&p.status==='PENDENTE';
-  const canTransf=user==='daimartha'&&(p.status==='APROVADO'||p.status==='PARCIAL');
+  const canResp=['estoque','daimartha'].includes(user)&&p.status==='PENDENTE';
+  const canPronto=['estoque','daimartha'].includes(user)&&p.status==='SEPARANDO';
+  const canTransf=user==='daimartha'&&p.status==='PRONTO';
   const canRec=user==='gerente'&&p.status==='TRANSFERIDO';
   document.getElementById('det-c').innerHTML=`
     <div class="mhd"><div class="mti">${p.id}</div><button class="xb" onclick="cl('ov-det')">×</button></div>
@@ -1819,20 +1737,16 @@ function openDetPedido(id){
     <div style="margin-top:8px"><div class="sl">Itens pedidos</div>
       ${(p.cores||[]).map(x=>`<div style="background:var(--s2);border-radius:7px;padding:7px 9px;margin-bottom:5px">
         <div style="font-weight:500;font-size:.82rem;margin-bottom:3px">${x.cor}</div>
-        ${Object.entries(x.qtds||{}).map(([t,q])=>`<div class="df"><span class="dk">Tam. ${t}</span><span class="dv">${q} pç</span></div>`).join('')}
+        ${Object.entries(x.qtds||{}).map(([t,q])=>`<div class="df"><span class="dk">Tam. ${t}</span><span class="dv">${q} pç${p.respCores?.[x.cor]?.[t]?' → encontrado: '+p.respCores[x.cor][t]+' pç':''}</span></div>`).join('')}
       </div>`).join('')}
     </div>
-    ${Object.keys(p.respCores||{}).length?`<div style="margin-top:8px"><div class="sl">Encontrado no estoque</div>
-      ${Object.entries(p.respCores).map(([cor,qtds])=>`<div style="background:var(--s2);border-radius:7px;padding:7px 9px;margin-bottom:5px">
-        <div style="font-weight:500;font-size:.82rem;margin-bottom:3px">${cor}</div>
-        ${Object.entries(qtds).map(([t,q])=>`<div class="df"><span class="dk">Tam. ${t}</span><span class="dv">${q} pç</span></div>`).join('')}
-      </div>`).join('')}</div>`:''}
-    ${p.obs?`<div class="obs-box">Obs pedido: ${p.obs}</div>`:''}
+    ${p.obs?`<div class="obs-box">Obs: ${p.obs}</div>`:''}
     ${p.respObs?`<div class="obs-box obs-bl">Obs estoque: ${p.respObs}</div>`:''}
     <div class="agroup">
-      ${canResp?`<button class="abtn" style="background:var(--b2);color:var(--c2)" onclick="cl('ov-det');openResp('${p.id}')">Responder pedido →</button>`:''}
-      ${canTransf?`<button class="abtn" style="background:var(--b3);color:var(--c3)" onclick="cl('ov-det');confirmarTransf('${p.id}')">✔ Transmissão Miré feita</button>`:''}
-      ${canRec?`<button class="abtn" style="background:var(--b3);color:var(--c3)" onclick="cl('ov-det');receberPedido('${p.id}')">✔ Recebido — arquivar</button>`:''}
+      ${canResp?`<button class="abtn" style="background:var(--b2);color:var(--c2)" onclick="cl('ov-det');openResp('${p.id}')">📋 Responder pedido</button>`:''}
+      ${canPronto?`<button class="abtn" style="background:var(--b3);color:var(--c3)" onclick="cl('ov-det');marcarPronto('${p.id}')">✔ Tudo separado — avisar loja</button>`:''}
+      ${canTransf?`<button class="abtn" style="background:var(--b7);color:var(--c7)" onclick="cl('ov-det');confirmarTransf('${p.id}')">🚚 Transferência para loja feita</button>`:''}
+      ${canRec?`<button class="abtn" style="background:var(--b3);color:var(--c3)" onclick="cl('ov-det');receberPedido('${p.id}')">✔ Recebido na loja</button>`:''}
     </div>`;
   op('ov-det');
 }
@@ -1840,7 +1754,7 @@ function openDetPedido(id){
 function openResp(id){
   const p=pedidos.find(x=>x.id===id);respId=id;
   document.getElementById('resp-ti').textContent=`${p.cod} — ${p.nome}`;
-  document.getElementById('resp-info').textContent=UNAMES[p.autor]||p.autor;
+  document.getElementById('resp-info').textContent=`Pedido de: ${UNAMES[p.autor]||p.autor}`;
   document.getElementById('resp-obs').value='';
   const sizes2=(p.grade||'').split(' ').filter(Boolean);
   document.getElementById('resp-grades').innerHTML=`
@@ -1867,20 +1781,29 @@ function responderPedido(tipo){
   const rc={};
   (p.cores||[]).forEach(x=>{rc[x.cor]={};Object.keys(x.qtds||{}).forEach(t=>{rc[x.cor][t]=document.getElementById('rq-'+x.cor+'-'+t)?.value||'0';});});
   p.respCores=rc;p.respObs=document.getElementById('resp-obs').value.trim();
-  p.status=tipo==='aprovado'?'APROVADO':tipo==='parcial'?'PARCIAL':'RECUSADO';
+  if(tipo==='aprovado')p.status='SEPARANDO';
+  else if(tipo==='parcial')p.status='PARCIAL';
+  else p.status='INDISPONIVEL';
   p.respondidoPor=user;sl();cl('ov-resp');render();
-  toast({aprovado:'✔ Aprovado!',parcial:'⚡ Aprovado parcialmente',recusado:'Não disponível'}[tipo],'s');
+  toast(tipo==='aprovado'?'✔ Separando!':tipo==='parcial'?'⚡ Parcialmente disponível':'Não disponível','s');
   if(cfg.url&&p._row)push2(p._row,[['STATUS',p.status],['RESP_OBS',p.respObs],['RESP_CORES',JSON.stringify(p.respCores)],['RESPONDIDO_POR',p.respondidoPor]]);
 }
 
+async function marcarPronto(id){
+  const p=pedidos.find(x=>x.id===id);if(!p)return;
+  p.status='PRONTO';sl();render();
+  toast('✔ Separado! Loja avisada.','s');
+  if(cfg.url&&p._row)push2(p._row,[['STATUS','PRONTO']]);
+}
+
 function confirmarTransf(id){
-  const p=pedidos.find(x=>x.id===id);p.status='TRANSFERIDO';sl();cl('ov-det');render();toast('Transferência feita!','s');
+  const p=pedidos.find(x=>x.id===id);p.status='TRANSFERIDO';sl();render();toast('🚚 Transferência registrada!','s');
   if(cfg.url&&p._row)push2(p._row,[['STATUS','TRANSFERIDO']]);
 }
 
 function receberPedido(id){
-  const p=pedidos.find(x=>x.id===id);p.status='ARQUIVADO';sl();cl('ov-det');render();toast('Recebido e arquivado!','s');
-  if(cfg.url&&p._row)push2(p._row,[['STATUS','ARQUIVADO']]);
+  const p=pedidos.find(x=>x.id===id);p.status='RECEBIDO';sl();render();toast('✔ Recebido na loja!','s');
+  if(cfg.url&&p._row)push2(p._row,[['STATUS','RECEBIDO']]);
 }
 
 function openCfg(){
@@ -1901,16 +1824,6 @@ function savePins(){
   toast('PINs salvos!','s');
 }
 function saveGrades(){cfg.customGrades=document.getElementById('cfg-grades').value.trim();localStorage.setItem('az_cfg',JSON.stringify(cfg));populateSels();toast('Grades atualizadas!','s');}
-
-function wppLink(numero,msg){
-  if(!numero)return'';
-  return`<a href="https://wa.me/${numero}?text=${encodeURIComponent(msg)}" target="_blank" style="text-decoration:none"><button class="abtn abtn-wpp" style="width:100%;padding:9px;border-radius:9px;margin-top:0">📱 ${msg.split('\n')[0]}</button></a>`;
-}
-
-function wppBtn(numero,label,msg){
-  if(!numero)return'';
-  return`<a href="https://wa.me/${numero}?text=${encodeURIComponent(msg)}" target="_blank" onclick="event.stopPropagation()" style="text-decoration:none;display:block;margin-top:5px"><button style="width:100%;padding:6px 9px;border-radius:7px;border:1px solid var(--wpp);background:rgba(37,211,102,.08);color:var(--wpp);font-size:.73rem;font-weight:600;cursor:pointer">📱 ${label}</button></a>`;
-}
 
 function op(id){document.getElementById(id)?.classList.add('open');}
 function cl(id){document.getElementById(id)?.classList.remove('open');}
