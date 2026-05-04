@@ -235,6 +235,25 @@ input,select,textarea,button{font-family:'DM Sans',sans-serif}
 @keyframes tIn{from{transform:translateX(20px);opacity:0}to{transform:none;opacity:1}}
 .empty{text-align:center;padding:24px 8px;color:var(--mt);font-size:.77rem}
 @media(max-width:640px){.fg2{grid-template-columns:1fr}}
+
+/* ── ESTOQUE iPAD ── */
+.ipad-layout{display:grid;grid-template-columns:1fr 1fr;gap:0;height:calc(100vh - 60px);overflow:hidden}
+.ipad-col{display:flex;flex-direction:column;overflow:hidden;border-right:.5px solid var(--bd)}
+.ipad-col:last-child{border-right:none}
+.ipad-col-hd{padding:16px 20px;border-bottom:.5px solid var(--bd);background:var(--sf);flex-shrink:0}
+.ipad-col-ti{font-family:'Syne',sans-serif;font-size:1.1rem;font-weight:800;text-transform:uppercase;letter-spacing:.5px}
+.ipad-col-ct{font-family:'DM Mono',monospace;font-size:1.4rem;font-weight:500;margin-top:2px}
+.ipad-col-bd{flex:1;overflow-y:auto;padding:12px}
+.ipad-card{background:var(--sf);border:.5px solid var(--bd);border-radius:14px;padding:18px;margin-bottom:10px;cursor:pointer;transition:all .15s}
+.ipad-card:hover{border-color:var(--bd2);box-shadow:0 2px 12px rgba(0,0,0,.08)}
+.ipad-card.urgent{border-left:4px solid var(--c4)}
+.ipad-cod{font-family:'DM Mono',monospace;font-size:1rem;font-weight:600;color:var(--ac);margin-bottom:2px}
+.ipad-nome{font-weight:700;font-size:1.1rem;margin-bottom:8px;line-height:1.3}
+.ipad-cores{display:flex;flex-wrap:wrap;gap:5px;margin-bottom:10px}
+.ipad-cor{font-size:.82rem;padding:4px 10px;border-radius:20px;background:var(--s2);border:.5px solid var(--bd);font-weight:500}
+.ipad-btn{width:100%;padding:14px;border-radius:10px;border:none;font-size:1rem;font-weight:700;cursor:pointer;margin-top:6px;transition:all .15s}
+.ipad-btn:active{transform:scale(.97)}
+.ipad-badge{display:inline-flex;align-items:center;justify-content:center;background:var(--c4);color:#fff;border-radius:50%;width:28px;height:28px;font-size:.85rem;font-weight:700;margin-left:8px}
 </style>
 </head>
 <body>
@@ -467,9 +486,6 @@ input,select,textarea,button{font-family:'DM Sans',sans-serif}
       <div class="cfg-row"><span class="cfg-name">Estoque</span><input class="cfg-i" id="cfg-pes" maxlength="4" type="password" placeholder="4 dígitos"></div>
       <div class="cfg-l" style="margin-top:10px">PINs — Loja</div>
       <div class="cfg-row"><span class="cfg-name">Vendedora A</span><input class="cfg-i" id="cfg-pva" maxlength="4" type="password" placeholder="4 dígitos"></div>
-      <div class="cfg-row"><span class="cfg-name">Vendedora B</span><input class="cfg-i" id="cfg-pvb" maxlength="4" type="password" placeholder="4 dígitos"></div>
-      <div class="cfg-row"><span class="cfg-name">Vendedora C</span><input class="cfg-i" id="cfg-pvc" maxlength="4" type="password" placeholder="4 dígitos"></div>
-      <div class="cfg-row"><span class="cfg-name">Gi/Bonequim</span><input class="cfg-i" id="cfg-pge" maxlength="4" type="password" placeholder="4 dígitos"></div>
       <button class="cfg-sv" onclick="savePins()">Salvar PINs</button>
     </div>
     <div class="cfg-sec">
@@ -626,6 +642,12 @@ function initApp(){
   } else {
     btnNovo.style.display='none';
   }
+  // iPad mode for estoque - hide unnecessary elements
+  if(user==='estoque'){
+    document.querySelector('.tb').style.display='none';
+    document.getElementById('stats').style.display='none';
+    document.getElementById('stabs').style.display='none';
+  }
 
   // Abas
   const stabsEl=document.getElementById('stabs');
@@ -674,7 +696,6 @@ function setSection(s,el){
 function setF(f,el){filtro=f;document.querySelectorAll('.fb').forEach(b=>b.classList.remove('on'));el.classList.add('on');render();}
 
 // ── API ──
-async function apig(p){const r=await fetch('/api/proxy?'+new URLSearchParams(p));return r.json();}
 async function apip(b){const r=await fetch('/api/proxy',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(b)});return r.json();}
 async function push(row,campos){
   if(!cfg.url||!row)return;
@@ -1145,6 +1166,145 @@ function cardEstoque(c){
 }
 
 // ── STATS CORTES ──
+function renderEstoqueIPad(){
+  // Hide normal toolbar and stats
+  document.getElementById('stats').style.display='none';
+  const tb=document.querySelector('.tb');if(tb)tb.style.display='none';
+
+  const pedPendentes=pedidos.filter(p=>p.status==='PENDENTE'||p.status==='SEPARANDO');
+  const cortesEmbalar=cortes.filter(c=>c.status==='EMBALAR');
+
+  document.getElementById('main-content').innerHTML=`
+    <div class="ipad-layout">
+      <!-- PEDIDOS -->
+      <div class="ipad-col">
+        <div class="ipad-col-hd">
+          <div style="display:flex;align-items:center">
+            <div class="ipad-col-ti" style="color:var(--c1)">📋 Pedidos</div>
+            ${pedPendentes.length>0?`<span class="ipad-badge">${pedPendentes.length}</span>`:''}
+          </div>
+          <div class="ipad-col-ct" style="color:var(--c1)">${pedPendentes.length} pendente${pedPendentes.length!==1?'s':''}</div>
+        </div>
+        <div class="ipad-col-bd">
+          ${pedPendentes.length?pedPendentes.map(p=>`
+            <div class="ipad-card${p.status==='PENDENTE'?' urgent':''}" onclick="abrirPedidoEstoque('${p.id}')">
+              <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:4px">
+                <div class="ipad-cod">${p.cod}</div>
+                <span style="font-size:.72rem;padding:3px 8px;border-radius:20px;font-weight:600;background:${p.status==='PENDENTE'?'var(--b1)':'var(--b2)'};color:${p.status==='PENDENTE'?'var(--c1)':'var(--c2)'}">${p.status==='PENDENTE'?'Novo':'Separando'}</span>
+              </div>
+              <div class="ipad-nome">${p.nome}</div>
+              <div style="font-size:.8rem;color:var(--mt);margin-bottom:8px">Pedido por: ${UNAMES[p.autor]||p.autor}</div>
+              <div class="ipad-cores">
+                ${(p.cores||[]).map(x=>`<span class="ipad-cor">${x.cor} — ${Object.entries(x.qtds||{}).map(([t,q])=>t+':'+q).join(' ')}</span>`).join('')}
+              </div>
+              ${p.status==='PENDENTE'?`
+                <button class="ipad-btn" style="background:var(--c1);color:#fff" onclick="event.stopPropagation();abrirResponderEstoque('${p.id}')">
+                  📋 Verificar estoque
+                </button>`:`
+                <button class="ipad-btn" style="background:var(--c3);color:#fff" onclick="event.stopPropagation();marcarPronto('${p.id}');render()">
+                  ✔ Separado — avisar loja
+                </button>`}
+            </div>`).join(''):`<div class="empty" style="font-size:1rem;padding:40px 20px">✔ Nenhum pedido pendente</div>`}
+        </div>
+      </div>
+
+      <!-- CORTES EMBALAR -->
+      <div class="ipad-col">
+        <div class="ipad-col-hd">
+          <div style="display:flex;align-items:center">
+            <div class="ipad-col-ti" style="color:var(--c7)">📦 Embalar</div>
+            ${cortesEmbalar.length>0?`<span class="ipad-badge" style="background:var(--c7)">${cortesEmbalar.length}</span>`:''}
+          </div>
+          <div class="ipad-col-ct" style="color:var(--c7)">${cortesEmbalar.length} para embalar</div>
+        </div>
+        <div class="ipad-col-bd">
+          ${cortesEmbalar.length?cortesEmbalar.map(c=>`
+            <div class="ipad-card${c.urg?' urgent':''}">
+              <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:4px">
+                <div class="ipad-cod">${c.ref||c.id}</div>
+                <div style="font-family:'DM Mono',monospace;font-size:.8rem;color:var(--mt)">${c.id}</div>
+              </div>
+              <div class="ipad-nome">${c.nome}</div>
+              <div class="ipad-cores">
+                <span class="ipad-cor" style="background:var(--al);color:var(--ac)">${c.grade||'—'}</span>
+                ${c.tec?`<span class="ipad-cor">${c.tec}</span>`:''}
+                ${c.numCorte?`<span class="ipad-cor" style="background:var(--b3);color:var(--c3)">OP: ${c.numCorte}</span>`:''}
+                ${c.tipo?`<span class="ipad-cor" style="background:${c.tipo==='novidade'?'var(--b6)':'var(--b2)'};color:${c.tipo==='novidade'?'var(--c6)':'var(--c2)'}">${c.tipo}</span>`:''}
+              </div>
+              ${(c.cores||[]).length?`<div class="ipad-cores">${(c.cores||[]).map(x=>`<span class="ipad-cor">${x.cor} · ${x.qtd}x</span>`).join('')}</div>`:''}
+              ${c.giObs?`<div style="font-size:.82rem;color:var(--c8);background:var(--b8);border-radius:8px;padding:8px 10px;margin-bottom:8px">📝 ${c.giObs}</div>`:''}
+              <button class="ipad-btn" style="background:var(--c7);color:#fff" onclick="estoqueSeparou('${c.id}')">
+                ✔ Embalado — pronto para retirada
+              </button>
+            </div>`).join(''):`<div class="empty" style="font-size:1rem;padding:40px 20px">✔ Nada para embalar</div>`}
+        </div>
+      </div>
+    </div>
+
+    <!-- MODAL PEDIDO ESTOQUE -->
+    <div id="ov-ped-estoque" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:300;align-items:center;justify-content:center;padding:20px">
+      <div style="background:var(--sf);border-radius:20px;padding:24px;width:100%;max-width:680px;max-height:90vh;overflow-y:auto">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px">
+          <div style="font-family:'Syne',sans-serif;font-size:1.2rem;font-weight:800" id="ped-est-ti">Pedido</div>
+          <button onclick="fecharPedidoEstoque()" style="background:none;border:none;font-size:1.5rem;color:var(--mt);cursor:pointer">×</button>
+        </div>
+        <div id="ped-est-body"></div>
+      </div>
+    </div>`;
+}
+
+function abrirPedidoEstoque(id){
+  const p=pedidos.find(x=>x.id===id);if(!p)return;
+  document.getElementById('ped-est-ti').textContent=p.cod+' — '+p.nome;
+  document.getElementById('ped-est-body').innerHTML=`
+    <div style="font-size:.9rem;color:var(--mt);margin-bottom:12px">Pedido de: <strong>${UNAMES[p.autor]||p.autor}</strong> · ${p.dataStr}</div>
+    ${(p.cores||[]).map(x=>`<div style="background:var(--s2);border-radius:10px;padding:12px;margin-bottom:8px">
+      <div style="font-weight:700;font-size:1rem;margin-bottom:6px">${x.cor}</div>
+      ${Object.entries(x.qtds||{}).map(([t,q])=>`<div style="display:flex;justify-content:space-between;padding:4px 0;font-size:.9rem;border-bottom:.5px solid var(--bd)"><span>Tam. ${t}</span><strong>${q} pç pedidas</strong></div>`).join('')}
+    </div>`).join('')}
+    ${p.obs?`<div style="background:#FFF3CD;border-radius:8px;padding:10px;margin-bottom:12px;font-size:.85rem">⚠ ${p.obs}</div>`:''}
+    <div style="display:flex;gap:10px;margin-top:16px">
+      <button onclick="fecharPedidoEstoque();abrirResponderEstoque('${p.id}')" style="flex:1;padding:14px;border-radius:10px;border:none;background:var(--c1);color:#fff;font-size:1rem;font-weight:700;cursor:pointer">📋 Responder pedido</button>
+    </div>`;
+  document.getElementById('ov-ped-estoque').style.display='flex';
+}
+
+function fecharPedidoEstoque(){
+  document.getElementById('ov-ped-estoque').style.display='none';
+}
+
+function abrirResponderEstoque(id){
+  fecharPedidoEstoque();
+  respId=id;
+  const p=pedidos.find(x=>x.id===id);if(!p)return;
+  document.getElementById('resp-ti').textContent=p.cod+' — '+p.nome;
+  document.getElementById('resp-info').textContent='Pedido de: '+(UNAMES[p.autor]||p.autor);
+  document.getElementById('resp-obs').value='';
+  const sizes2=(p.grade||'').split(' ').filter(Boolean);
+  document.getElementById('resp-grades').innerHTML=`
+    <div style="overflow-x:auto;margin-bottom:12px">
+      <table style="width:100%;border-collapse:collapse">
+        <thead><tr>
+          <th style="padding:8px;text-align:left;font-size:.75rem;text-transform:uppercase;color:var(--mt);font-weight:500">Cor</th>
+          ${sizes2.map(s=>`<th style="padding:8px;text-align:center;font-family:'DM Mono',monospace;font-size:.8rem;color:var(--mt)">${s}<br><span style="font-size:.65rem">ped/enc</span></th>`).join('')}
+        </tr></thead>
+        <tbody>${(p.cores||[]).map(x=>`<tr>
+          <td style="padding:8px;font-weight:600;font-size:.95rem">${x.cor}</td>
+          ${sizes2.map(s=>`<td style="padding:8px;text-align:center">
+            <div style="font-size:.75rem;color:var(--mt);margin-bottom:4px">${x.qtds?.[s]||'—'}</div>
+            <input style="width:56px;background:var(--s2);border:.5px solid var(--bd);border-radius:7px;padding:6px;font-size:18px;text-align:center;outline:none" id="rq-${x.cor}-${s}" type="number" min="0" step="1" value="${x.qtds?.[s]||0}">
+          </td>`).join('')}
+        </tr>`).join('')}</tbody>
+      </table>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:8px;margin-top:16px">
+      <button onclick="responderPedido('aprovado')" style="padding:16px;border-radius:12px;border:none;background:var(--c3);color:#fff;font-size:1rem;font-weight:700;cursor:pointer">✔ Temos tudo — separando</button>
+      <button onclick="responderPedido('parcial')" style="padding:16px;border-radius:12px;border:none;background:var(--c1);color:#fff;font-size:1rem;font-weight:700;cursor:pointer">⚡ Temos parcialmente</button>
+      <button onclick="responderPedido('recusado')" style="padding:16px;border-radius:12px;border:none;background:var(--c4);color:#fff;font-size:1rem;font-weight:700;cursor:pointer">✕ Não temos no estoque</button>
+    </div>`;
+  op('ov-resp');
+}
+
 function renderStats(){
   if(section==='pedidos'){renderStatsPedidos();return;}
   const sts=[
@@ -1293,8 +1453,9 @@ async function giArquivar(id){
 }
 
 async function estoqueSeparou(id){
-  const c=cortes.find(x=>x.id===id);c.status='PRONTO_RETIRADA';
-  sl();render();toast('Separado! Pronto para retirada.','s');
+  const c=cortes.find(x=>x.id===id);if(!c)return;
+  c.status='PRONTO_RETIRADA';
+  sl();render();toast('✔ Embalado! Pronto para retirada.','s');
   await push(c._row,[['STATUS','PRONTO_RETIRADA']]);
 }
 
@@ -1784,7 +1945,9 @@ function responderPedido(tipo){
   if(tipo==='aprovado')p.status='SEPARANDO';
   else if(tipo==='parcial')p.status='PARCIAL';
   else p.status='INDISPONIVEL';
-  p.respondidoPor=user;sl();cl('ov-resp');render();
+  p.respondidoPor=user;sl();cl('ov-resp');
+  if(user==='estoque')fecharPedidoEstoque();
+  render();
   toast(tipo==='aprovado'?'✔ Separando!':tipo==='parcial'?'⚡ Parcialmente disponível':'Não disponível','s');
   if(cfg.url&&p._row)push2(p._row,[['STATUS',p.status],['RESP_OBS',p.respObs],['RESP_CORES',JSON.stringify(p.respCores)],['RESPONDIDO_POR',p.respondidoPor]]);
 }
@@ -1825,10 +1988,27 @@ function savePins(){
 }
 function saveGrades(){cfg.customGrades=document.getElementById('cfg-grades').value.trim();localStorage.setItem('az_cfg',JSON.stringify(cfg));populateSels();toast('Grades atualizadas!','s');}
 
+function openCfg(){
+  document.getElementById('cfg-pins-sec').style.display=user==='taty'?'':'none';
+  if(cfg.url)document.getElementById('cfg-url').value=cfg.url;
+  ['wcarol','wdm','wgi','wedv','wros'].forEach(k=>{const el=document.getElementById('cfg-'+k);if(el&&cfg[k])el.value=cfg[k];});
+  if(cfg.customGrades)document.getElementById('cfg-grades').value=cfg.customGrades;
+  op('ov-cfg');
+}
+function saveCfgUrl(){cfg.url=document.getElementById('cfg-url').value.trim();localStorage.setItem('az_cfg',JSON.stringify(cfg));toast('Conectado!','i');cl('ov-cfg');setTimeout(syncAll,400);}
+function saveCfgWpp(){
+  ['wcarol','wdm','wgi','wedv','wros'].forEach(k=>{const v=document.getElementById('cfg-'+k)?.value.trim();if(v)cfg[k]=v;});
+  localStorage.setItem('az_cfg',JSON.stringify(cfg));toast('Números salvos!','s');
+}
+function savePins(){
+  const map={pt:'taty',pe:'edvaldo',pr:'rosana',pd:'daimartha',pc:'carol',pes:'estoque',pva:'vendA',pvb:'vendB',pvc:'vendC',pge:'gerente'};
+  Object.entries(map).forEach(([k,u])=>{const v=document.getElementById('cfg-'+k)?.value.trim();if(v&&v.length===4)localStorage.setItem('az_pin_'+u,v);});
+  toast('PINs salvos!','s');
+}
+
 function op(id){document.getElementById(id)?.classList.add('open');}
 function cl(id){document.getElementById(id)?.classList.remove('open');}
 function toast(msg,type='i'){const c=document.getElementById('toasts');const t=document.createElement('div');t.className=`toast ${type}`;t.textContent=msg;c.appendChild(t);setTimeout(()=>t.remove(),3500);}
-['ov-novo','ov-det','ov-cores','ov-pedido','ov-resp','ov-cfg','ov-decisao','ov-envio'].forEach(id=>{document.getElementById(id)?.addEventListener('click',e=>{if(e.target===e.currentTarget)cl(id);});});
-</script>
+['ov-novo','ov-det','ov-cores','ov-pedido','ov-resp','ov-cfg','ov-decisao','ov-envio'].forEach(id=>{document.getElementById(id)?.addEventListener('click',e=>{if(e.target===e.currentTarget)cl(id);});});</script>
 </body>
 </html>
