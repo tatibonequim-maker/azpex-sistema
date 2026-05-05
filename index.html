@@ -1449,10 +1449,19 @@ function setF(f,el){filtro=f;document.querySelectorAll('.fb').forEach(b=>b.class
 
 // ── API ──
 async function apip(b){
-  const r=await fetch('/api/proxy',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(b)});
+  const GET_ACTIONS=['getCortes','getListas','getPedidos'];
+  let r;
+  if(GET_ACTIONS.includes(b.action)){
+    // GET requests for reading data
+    const params=new URLSearchParams({action:b.action}).toString();
+    r=await fetch('/api/proxy?'+params);
+  } else {
+    // POST requests for writing data
+    r=await fetch('/api/proxy',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(b)});
+  }
   const text=await r.text();
   try{return JSON.parse(text);}
-  catch(e){console.error('apip JSON parse error:',text.slice(0,200));throw new Error('Resposta inválida do servidor');}
+  catch(e){console.error('apip JSON parse error:',text.slice(0,200));throw new Error('Resposta inválida: '+text.slice(0,80));}
 }
 async function push(row,campos){
   if(!cfg.url||!row)return;
