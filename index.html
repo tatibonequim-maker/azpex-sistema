@@ -1363,7 +1363,7 @@ function initApp(){
   try{
   localStorage.setItem('az_user',user);
   document.getElementById('portal').style.display='none';
-  document.getElementById('app').style.display='';
+  document.getElementById('app').style.display='block';
   document.getElementById('app-user').textContent=UNAMES[user]||user;
 
   const isTaty=user==='taty';
@@ -1417,7 +1417,14 @@ function initApp(){
     setTimeout(syncAll,600);
     setInterval(()=>{if(cfg.url)syncAll(true);},30000);
   }
-  }catch(err){console.error('initApp error:',err);toast('Erro: '+err.message,'w');}
+  }catch(err){
+    console.error('initApp error:',err);
+    // Restore portal if app failed to initialize
+    document.getElementById('portal').style.display='flex';
+    document.getElementById('app').style.display='none';
+    localStorage.removeItem('az_user');
+    alert('Erro ao iniciar: '+err.message+'. Faça login novamente.');
+  }
 }
 
 function setSection(s,el){
@@ -2758,11 +2765,18 @@ function toast(msg,type='i'){const c=document.getElementById('toasts');const t=d
 
 // Auto-init: check if user is already logged in from localStorage
 window.addEventListener('DOMContentLoaded',()=>{
-  const savedUser=localStorage.getItem('az_user');
-  if(savedUser&&DPINS[savedUser]){
-    user=savedUser;
-    initApp();
-  }
+  // Try to restore session from localStorage
+  try{
+    const savedUser=localStorage.getItem('az_user');
+    if(savedUser&&DPINS[savedUser]){
+      user=savedUser;
+      initApp();
+      return;
+    }
+  }catch(e){console.error('Session restore failed:',e);}
+  // Make sure portal is visible
+  const portal=document.getElementById('portal');
+  if(portal)portal.style.display='flex';
 });</script>
 </body>
 </html>
