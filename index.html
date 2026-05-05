@@ -75,6 +75,8 @@ button { cursor: pointer; }
   z-index: 600;
   display: flex; align-items: center; justify-content: center;
   padding: 24px;
+  pointer-events: all;
+  -webkit-overflow-scrolling: touch;
 }
 .portal-box { width: 100%; max-width: 400px; }
 .portal-logo {
@@ -94,6 +96,9 @@ button { cursor: pointer; }
   display: flex; align-items: center; gap: 18px;
   transition: border-color .15s, transform .15s, box-shadow .15s;
   box-shadow: var(--sh0);
+  position: relative; z-index: 1;
+  -webkit-tap-highlight-color: rgba(0,0,0,.1);
+  touch-action: manipulation;
 }
 .portal-btn:hover {
   border-color: var(--ac);
@@ -120,8 +125,9 @@ button { cursor: pointer; }
   background: rgba(0,0,0,.4);
   z-index: 500;
   display: none; align-items: flex-end; justify-content: center;
-  backdrop-filter: blur(3px);
   padding: 0;
+  pointer-events: all;
+  -webkit-overflow-scrolling: touch;
 }
 .login.open { display: flex; animation: fadein .18s ease; }
 @media (min-width: 600px) {
@@ -159,6 +165,8 @@ button { cursor: pointer; }
   display: flex; align-items: center; gap: 12px;
   width: 100%;
   transition: border-color .13s, background .13s;
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: rgba(0,0,0,.1);
 }
 .lu:hover { border-color: var(--ac); background: var(--acl); }
 .lu:active { transform: scale(.98); }
@@ -598,7 +606,9 @@ button { cursor: pointer; }
   background: rgba(0,0,0,.48);
   z-index: 200;
   display: none; align-items: flex-end; justify-content: center;
-  backdrop-filter: blur(2px);
+  pointer-events: all;
+  -webkit-overflow-scrolling: touch;
+  touch-action: manipulation;
 }
 .ov.open { display: flex; animation: fadein .18s ease; }
 @keyframes fadein { from { opacity: 0; } to { opacity: 1; } }
