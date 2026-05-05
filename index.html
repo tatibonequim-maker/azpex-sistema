@@ -2,9 +2,16 @@
 <html lang="pt-BR">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,viewport-fit=cover">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<style>
+/* Safari iOS specific fixes */
+* { -webkit-touch-callout: none; }
+button { -webkit-appearance: none; }
+input, select, textarea { -webkit-appearance: none; border-radius: 0; }
+</style>
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
 <title>Azpex · Bonequim</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -70,12 +77,13 @@ button { cursor: pointer; }
 
 /* PORTAL */
 .portal {
-  position: fixed; inset: 0;
+  position: fixed;
+  top: 0; left: 0; right: 0; bottom: 0;
+  width: 100%; height: 100%;
   background: var(--bg);
   z-index: 600;
   display: flex; align-items: center; justify-content: center;
   padding: 24px;
-  pointer-events: all;
   -webkit-overflow-scrolling: touch;
 }
 .portal-box { width: 100%; max-width: 400px; }
@@ -121,12 +129,13 @@ button { cursor: pointer; }
 
 /* LOGIN */
 .login {
-  position: fixed; inset: 0;
+  position: fixed;
+  top: 0; left: 0; right: 0; bottom: 0;
+  width: 100%; height: 100%;
   background: rgba(0,0,0,.4);
-  z-index: 500;
+  z-index: 700;
   display: none; align-items: flex-end; justify-content: center;
   padding: 0;
-  pointer-events: all;
   -webkit-overflow-scrolling: touch;
 }
 .login.open { display: flex; animation: fadein .18s ease; }
@@ -141,6 +150,9 @@ button { cursor: pointer; }
   text-align: center;
   box-shadow: var(--sh3);
   animation: slideup .22s cubic-bezier(.34,1.4,.64,1);
+  max-height: 90vh;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
 }
 @media (min-width: 600px) {
   .lbox { border-radius: var(--r20); padding: 28px 24px 36px; }
@@ -895,14 +907,14 @@ button { cursor: pointer; }
     <div class="portal-logo">Azpex · Bonequim</div>
     <div class="portal-sub">Sistema de gestão de produção</div>
     <div class="portal-btns">
-      <button class="portal-btn" onclick="openLogin('fabrica')">
+      <button class="portal-btn" onclick="openLogin('fabrica')" style="cursor:pointer;user-select:none;-webkit-user-select:none">
         <div class="portal-icon" style="background:#E2F2F0">🏭</div>
         <div>
           <div class="portal-label">Fábrica</div>
           <div class="portal-desc">Cortes, produção e estoque</div>
         </div>
       </button>
-      <button class="portal-btn" onclick="openLogin('loja')">
+      <button class="portal-btn" onclick="openLogin('loja')" style="cursor:pointer;user-select:none;-webkit-user-select:none">
         <div class="portal-icon" style="background:#EFF6FF">🏪</div>
         <div>
           <div class="portal-label">Loja Bonequim</div>
@@ -919,27 +931,27 @@ button { cursor: pointer; }
     <div class="llogo">🏭 Fábrica</div>
     <div class="lsub" id="lsub-f">Quem é você?</div>
     <div class="lusers" id="lusers-f">
-      <button class="lu" onclick="selUser('taty','f')">
+      <button class="lu" style="cursor:pointer;-webkit-user-select:none;touch-action:manipulation" onclick="selUser('taty','f')">
         <div class="lav" style="background:#E2F2F0;color:#0B4A50">CT</div>
         <span class="lname">Cinthia / Taty</span>
       </button>
-      <button class="lu" onclick="selUser('edvaldo','f')">
+      <button class="lu" style="cursor:pointer;-webkit-user-select:none;touch-action:manipulation" onclick="selUser('edvaldo','f')">
         <div class="lav" style="background:#EFF6FF;color:#1E62D0">ED</div>
         <span class="lname">Edvaldo</span>
       </button>
-      <button class="lu" onclick="selUser('rosana','f')">
+      <button class="lu" style="cursor:pointer;-webkit-user-select:none;touch-action:manipulation" onclick="selUser('rosana','f')">
         <div class="lav" style="background:#FDF2F8;color:#BE2772">RO</div>
         <span class="lname">Rosana</span>
       </button>
-      <button class="lu" onclick="selUser('daimartha','f')">
+      <button class="lu" style="cursor:pointer;-webkit-user-select:none;touch-action:manipulation" onclick="selUser('daimartha','f')">
         <div class="lav" style="background:#FFFBEB;color:#8A5200">DM</div>
         <span class="lname">Dai / Martha</span>
       </button>
-      <button class="lu" onclick="selUser('carol','f')">
+      <button class="lu" style="cursor:pointer;-webkit-user-select:none;touch-action:manipulation" onclick="selUser('carol','f')">
         <div class="lav" style="background:#F5F3FF;color:#6C35B5">CA</div>
         <span class="lname">Carol</span>
       </button>
-      <button class="lu" onclick="selUser('estoque','f')">
+      <button class="lu" style="cursor:pointer;-webkit-user-select:none;touch-action:manipulation" onclick="selUser('estoque','f')">
         <div class="lav" style="background:#F7F5EF;color:#888578">ES</div>
         <span class="lname">Estoque</span>
       </button>
@@ -954,18 +966,18 @@ button { cursor: pointer; }
       </div>
       <div class="perr" id="fperr"></div>
       <div class="ppad">
-        <button class="pk" onclick="ppk('1','f')">1</button>
-        <button class="pk" onclick="ppk('2','f')">2</button>
-        <button class="pk" onclick="ppk('3','f')">3</button>
-        <button class="pk" onclick="ppk('4','f')">4</button>
-        <button class="pk" onclick="ppk('5','f')">5</button>
-        <button class="pk" onclick="ppk('6','f')">6</button>
-        <button class="pk" onclick="ppk('7','f')">7</button>
-        <button class="pk" onclick="ppk('8','f')">8</button>
-        <button class="pk" onclick="ppk('9','f')">9</button>
+        <button class="pk" style="-webkit-user-select:none;touch-action:manipulation" onclick="ppk('1','f')">1</button>
+        <button class="pk" style="-webkit-user-select:none;touch-action:manipulation" onclick="ppk('2','f')">2</button>
+        <button class="pk" style="-webkit-user-select:none;touch-action:manipulation" onclick="ppk('3','f')">3</button>
+        <button class="pk" style="-webkit-user-select:none;touch-action:manipulation" onclick="ppk('4','f')">4</button>
+        <button class="pk" style="-webkit-user-select:none;touch-action:manipulation" onclick="ppk('5','f')">5</button>
+        <button class="pk" style="-webkit-user-select:none;touch-action:manipulation" onclick="ppk('6','f')">6</button>
+        <button class="pk" style="-webkit-user-select:none;touch-action:manipulation" onclick="ppk('7','f')">7</button>
+        <button class="pk" style="-webkit-user-select:none;touch-action:manipulation" onclick="ppk('8','f')">8</button>
+        <button class="pk" style="-webkit-user-select:none;touch-action:manipulation" onclick="ppk('9','f')">9</button>
         <div></div>
-        <button class="pk" onclick="ppk('0','f')">0</button>
-        <button class="pk del" onclick="ppdel('f')">⌫</button>
+        <button class="pk" style="-webkit-user-select:none;touch-action:manipulation" onclick="ppk('0','f')">0</button>
+        <button class="pk del" style="-webkit-user-select:none;touch-action:manipulation" onclick="ppdel('f')">⌫</button>
       </div>
       <button class="pback" onclick="backUsers('f')">← Voltar</button>
     </div>
@@ -979,19 +991,19 @@ button { cursor: pointer; }
     <div class="llogo">🏪 Loja Bonequim</div>
     <div class="lsub" id="lsub-l">Quem é você?</div>
     <div class="lusers" id="lusers-l">
-      <button class="lu" onclick="selUser('vendA','l')">
+      <button class="lu" style="cursor:pointer;-webkit-user-select:none;touch-action:manipulation" onclick="selUser('vendA','l')">
         <div class="lav" style="background:#EFF6FF;color:#1E62D0">VA</div>
         <span class="lname">Vendedora A</span>
       </button>
-      <button class="lu" onclick="selUser('vendB','l')">
+      <button class="lu" style="cursor:pointer;-webkit-user-select:none;touch-action:manipulation" onclick="selUser('vendB','l')">
         <div class="lav" style="background:#FDF2F8;color:#BE2772">VB</div>
         <span class="lname">Vendedora B</span>
       </button>
-      <button class="lu" onclick="selUser('vendC','l')">
+      <button class="lu" style="cursor:pointer;-webkit-user-select:none;touch-action:manipulation" onclick="selUser('vendC','l')">
         <div class="lav" style="background:#FEF3C7;color:#C96B00">VC</div>
         <span class="lname">Vendedora C</span>
       </button>
-      <button class="lu" onclick="selUser('gerente','l')">
+      <button class="lu" style="cursor:pointer;-webkit-user-select:none;touch-action:manipulation" onclick="selUser('gerente','l')">
         <div class="lav" style="background:#E2F2F0;color:#0B4A50">GI</div>
         <span class="lname">Gi — Gerente</span>
       </button>
@@ -1006,18 +1018,18 @@ button { cursor: pointer; }
       </div>
       <div class="perr" id="lperr"></div>
       <div class="ppad">
-        <button class="pk" onclick="ppk('1','l')">1</button>
-        <button class="pk" onclick="ppk('2','l')">2</button>
-        <button class="pk" onclick="ppk('3','l')">3</button>
-        <button class="pk" onclick="ppk('4','l')">4</button>
-        <button class="pk" onclick="ppk('5','l')">5</button>
-        <button class="pk" onclick="ppk('6','l')">6</button>
-        <button class="pk" onclick="ppk('7','l')">7</button>
-        <button class="pk" onclick="ppk('8','l')">8</button>
-        <button class="pk" onclick="ppk('9','l')">9</button>
+        <button class="pk" style="-webkit-user-select:none;touch-action:manipulation" onclick="ppk('1','l')">1</button>
+        <button class="pk" style="-webkit-user-select:none;touch-action:manipulation" onclick="ppk('2','l')">2</button>
+        <button class="pk" style="-webkit-user-select:none;touch-action:manipulation" onclick="ppk('3','l')">3</button>
+        <button class="pk" style="-webkit-user-select:none;touch-action:manipulation" onclick="ppk('4','l')">4</button>
+        <button class="pk" style="-webkit-user-select:none;touch-action:manipulation" onclick="ppk('5','l')">5</button>
+        <button class="pk" style="-webkit-user-select:none;touch-action:manipulation" onclick="ppk('6','l')">6</button>
+        <button class="pk" style="-webkit-user-select:none;touch-action:manipulation" onclick="ppk('7','l')">7</button>
+        <button class="pk" style="-webkit-user-select:none;touch-action:manipulation" onclick="ppk('8','l')">8</button>
+        <button class="pk" style="-webkit-user-select:none;touch-action:manipulation" onclick="ppk('9','l')">9</button>
         <div></div>
-        <button class="pk" onclick="ppk('0','l')">0</button>
-        <button class="pk del" onclick="ppdel('l')">⌫</button>
+        <button class="pk" style="-webkit-user-select:none;touch-action:manipulation" onclick="ppk('0','l')">0</button>
+        <button class="pk del" style="-webkit-user-select:none;touch-action:manipulation" onclick="ppdel('l')">⌫</button>
       </div>
       <button class="pback" onclick="backUsers('l')">← Voltar</button>
     </div>
