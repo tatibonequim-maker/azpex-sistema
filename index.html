@@ -1346,7 +1346,7 @@ function checkPin(side){
     pinVal='';updDots(s);
   }
 }
-function logout(){
+function logout(){localStorage.removeItem('az_user');
   user='';
   document.getElementById('app').style.display='none';
   document.getElementById('portal').style.display='flex';
@@ -1361,6 +1361,7 @@ function logout(){
 // ── INIT APP ──
 function initApp(){
   try{
+  localStorage.setItem('az_user',user);
   document.getElementById('portal').style.display='none';
   document.getElementById('app').style.display='';
   document.getElementById('app-user').textContent=UNAMES[user]||user;
@@ -2730,11 +2731,6 @@ function saveCfgWpp(){
   ['wcarol','wdm','wgi','wedv','wros'].forEach(k=>{const v=document.getElementById('cfg-'+k)?.value.trim();if(v)cfg[k]=v;});
   localStorage.setItem('az_cfg',JSON.stringify(cfg));toast('Números salvos!','s');
 }
-function savePins(){
-  const map={pt:'taty',pe:'edvaldo',pr:'rosana',pd:'daimartha',pc:'carol',pes:'estoque',pva:'vendA',pvb:'vendB',pvc:'vendC',pge:'gerente'};
-  Object.entries(map).forEach(([k,u])=>{const v=document.getElementById('cfg-'+k)?.value.trim();if(v&&v.length===4)localStorage.setItem('az_pin_'+u,v);});
-  toast('PINs salvos!','s');
-}
 function saveGrades(){cfg.customGrades=document.getElementById('cfg-grades').value.trim();localStorage.setItem('az_cfg',JSON.stringify(cfg));populateSels();toast('Grades atualizadas!','s');}
 
 function openCfg(){
@@ -2759,6 +2755,14 @@ function op(id){document.getElementById(id)?.classList.add('open');}
 function cl(id){document.getElementById(id)?.classList.remove('open');}
 function toast(msg,type='i'){const c=document.getElementById('toasts');const t=document.createElement('div');t.className=`toast ${type}`;t.textContent=msg;c.appendChild(t);setTimeout(()=>t.remove(),3500);}
 ['ov-novo','ov-det','ov-cores','ov-pedido','ov-resp','ov-cfg','ov-decisao','ov-envio'].forEach(id=>{document.getElementById(id)?.addEventListener('click',e=>{if(e.target===e.currentTarget)cl(id);});});
-</script>
+
+// Auto-init: check if user is already logged in from localStorage
+window.addEventListener('DOMContentLoaded',()=>{
+  const savedUser=localStorage.getItem('az_user');
+  if(savedUser&&DPINS[savedUser]){
+    user=savedUser;
+    initApp();
+  }
+});</script>
 </body>
 </html>
