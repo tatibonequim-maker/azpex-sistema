@@ -18,6 +18,7 @@ export default async function handler(req, res) {
         redirect: 'follow',
       });
     } else {
+      // GET — pass query params to Apps Script
       const params = new URLSearchParams(req.query).toString();
       const url = params ? `${APPS_SCRIPT_URL}?${params}` : APPS_SCRIPT_URL;
       response = await fetch(url, { redirect: 'follow' });
@@ -29,7 +30,7 @@ export default async function handler(req, res) {
       return res.status(200).json(data);
     } catch (e) {
       console.error('Apps Script non-JSON:', text.slice(0, 500));
-      return res.status(502).json({ error: 'Apps Script retornou resposta inválida', raw: text.slice(0, 200) });
+      return res.status(502).json({ error: 'Resposta inválida', raw: text.slice(0, 200) });
     }
   } catch (err) {
     console.error('Proxy error:', err);
