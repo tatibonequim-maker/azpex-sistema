@@ -85,7 +85,10 @@ button { cursor: pointer; }
   display: flex; align-items: center; justify-content: center;
   padding: 24px;
   -webkit-overflow-scrolling: touch;
+  overflow-y: auto;
+  pointer-events: auto;
 }
+.portal * { pointer-events: auto; }
 .portal-box { width: 100%; max-width: 400px; }
 .portal-logo {
   font-family: 'Syne', sans-serif;
@@ -102,12 +105,17 @@ button { cursor: pointer; }
   background: var(--sf);
   cursor: pointer; text-align: left;
   display: flex; align-items: center; gap: 18px;
-  transition: border-color .15s, transform .15s, box-shadow .15s;
   box-shadow: var(--sh0);
-  position: relative; z-index: 1;
-  -webkit-tap-highlight-color: rgba(0,0,0,.1);
+  position: relative; z-index: 10;
+  -webkit-tap-highlight-color: rgba(0,0,0,.15);
   touch-action: manipulation;
+  -webkit-user-select: none;
+  user-select: none;
+  pointer-events: auto;
+  width: 100%;
+  font-family: inherit;
 }
+.portal-btn * { pointer-events: none; }
 .portal-btn:hover {
   border-color: var(--ac);
   background: var(--acl);
@@ -2860,7 +2868,7 @@ function toast(msg,type='i'){const c=document.getElementById('toasts');const t=d
 
   // ── MODO PAREDE (iPad horizontal Estoque) ──
 let wallMode=false,wallInterval=null,wallClockInterval=null,wakeLock=null;
-function detectWallMode(){if(user!=='estoque')return false;const w=window.innerWidth,h=window.innerHeight;return w>=1024&&w>h;}
+function detectWallMode(){if(user!=='estoque')return false;return window.innerWidth>=900;}
 async function activateWallMode(){
   if(wallMode)return;wallMode=true;
   document.querySelector('.hdr').style.display='none';
