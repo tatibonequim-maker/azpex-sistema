@@ -16,48 +16,61 @@ input, select, textarea { -webkit-appearance: none; border-radius: 0; }
 <title>Azpex · Bonequim</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Syne:wght@700;800&family=DM+Sans:wght@400;500;600&family=DM+Mono:wght@400;500;600&display=swap" rel="stylesheet">
-<style>
-/* TOKENS */
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Inter:wght@400;500;600&family=DM+Mono:wght@400;500;600&family=Syne:wght@700;800&display=swap" rel="stylesheet">
+  <style>
+/* TOKENS · ClickUp style */
 :root {
-  --bg:   #F1EFE9;
+  /* Backgrounds */
+  --bg:   #F9FAFB;
   --sf:   #FFFFFF;
-  --s2:   #F7F5EF;
-  --s3:   #ECEAE2;
-  --bd:   #DDD9CE;
-  --bd2:  #C5C1B4;
-  --tx:   #1A1916;
-  --mt:   #888578;
-  --mts:  #BAB8B0;
+  --s2:   #F3F4F6;
+  --s3:   #E5E7EB;
+  --bd:   #E5E7EB;
+  --bd2:  #D1D5DB;
+  --tx:   #1F2937;
+  --mt:   #6B7280;
+  --mts:  #9CA3AF;
 
-  --ac:   #0B4A50;
-  --acm:  #0D5F67;
-  --acl:  #E2F2F0;
-  --acs:  #083840;
+  /* Gradient stops */
+  --grad-blue-1:  #6647F0;
+  --grad-blue-2:  #0091FF;
+  --grad-pink-1:  #FF02F0;
+  --grad-pink-2:  #FC6D2D;
 
+  /* Aliases pra compatibilidade com código antigo */
+  --ac:   #6647F0;
+  --acm:  #0091FF;
+  --acl:  #EEF2FF;
+  --acs:  #4338CA;
+
+  /* WhatsApp */
   --wpp:  #25D366;
   --wppb: rgba(37,211,102,.12);
 
-  --c1: #C96B00; --b1: #FEF3C7;
-  --c2: #1E62D0; --b2: #EFF6FF;
-  --c3: #0A7A52; --b3: #ECFDF5;
-  --c4: #C9291A; --b4: #FEF2F2;
-  --c5: #6C35B5; --b5: #F5F3FF;
-  --c6: #BE2772; --b6: #FDF2F8;
-  --c7: #0B4A50; --b7: #E2F2F0;
-  --c8: #8A5200; --b8: #FFFBEB;
+  /* Cores semânticas (badges + status) */
+  --c1: #D97706; --b1: #FEF3C7;
+  --c2: #1E40AF; --b2: #DBEAFE;
+  --c3: #065F46; --b3: #D1FAE5;
+  --c4: #991B1B; --b4: #FEE2E2;
+  --c5: #5B21B6; --b5: #EDE9FE;
+  --c6: #9D174D; --b6: #FCE7F3;
+  --c7: #1E3A8A; --b7: #DBEAFE;
+  --c8: #92400E; --b8: #FEF3C7;
 
-  --r4:  4px;  --r6:  6px;  --r8:  8px;
-  --r12: 12px; --r16: 16px; --r20: 20px; --r99: 99px;
+  /* Border radius (mais arredondado, estilo ClickUp) */
+  --r4:  6px;  --r6:  8px;  --r8:  10px;
+  --r12: 12px; --r16: 14px; --r20: 16px; --r99: 99px;
 
-  --sh0: 0 1px 2px rgba(0,0,0,.06);
-  --sh1: 0 2px 8px rgba(0,0,0,.09);
-  --sh2: 0 6px 24px rgba(0,0,0,.13);
-  --sh3: 0 16px 48px rgba(0,0,0,.18);
+  /* Sombras suaves */
+  --sh0: 0 1px 2px rgba(0,0,0,.04);
+  --sh1: 0 1px 3px rgba(0,0,0,.08), 0 1px 2px rgba(0,0,0,.04);
+  --sh2: 0 4px 12px rgba(0,0,0,.08), 0 2px 4px rgba(0,0,0,.04);
+  --sh3: 0 10px 30px rgba(0,0,0,.12), 0 4px 8px rgba(0,0,0,.06);
 
-  --hdr-h: 52px;
+  --hdr-h: 56px;
   --tab-h: 44px;
 }
+
 
 /* RESET & BASE */
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
@@ -65,15 +78,112 @@ html { -webkit-text-size-adjust: 100%; scroll-behavior: smooth; }
 body {
   background: var(--bg);
   color: var(--tx);
-  font-family: 'DM Sans', sans-serif;
-  font-size: 15px;
-  line-height: 1.55;
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+  font-size: 14px;
+  line-height: 1.5;
   min-height: 100vh;
   -webkit-tap-highlight-color: transparent;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
 input, select, textarea, button { font-family: inherit; font-size: inherit; }
 button { cursor: pointer; }
-*:focus-visible { outline: 2px solid var(--ac); outline-offset: 2px; border-radius: 4px; }
+*:focus-visible { outline: 2px solid var(--grad-blue-1); outline-offset: 2px; border-radius: 4px; }
+
+/* ── TIPOGRAFIA HELPERS ── */
+.fj { font-family: 'Plus Jakarta Sans', sans-serif; }
+.fi { font-family: 'Inter', sans-serif; }
+.fm { font-family: 'DM Mono', monospace; }
+
+/* ── GRADIENTES ── */
+.grad-blue { background: linear-gradient(135deg, var(--grad-blue-1) 0%, var(--grad-blue-2) 100%); }
+.grad-pink { background: linear-gradient(135deg, var(--grad-pink-1) 0%, var(--grad-pink-2) 100%); }
+.grad-blue-tx { background: linear-gradient(135deg, var(--grad-blue-1) 0%, var(--grad-blue-2) 100%); -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; }
+.grad-pink-tx { background: linear-gradient(135deg, var(--grad-pink-1) 0%, var(--grad-pink-2) 100%); -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; }
+
+/* ── LOGO Azpex · Bonequim ── */
+.az-logo {
+  font-family: 'Plus Jakarta Sans', sans-serif;
+  font-size: 1.05rem; font-weight: 800;
+  letter-spacing: -.02em;
+  white-space: nowrap;
+}
+.az-logo .a {
+  background: linear-gradient(135deg, var(--grad-blue-1) 0%, var(--grad-blue-2) 100%);
+  -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent;
+}
+.az-logo .b {
+  background: linear-gradient(135deg, var(--grad-pink-1) 0%, var(--grad-pink-2) 100%);
+  -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent;
+}
+.az-logo .sep { color: #D1D5DB; margin: 0 4px; }
+
+/* ── BOTÕES ── */
+.btn-grad-blue {
+  background: linear-gradient(135deg, var(--grad-blue-1) 0%, var(--grad-blue-2) 100%);
+  color: #fff !important; border: none;
+  padding: 10px 18px; border-radius: 12px;
+  font-family: 'Inter', sans-serif; font-size: 13px; font-weight: 600;
+  cursor: pointer; transition: filter .15s, transform .1s;
+  display: inline-flex; align-items: center; gap: 6px;
+}
+.btn-grad-blue:hover { filter: brightness(1.08); }
+.btn-grad-blue:active { transform: scale(.97); }
+.btn-grad-pink {
+  background: linear-gradient(135deg, var(--grad-pink-1) 0%, var(--grad-pink-2) 100%);
+  color: #fff !important; border: none;
+  padding: 10px 18px; border-radius: 12px;
+  font-family: 'Inter', sans-serif; font-size: 13px; font-weight: 600;
+  cursor: pointer; transition: filter .15s, transform .1s;
+}
+.btn-grad-pink:hover { filter: brightness(1.08); }
+.btn-grad-pink:active { transform: scale(.97); }
+
+/* ── PILL SWITCH (tabs estilo ClickUp) ── */
+.pill-switch {
+  display: inline-flex; gap: 3px;
+  background: var(--s2); padding: 3px;
+  border-radius: 12px;
+}
+.pill-switch button {
+  background: transparent; color: var(--mt);
+  border: none; padding: 7px 14px;
+  border-radius: 9px;
+  font-family: 'Inter', sans-serif; font-size: 13px; font-weight: 500;
+  cursor: pointer; transition: all .15s;
+  display: inline-flex; align-items: center; gap: 5px;
+}
+.pill-switch button.on {
+  background: var(--sf); color: var(--tx);
+  font-weight: 600;
+  box-shadow: 0 1px 2px rgba(0,0,0,.06);
+}
+.pill-switch button:hover:not(.on) { color: var(--tx); }
+
+/* ── TIME CHIP (tempo decorrido sutil) ── */
+.tchip {
+  font-family: 'DM Mono', monospace;
+  font-size: 10px; font-weight: 500;
+  color: var(--mts);
+  display: inline-flex; align-items: center; gap: 3px;
+}
+.tchip.warn {
+  background: #FEF3C7; color: #92400E; font-weight: 700;
+  padding: 2px 7px; border-radius: 5px;
+}
+.tchip.danger {
+  background: #FEE2E2; color: #DC2626; font-weight: 700;
+  padding: 2px 7px; border-radius: 5px;
+}
+
+/* ── HEADINGS ── */
+h1, h2, h3, .heading {
+  font-family: 'Plus Jakarta Sans', sans-serif;
+  font-weight: 800; letter-spacing: -.02em;
+  color: var(--tx);
+}
+
+
 
 /* PORTAL */
 .portal {
@@ -1507,6 +1617,7 @@ function initApp(){
 
   populateSels();
   render();
+      inicializarNotificacoes();
   if(cfg.url){
     setTimeout(syncAll,600);
     setInterval(()=>{if(cfg.url)syncAll(true);},30000);
@@ -3004,6 +3115,139 @@ function checkWallMode(){
 }
 window.addEventListener('resize',()=>{if(user==='estoque')checkWallMode();});
 window.addEventListener('orientationchange',()=>{setTimeout(()=>{if(user==='estoque')checkWallMode();},300);});
+
+// ═══ FASE 1 · TEMPO DECORRIDO + NOTIFICAÇÕES ═══
+
+// Calcula tempo decorrido com base na data de referência
+function tempoDecorrido(c) {
+  const ref = c.dataDesc || c.data;
+  if (!ref) return { texto: '', nivel: 0, classe: '' };
+  let dt;
+  if (ref.includes('-')) dt = new Date(ref + 'T08:00:00');
+  else if (ref.includes('/')) {
+    const p = ref.split('/');
+    dt = new Date(p[2] + '-' + p[1] + '-' + p[0] + 'T08:00:00');
+  } else return { texto: '', nivel: 0, classe: '' };
+  const horas = Math.floor((Date.now() - dt.getTime()) / 3600000);
+  if (horas < 1) return { texto: 'agora', nivel: 0, classe: '' };
+  if (horas < 8) return { texto: 'há ' + horas + 'h', nivel: 0, classe: '' };
+  if (horas < 24) return { texto: 'há ' + horas + 'h', nivel: 1, classe: 'warn' };
+  const dias = Math.floor(horas / 24);
+  if (dias === 1) return { texto: 'ontem', nivel: 1, classe: 'warn' };
+  if (dias <= 2) return { texto: 'há ' + dias + 'd', nivel: 1, classe: 'warn' };
+  return { texto: 'há ' + dias + 'd', nivel: 2, classe: 'danger' };
+}
+
+// HTML do chip de tempo decorrido (use nos cards)
+function tempoChipHTML(c) {
+  const t = tempoDecorrido(c);
+  if (!t.texto) return '';
+  if (t.classe === 'danger') return '<span class="tchip danger">🔥 ' + t.texto + '</span>';
+  if (t.classe === 'warn') return '<span class="tchip warn">⏱ ' + t.texto + '</span>';
+  return '<span class="tchip">' + t.texto + '</span>';
+}
+
+// ── NOTIFICAÇÕES PUSH + SOM ──
+let notifPermission = 'default';
+let lastNotifIds = JSON.parse(localStorage.getItem('az_lastnotif') || '[]');
+
+async function pedirPermissaoNotif() {
+  if (!('Notification' in window)) return false;
+  if (Notification.permission === 'granted') {
+    notifPermission = 'granted';
+    return true;
+  }
+  if (Notification.permission === 'denied') {
+    notifPermission = 'denied';
+    return false;
+  }
+  const result = await Notification.requestPermission();
+  notifPermission = result;
+  return result === 'granted';
+}
+
+function tocarSomNotif() {
+  try {
+    const ctx = new (window.AudioContext || window.webkitAudioContext)();
+    const osc = ctx.createOscillator();
+    const gain = ctx.createGain();
+    osc.connect(gain); gain.connect(ctx.destination);
+    osc.frequency.value = 880;
+    gain.gain.setValueAtTime(0.15, ctx.currentTime);
+    gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.3);
+    osc.start(ctx.currentTime);
+    osc.stop(ctx.currentTime + 0.3);
+    setTimeout(() => {
+      const osc2 = ctx.createOscillator();
+      const gain2 = ctx.createGain();
+      osc2.connect(gain2); gain2.connect(ctx.destination);
+      osc2.frequency.value = 1320;
+      gain2.gain.setValueAtTime(0.15, ctx.currentTime);
+      gain2.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.3);
+      osc2.start(ctx.currentTime);
+      osc2.stop(ctx.currentTime + 0.3);
+    }, 150);
+  } catch(e) { console.log('Som falhou:', e); }
+}
+
+function vibrar() {
+  if ('vibrate' in navigator) navigator.vibrate([200, 100, 200]);
+}
+
+function mostrarNotif(titulo, corpo) {
+  if (notifPermission !== 'granted') return;
+  try {
+    const n = new Notification(titulo, {
+      body: corpo,
+      icon: '/favicon.ico',
+      badge: '/favicon.ico',
+      tag: 'azpex',
+      renotify: true,
+    });
+    setTimeout(() => n.close(), 8000);
+  } catch(e) { console.log('Notif falhou:', e); }
+}
+
+// Detecta itens novos na fila do usuário e dispara notificação
+function checarNovosNaFila() {
+  if (!user) return;
+  let novosIds = [];
+  if (user === 'edvaldo') {
+    novosIds = cortes.filter(c => c.status === 'AGUARDANDO_ENCAIXE' || c.status === 'ENCAIXE_REPROVADO').map(c => c.id);
+  } else if (user === 'rosana') {
+    novosIds = cortes.filter(c => c.status === 'DESCANSAR_TECIDO').map(c => c.id);
+  } else if (user === 'carol') {
+    novosIds = cortes.filter(c => c.status === 'AG_FOTO').map(c => c.id);
+  } else if (user === 'daimartha') {
+    novosIds = cortes.filter(c => c.status === 'NO_CORTE').map(c => c.id);
+  } else if (user === 'estoque') {
+    novosIds = cortes.filter(c => c.status === 'EMBALAR').map(c => c.id);
+  }
+  const realmenteNovos = novosIds.filter(id => !lastNotifIds.includes(id));
+  if (realmenteNovos.length > 0 && lastNotifIds.length > 0) {
+    const qtd = realmenteNovos.length;
+    const titulo = '🔔 Azpex · ' + qtd + ' novo' + (qtd > 1 ? 's' : '') + ' item' + (qtd > 1 ? 's' : '') + ' na sua fila';
+    const corpo = qtd === 1 ? 'Toque pra ver o que chegou' : qtd + ' itens aguardando sua ação';
+    mostrarNotif(titulo, corpo);
+    tocarSomNotif();
+    vibrar();
+    toast('🔔 ' + qtd + ' novo' + (qtd > 1 ? 's' : '') + ' na fila', 'i');
+  }
+  lastNotifIds = novosIds;
+  localStorage.setItem('az_lastnotif', JSON.stringify(novosIds));
+}
+
+// Pede permissão de notificação ao logar (exceto admin)
+function inicializarNotificacoes() {
+  if (!user || user === 'taty') return;
+  setTimeout(() => {
+    pedirPermissaoNotif().then(ok => {
+      if (ok) console.log('Notificações ativas');
+    });
+  }, 1500);
+}
+
+  
 // Auto-init: check if user is already logged in from localStorage
 window.addEventListener('DOMContentLoaded',()=>{
   // Try to restore session from localStorage
