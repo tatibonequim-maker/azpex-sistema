@@ -1724,6 +1724,7 @@ async function syncAll(silent){
     }
     if(l&&l.tecidos){localStorage.setItem('az_listas',JSON.stringify(l));populateSels();}
     sl();render();if(!silent)toast('Sincronizado ✔','s');
+        checarNovosNaFila();
   }catch(e){console.error(e);if(!silent)toast('Erro ao sincronizar','w');}
 }
 
