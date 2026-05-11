@@ -175,6 +175,410 @@ button { cursor: pointer; }
   background: #FEE2E2; color: #DC2626; font-weight: 700;
   padding: 2px 7px; border-radius: 5px;
 }
+/* ═══ DASHBOARDS ═══ */
+
+/* Container geral do dashboard */
+.dash {
+  padding: 20px;
+  max-width: 1400px;
+  margin: 0 auto;
+}
+
+/* Saudação */
+.dash-hello {
+  font-family: 'Plus Jakarta Sans', sans-serif;
+  font-size: 22px; font-weight: 800;
+  color: var(--tx); letter-spacing: -.02em;
+  margin-bottom: 2px;
+}
+.dash-sub {
+  font-size: 13px; color: var(--mt);
+  margin-bottom: 20px;
+}
+
+/* Grid de métricas (4 colunas no admin, 3 nos demais) */
+.dash-metrics {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 12px;
+  margin-bottom: 24px;
+}
+.dash-metrics.cols-3 { grid-template-columns: repeat(3, 1fr); }
+.dash-metrics.cols-2 { grid-template-columns: repeat(2, 1fr); }
+@media (max-width: 768px) {
+  .dash-metrics { grid-template-columns: 1fr 1fr; }
+  .dash-metrics.cols-3,
+  .dash-metrics.cols-4 { grid-template-columns: 1fr 1fr; }
+}
+
+.dash-metric {
+  background: var(--sf);
+  border: 1px solid var(--bd);
+  border-radius: var(--r16);
+  padding: 16px;
+  cursor: pointer;
+  transition: transform .15s, box-shadow .15s, border-color .15s;
+}
+.dash-metric:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--sh1);
+  border-color: var(--bd2);
+}
+.dash-metric.warn { border-color: #FBBF24; }
+.dash-metric.warn .dash-metric-l { color: #92400E; }
+.dash-metric.warn .dash-metric-v { color: #92400E; }
+.dash-metric.warn .dash-metric-sub { color: #92400E; }
+.dash-metric.success { border-color: #10B981; }
+.dash-metric.success .dash-metric-l { color: #065F46; }
+.dash-metric.success .dash-metric-v { color: #065F46; }
+.dash-metric.success .dash-metric-sub { color: #065F46; }
+.dash-metric.danger { border-color: #FCA5A5; }
+.dash-metric.danger .dash-metric-l { color: #991B1B; }
+.dash-metric.danger .dash-metric-v { color: #DC2626; }
+.dash-metric.danger .dash-metric-sub { color: #991B1B; }
+.dash-metric.purple { border-color: #8B5CF6; }
+.dash-metric.purple .dash-metric-l { color: #5B21B6; }
+.dash-metric.purple .dash-metric-v { color: #5B21B6; }
+.dash-metric.purple .dash-metric-sub { color: #5B21B6; }
+
+.dash-metric-head {
+  display: flex; justify-content: space-between;
+  align-items: flex-start; margin-bottom: 8px;
+}
+.dash-metric-l {
+  font-size: 11px; text-transform: uppercase;
+  letter-spacing: .6px; font-weight: 600; color: var(--mt);
+}
+.dash-metric-i { font-size: 16px; opacity: .8; }
+.dash-metric-v {
+  font-family: 'DM Mono', monospace;
+  font-size: 28px; font-weight: 600;
+  color: var(--tx); line-height: 1;
+}
+.dash-metric-sub {
+  font-size: 11px; color: var(--mt); margin-top: 6px;
+}
+
+/* Layout 2 colunas (lista grande + sidebar) */
+.dash-2col {
+  display: grid;
+  grid-template-columns: 2fr 1fr;
+  gap: 16px;
+  margin-bottom: 16px;
+}
+.dash-2col.equal { grid-template-columns: 1fr 1fr; }
+@media (max-width: 768px) {
+  .dash-2col, .dash-2col.equal { grid-template-columns: 1fr; }
+}
+
+/* Card / painel padrão */
+.dash-panel {
+  background: var(--sf);
+  border: 1px solid var(--bd);
+  border-radius: var(--r16);
+  padding: 18px;
+}
+.dash-panel-head {
+  display: flex; justify-content: space-between;
+  align-items: center; margin-bottom: 14px;
+}
+.dash-panel-ti {
+  font-family: 'Plus Jakarta Sans', sans-serif;
+  font-size: 14px; font-weight: 800;
+  color: var(--tx);
+}
+.dash-panel-link {
+  background: transparent; border: none;
+  color: var(--grad-blue-1); font-size: 12px;
+  font-weight: 600; cursor: pointer;
+}
+
+/* Lista de ações pendentes (linhas) */
+.dash-acts { display: flex; flex-direction: column; gap: 6px; }
+.dash-act {
+  display: flex; align-items: center; gap: 12px;
+  padding: 10px 12px;
+  background: var(--sf);
+  border: 1px solid var(--bd);
+  border-radius: 10px;
+  transition: border-color .15s;
+}
+.dash-act.warn  { background: #FEF3C7; border-color: #F59E0B; }
+.dash-act.warn .dash-act-id { color: #78350F; }
+.dash-act.warn .dash-act-ti { color: #78350F; }
+.dash-act.warn .dash-act-meta { color: #92400E; }
+.dash-act.danger { background: #FEE2E2; border-color: #FCA5A5; }
+.dash-act.danger .dash-act-id { color: #7F1D1D; }
+.dash-act.danger .dash-act-ti { color: #7F1D1D; }
+.dash-act.danger .dash-act-meta { color: #991B1B; }
+.dash-act-id {
+  font-family: 'DM Mono', monospace;
+  font-size: 12px; font-weight: 700; color: var(--grad-blue-1);
+  min-width: 70px;
+}
+.dash-act-info { flex: 1; min-width: 0; }
+.dash-act-ti {
+  font-family: 'Plus Jakarta Sans', sans-serif;
+  font-size: 13px; font-weight: 700;
+  color: var(--tx);
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.dash-act-meta {
+  font-size: 11px; color: var(--mt); margin-top: 1px;
+}
+
+/* Botões: 3 níveis de hierarquia */
+.btn-grad-blue-sm {
+  background: linear-gradient(135deg, var(--grad-blue-1) 0%, var(--grad-blue-2) 100%);
+  color: #fff !important; border: none;
+  padding: 7px 13px; border-radius: 8px;
+  font-family: 'Inter', sans-serif; font-size: 12px; font-weight: 600;
+  cursor: pointer; transition: filter .15s;
+}
+.btn-grad-blue-sm:hover { filter: brightness(1.08); }
+.btn-dark-sm {
+  background: #1F2937; color: #fff !important; border: none;
+  padding: 7px 13px; border-radius: 8px;
+  font-family: 'Inter', sans-serif; font-size: 12px; font-weight: 600;
+  cursor: pointer; transition: background .15s;
+}
+.btn-dark-sm:hover { background: #111827; }
+.btn-light-sm {
+  background: var(--sf); color: var(--tx); border: 1.5px solid var(--bd);
+  padding: 7px 13px; border-radius: 8px;
+  font-family: 'Inter', sans-serif; font-size: 12px; font-weight: 600;
+  cursor: pointer;
+}
+
+/* Painel "Fluxo do dia" (admin) */
+.dash-flow { display: flex; flex-direction: column; gap: 8px; }
+.dash-flow-row {
+  display: flex; justify-content: space-between;
+  align-items: center; font-size: 12px;
+}
+.dash-flow-l { color: var(--mt); display: flex; align-items: center; gap: 6px; }
+.dash-flow-dot {
+  display: inline-block; width: 8px; height: 8px;
+  border-radius: 50%;
+}
+.dash-flow-v {
+  font-family: 'DM Mono', monospace;
+  font-weight: 600; color: var(--tx);
+}
+
+/* Painel gradiente (Esta semana) */
+.dash-gradcard {
+  background: linear-gradient(135deg, var(--grad-blue-1) 0%, var(--grad-blue-2) 100%);
+  border-radius: var(--r16);
+  padding: 16px;
+  color: #fff;
+}
+.dash-gradcard-ti {
+  font-family: 'Plus Jakarta Sans', sans-serif;
+  font-size: 13px; font-weight: 800; margin-bottom: 4px;
+}
+.dash-gradcard-v {
+  font-family: 'DM Mono', monospace;
+  font-size: 28px; font-weight: 600; line-height: 1;
+  margin: 8px 0 4px;
+}
+.dash-gradcard-sub { font-size: 11px; opacity: .9; }
+.dash-gradcard-trend { font-size: 11px; opacity: .8; margin-top: 6px; }
+
+/* Atividade recente (timeline) */
+.dash-activity { display: flex; flex-direction: column; gap: 10px; }
+.dash-activity-row {
+  display: flex; gap: 10px;
+  font-size: 12px;
+  padding-bottom: 10px;
+  border-bottom: 1px solid var(--s2);
+}
+.dash-activity-row:last-child { border-bottom: none; padding-bottom: 0; }
+.dash-activity-time {
+  font-family: 'DM Mono', monospace;
+  color: var(--mts); min-width: 60px;
+}
+.dash-activity-text { color: var(--tx); flex: 1; }
+.dash-activity-text strong { font-weight: 700; }
+.dash-activity-text .ref {
+  font-family: 'DM Mono', monospace;
+  color: var(--grad-blue-1); font-weight: 700;
+}
+
+/* Banner de chamada (Dai voltou da oficina, etc) */
+.dash-banner {
+  background: linear-gradient(135deg, #FEF3C7 0%, #FDE68A 100%);
+  border: 1px solid #F59E0B;
+  border-radius: var(--r16);
+  padding: 16px;
+  margin-bottom: 14px;
+}
+.dash-banner-head {
+  display: flex; justify-content: space-between;
+  align-items: center; margin-bottom: 10px;
+}
+.dash-banner-ti {
+  font-family: 'Plus Jakarta Sans', sans-serif;
+  font-size: 14px; font-weight: 800;
+  color: #78350F;
+}
+.dash-banner-sub {
+  font-size: 12px; color: #92400E; margin-top: 2px;
+}
+.dash-banner-count {
+  font-family: 'DM Mono', monospace;
+  background: #D97706; color: #fff;
+  padding: 4px 12px; border-radius: 99px;
+  font-size: 14px; font-weight: 700;
+}
+.dash-banner-item {
+  background: var(--sf);
+  border-radius: 10px;
+  padding: 12px;
+  display: flex; align-items: center; gap: 12px;
+  margin-bottom: 6px;
+}
+.dash-banner-item:last-child { margin-bottom: 0; }
+.dash-banner-item-info { flex: 1; min-width: 0; }
+.dash-banner-item-id {
+  font-family: 'DM Mono', monospace;
+  font-size: 11px; font-weight: 700; color: #92400E;
+}
+.dash-banner-item-ti {
+  font-family: 'Plus Jakarta Sans', sans-serif;
+  font-size: 14px; font-weight: 700; color: var(--tx);
+}
+.dash-banner-item-meta {
+  font-size: 11px; color: var(--mt); margin-top: 1px;
+}
+
+/* Lista densa (Dai - na oficina, Carol - lista geral) */
+.dash-densa { display: flex; flex-direction: column; gap: 6px; }
+.dash-densa-row {
+  display: flex; align-items: center; gap: 10px;
+  padding: 8px 10px;
+  background: var(--bg);
+  border-radius: 8px;
+}
+.dash-densa-id {
+  font-family: 'DM Mono', monospace;
+  font-size: 11px; font-weight: 600;
+  color: var(--grad-blue-1); min-width: 70px;
+}
+.dash-densa-ti {
+  flex: 1; font-size: 12px; color: var(--tx);
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.dash-densa-meta {
+  font-family: 'DM Mono', monospace;
+  font-size: 10px; color: var(--mts);
+}
+
+/* Cards grandes (Vendedoras - status do pedido) */
+.dash-bigcard {
+  background: var(--sf);
+  border: 1px solid var(--bd);
+  border-radius: 12px;
+  padding: 14px;
+  margin-bottom: 6px;
+}
+.dash-bigcard.success {
+  background: #D1FAE5; border-color: #10B981;
+}
+.dash-bigcard-head {
+  display: flex; justify-content: space-between;
+  align-items: flex-start; margin-bottom: 6px;
+}
+.dash-bigcard-id {
+  font-family: 'DM Mono', monospace;
+  font-size: 12px; font-weight: 700; color: var(--grad-blue-1);
+}
+.dash-bigcard.success .dash-bigcard-id { color: #065F46; }
+.dash-bigcard-status {
+  padding: 3px 9px; border-radius: 99px;
+  font-size: 10px; font-weight: 700;
+}
+.dash-bigcard-status.warn { background: #FEF3C7; color: #92400E; }
+.dash-bigcard-status.blue { background: #DBEAFE; color: #1E40AF; }
+.dash-bigcard-status.success { background: #10B981; color: #fff; }
+.dash-bigcard-ti {
+  font-family: 'Plus Jakarta Sans', sans-serif;
+  font-size: 14px; font-weight: 700; color: var(--tx);
+}
+.dash-bigcard.success .dash-bigcard-ti { color: #064E3B; }
+.dash-bigcard-meta {
+  font-size: 11px; color: var(--mt); margin-top: 4px;
+}
+.dash-bigcard.success .dash-bigcard-meta { color: #065F46; }
+
+/* Lista unificada do estoque (rows com origem) */
+.dash-stock-row {
+  padding: 14px 18px;
+  border-bottom: 1px solid var(--s2);
+  display: flex; align-items: center; gap: 14px;
+}
+.dash-stock-row:last-child { border-bottom: none; }
+.dash-stock-row.danger { background: #FEE2E2; }
+.dash-stock-origin {
+  display: flex; align-items: center; gap: 6px; min-width: 100px;
+}
+.dash-stock-tag {
+  padding: 3px 8px; border-radius: 6px;
+  font-size: 10px; font-weight: 700;
+}
+.dash-stock-tag.oficina { background: #FCE7F3; color: #9D174D; }
+.dash-stock-tag.pedido { background: #DBEAFE; color: #1E40AF; }
+.dash-stock-tag.pedido.danger { background: #DB2777; color: #fff; }
+.dash-stock-info { flex: 1; min-width: 0; }
+.dash-stock-id {
+  font-family: 'DM Mono', monospace;
+  font-size: 11px; font-weight: 600; color: var(--grad-blue-1);
+}
+.dash-stock-row.danger .dash-stock-id { color: #7F1D1D; }
+.dash-stock-ti {
+  font-family: 'Plus Jakarta Sans', sans-serif;
+  font-size: 14px; font-weight: 700; color: var(--tx);
+}
+.dash-stock-row.danger .dash-stock-ti { color: #7F1D1D; }
+.dash-stock-meta {
+  font-size: 11px; color: var(--mt); margin-top: 2px;
+}
+.dash-stock-row.danger .dash-stock-meta { color: #991B1B; }
+.dash-stock-time {
+  font-family: 'DM Mono', monospace;
+  font-size: 11px; color: var(--mts);
+}
+
+/* Empty state */
+.dash-empty {
+  text-align: center; padding: 40px 20px;
+  color: var(--mt); font-size: 14px;
+}
+.dash-empty-i {
+  font-size: 36px; opacity: .3;
+  margin-bottom: 10px;
+}
+
+/* Filter chips no topo da lista (Estoque) */
+.dash-filters {
+  display: flex; gap: 4px;
+  background: var(--sf);
+  padding: 3px; border-radius: 8px;
+  border: 1px solid var(--bd);
+}
+.dash-filter {
+  background: transparent;
+  color: var(--mt); border: none;
+  padding: 4px 10px; border-radius: 6px;
+  font-family: 'Inter', sans-serif;
+  font-size: 11px; font-weight: 500;
+  cursor: pointer;
+}
+.dash-filter.on {
+  background: #1F2937; color: #fff; font-weight: 600;
+}
+
+/* ═══ FIM DASHBOARDS CSS ═══ */
 
 /* ── HEADINGS ── */
 h1, h2, h3, .heading {
