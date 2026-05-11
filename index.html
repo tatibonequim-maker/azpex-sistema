@@ -3652,6 +3652,628 @@ function inicializarNotificacoes() {
   }, 1500);
 }
 
+// ═══ FASE 2 · DASHBOARDS POR PERFIL ═══
+
+// Helper: saudação dinâmica baseada em hora
+function saudacao() {
+  const h = new Date().getHours();
+  if (h < 12) return 'Bom dia';
+  if (h < 18) return 'Boa tarde';
+  return 'Boa noite';
+}
+
+// Helper: primeiro nome do usuário
+function primeiroNome(u) {
+  const m = {
+    taty: 'Cinthia', edvaldo: 'Edvaldo', rosana: 'Rosana',
+    daimartha: 'Dai', carol: 'Carol', estoque: 'Estoque',
+    vendA: 'A', vendB: 'B', vendC: 'C', gerente: 'Gi'
+  };
+  return m[u] || u;
+}
+
+// Helper: formatar data curta
+function dataAt(c) {
+  const ref = c.dataDesc || c.data;
+  if (!ref) return '—';
+  if (ref.includes('-')) {
+    const p = ref.split('-');
+    return p[2] + '/' + p[1];
+  }
+  if (ref.includes('/')) return ref.substring(0, 5);
+  return '—';
+}
+
+// Conta itens parados há X dias ou mais
+function contarParados(arr, diasMin) {
+  return arr.filter(c => {
+    const t = tempoDecorrido(c);
+    if (diasMin >= 2) return t.nivel === 2;
+    if (diasMin >= 1) return t.nivel >= 1;
+    return true;
+  }).length;
+}
+
+// ── DASHBOARD ROUTER ──
+function renderDashboard() {
+  const el = document.getElementById('main-content');
+  if (!el) return;
+  // Esconde tabs/stats/toolbar do kanban
+  const stabs = document.getElementById('stabs');
+  const stats = document.getElementById('stats');
+  const tb = document.querySelector('.tb');
+  if (stabs) stabs.style.display = 'none';
+  if (stats) stats.style.display = 'none';
+  if (tb) tb.style.display = 'none';
+
+  if (user === 'taty') return renderDashTaty();
+  if (user === 'edvaldo') return renderDashEdvaldo();
+  if (user === 'rosana') return renderDashRosana();
+  if (user === 'daimartha') return renderDashDai();
+  if (user === 'carol') return renderDashCarol();
+  if (user === 'estoque') return renderDashEstoque();
+  if (['vendA','vendB','vendC'].includes(user)) return renderDashVendedora();
+  if (user === 'gerente') return renderDashGerente();
+  // Default: redireciona pra cortes
+  return setSection('cortes');
+}
+
+// ── 1. DASHBOARD TATY (ADMIN) ──
+function renderDashTaty() {
+  const ativos = cortes.filter(c => !['ARQUIVADO','PRONTO_RETIRADA'].includes(c.status));
+  const atrasados = ativos.filter(c => tempoDecorrido(c).nivel === 2);
+  const pedPendentes = pedidos.filter(p => p.status === 'PENDENTE' || p.status === 'SEPARANDO');
+  const prontosHoje = cortes.filter(c => c.status === 'PRONTO_RETIRADA').length;
+
+  // Ações que precisam da Taty
+  const acoes = [];
+  cortes.filter(c => c.status === 'AGUARDANDO_APROVACAO').forEach(c => acoes.push({
+    id: c.id, ref: c.ref || c.id, ti: 'Aprovar encaixe · ' + c.nome,
+    meta: 'Edvaldo enviou', t: tempoDecorrido(c), action: () => openDet(c.id)
+  }));
+  cortes.filter(c => c.status === 'DEFINIR_CORES').forEach(c => acoes.push({
+    id: c.id, ref: c.ref || c.id, ti: 'Definir cores · ' + c.nome,
+    meta: '', t: tempoDecorrido(c), action: () => openCores(c.id)
+  }));
+  cortes.filter(c => c.status === 'AGUARDANDO_GI').forEach(c => acoes.push({
+    id: c.id, ref: c.ref || c.id, ti: 'Decisão de envio · ' + c.nome,
+    meta: '', t: tempoDecorrido(c), action: () => openDet(c.id)
+  }));
+
+  const acoesHTML = acoes.length ? acoes.slice(0, 6).map(a => `
+    <div class="dash-act ${a.t.classe}">
+      <div class="dash-act-id">${a.ref}</div>
+      <div class="dash-act-info">
+        <div class="dash-act-ti">${a.ti}</div>
+        <div class="dash-act-meta">${a.meta}${a.meta && a.t.texto ? ' · ' : ''}${a.t.texto}</div>
+      </div>
+      <button class="${a.t.classe === 'danger' ? 'btn-grad-blue-sm' : 'btn-dark-sm'}" onclick="(${a.action.toString()})()">Abrir</button>
+    </div>`).join('') : '<div class="dash-empty">✨ Tudo em dia! Nada esperando você.</div>';
+
+  // Fluxo do dia
+  const fluxo = [
+    { s: 'AGUARDANDO_ENCAIXE', l: 'Encaixe', cor: '#F59E0B' },
+    { s: 'DEFINIR_CORES', l: 'Definir cores', cor: '#EC4899' },
+    { s: 'DESCANSAR_TECIDO', l: 'Descansar', cor: '#8B5CF6' },
+    { s: 'NO_CORTE', l: 'No corte', cor: '#3B82F6' },
+    { s: 'EMBALAR', l: 'Embalar', cor: '#10B981' },
+  ];
+
+  document.getElementById('main-content').innerHTML = `
+    <div class="dash">
+      <div class="dash-hello">${saudacao()}, Cinthia 👋</div>
+      <div class="dash-sub">Hoje é ${new Date().toLocaleDateString('pt-BR', {day: 'numeric', month: 'long'})} · ${acoes.length} ${acoes.length === 1 ? 'item precisa' : 'itens precisam'} da sua atenção</div>
+
+      <div class="dash-metrics cols-4">
+        <div class="dash-metric" onclick="setSection('cortes')">
+          <div class="dash-metric-head">
+            <div class="dash-metric-l">Em produção</div>
+            <span class="dash-metric-i">⚙️</span>
+          </div>
+          <div class="dash-metric-v">${ativos.length}</div>
+          <div class="dash-metric-sub">cortes ativos</div>
+        </div>
+        <div class="dash-metric warn" onclick="setSection('cortes')">
+          <div class="dash-metric-head">
+            <div class="dash-metric-l">Atrasados</div>
+            <span class="dash-metric-i">⚠️</span>
+          </div>
+          <div class="dash-metric-v">${atrasados.length}</div>
+          <div class="dash-metric-sub">parados há 2+ dias</div>
+        </div>
+        <div class="dash-metric" onclick="setSection('pedidos')">
+          <div class="dash-metric-head">
+            <div class="dash-metric-l">Pedidos da loja</div>
+            <span class="dash-metric-i">🛒</span>
+          </div>
+          <div class="dash-metric-v">${pedPendentes.length}</div>
+          <div class="dash-metric-sub">aguardando resposta</div>
+        </div>
+        <div class="dash-metric success" onclick="setSection('cortes')">
+          <div class="dash-metric-head">
+            <div class="dash-metric-l">Prontos hoje</div>
+            <span class="dash-metric-i">✓</span>
+          </div>
+          <div class="dash-metric-v">${prontosHoje}</div>
+          <div class="dash-metric-sub">para retirada</div>
+        </div>
+      </div>
+
+      <div class="dash-2col">
+        <div class="dash-panel">
+          <div class="dash-panel-head">
+            <div class="dash-panel-ti">⚡ Precisa da sua ação</div>
+            <button class="dash-panel-link" onclick="setSection('cortes')">Ver todas →</button>
+          </div>
+          <div class="dash-acts">${acoesHTML}</div>
+        </div>
+
+        <div style="display: flex; flex-direction: column; gap: 12px;">
+          <div class="dash-panel">
+            <div class="dash-panel-ti" style="margin-bottom: 10px;">Fluxo do dia</div>
+            <div class="dash-flow">
+              ${fluxo.map(f => `
+                <div class="dash-flow-row">
+                  <span class="dash-flow-l"><span class="dash-flow-dot" style="background:${f.cor}"></span>${f.l}</span>
+                  <span class="dash-flow-v">${cortes.filter(c => c.status === f.s).length}</span>
+                </div>`).join('')}
+            </div>
+          </div>
+          <div class="dash-gradcard">
+            <div class="dash-gradcard-ti">📊 Esta semana</div>
+            <div class="dash-gradcard-v">${prontosHoje}</div>
+            <div class="dash-gradcard-sub">cortes finalizados</div>
+          </div>
+        </div>
+      </div>
+    </div>`;
+}
+
+// ── 2. DASHBOARD EDVALDO (CELULAR) ──
+function renderDashEdvaldo() {
+  const fila = cortes.filter(c => c.status === 'AGUARDANDO_ENCAIXE' || c.status === 'ENCAIXE_REPROVADO');
+  fila.sort((a, b) => tempoDecorrido(b).nivel - tempoDecorrido(a).nivel);
+  const urgente = fila.find(c => tempoDecorrido(c).nivel === 2);
+
+  const filaHTML = fila.length === 0 ? '<div class="dash-empty">✨ Nada pra fazer agora! Bom trabalho.</div>' :
+    fila.map(c => {
+      const t = tempoDecorrido(c);
+      if (c === urgente) {
+        return `
+          <div style="background: linear-gradient(135deg, #FEF3C7 0%, #FDE68A 100%); border: 1px solid #F59E0B; border-radius: 14px; padding: 14px; margin-bottom: 10px;">
+            <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 8px;">
+              <div>
+                <div class="fm" style="font-size: 11px; font-weight: 700; color: #92400E; margin-bottom: 2px;">${c.ref || c.id}</div>
+                <div class="fj" style="font-size: 16px; font-weight: 800; color: #78350F;">${c.nome}</div>
+              </div>
+              ${t.classe ? `<span class="tchip ${t.classe}">${t.classe === 'danger' ? '🔥' : '⏱'} ${t.texto}</span>` : ''}
+            </div>
+            <div style="display: flex; gap: 4px; flex-wrap: wrap; margin-bottom: 12px;">
+              ${c.tec ? `<span style="background: rgba(255,255,255,0.7); color: #78350F; padding: 3px 9px; border-radius: 99px; font-size: 11px; font-weight: 600;">${c.tec}</span>` : ''}
+              ${c.grade ? `<span style="background: rgba(255,255,255,0.7); color: #78350F; padding: 3px 9px; border-radius: 99px; font-size: 11px; font-weight: 600;">${c.grade}</span>` : ''}
+              ${c.rolo ? `<span style="background: rgba(255,255,255,0.7); color: #78350F; padding: 3px 9px; border-radius: 99px; font-size: 11px; font-weight: 600;">${c.rolo}m de rolo</span>` : ''}
+            </div>
+            <button class="btn-grad-blue" style="width: 100%;" onclick="setSection('cortes')">Fazer encaixe →</button>
+          </div>`;
+      }
+      return `
+        <div class="dash-bigcard" onclick="setSection('cortes')" style="cursor: pointer;">
+          <div class="dash-bigcard-head">
+            <div>
+              <div class="dash-bigcard-id">${c.ref || c.id}</div>
+              <div class="dash-bigcard-ti">${c.nome}</div>
+            </div>
+            <span class="tchip ${t.classe}">${t.texto}</span>
+          </div>
+          <div class="dash-bigcard-meta">${c.tec || ''} ${c.grade ? '· ' + c.grade : ''}</div>
+        </div>`;
+    }).join('');
+
+  document.getElementById('main-content').innerHTML = `
+    <div class="dash" style="max-width: 600px;">
+      <div class="dash-hello">Oi, Edvaldo 👋</div>
+      <div class="dash-sub">${fila.length} ${fila.length === 1 ? 'encaixe esperando' : 'encaixes esperando'}</div>
+      ${filaHTML}
+    </div>`;
+}
+
+// ── 3. DASHBOARD ROSANA ──
+function renderDashRosana() {
+  const descansando = cortes.filter(c => c.status === 'DESCANSAR_TECIDO');
+  const atrasados = descansando.filter(c => tempoDecorrido(c).nivel === 2);
+  const prontos = cortes.filter(c => c.status === 'TECIDO_DESCANSADO').length;
+
+  document.getElementById('main-content').innerHTML = `
+    <div class="dash">
+      <div class="dash-hello">${saudacao()}, Rosana 👋</div>
+      <div class="dash-sub">${descansando.length} tecidos descansando · ${prontos} prontos pra cortar</div>
+
+      <div class="dash-metrics cols-3">
+        <div class="dash-metric purple">
+          <div class="dash-metric-l">Descansando</div>
+          <div class="dash-metric-v">${descansando.length}</div>
+          <div class="dash-metric-sub">tecidos no rack</div>
+        </div>
+        <div class="dash-metric warn">
+          <div class="dash-metric-l">Aguardando há 2+ dias</div>
+          <div class="dash-metric-v">${atrasados.length}</div>
+          <div class="dash-metric-sub">precisa atenção</div>
+        </div>
+        <div class="dash-metric success">
+          <div class="dash-metric-l">Prontos</div>
+          <div class="dash-metric-v">${prontos}</div>
+          <div class="dash-metric-sub">pra dar baixa</div>
+        </div>
+      </div>
+
+      <div class="dash-panel" style="padding: 0;">
+        <div class="dash-panel-head" style="padding: 12px 18px; background: var(--bg); border-bottom: 1px solid var(--bd); margin-bottom: 0;">
+          <div class="dash-panel-ti">No rack — descansando agora</div>
+          <button class="dash-panel-link" onclick="setSection('cortes')">Ver todos →</button>
+        </div>
+        ${descansando.length === 0 ? '<div class="dash-empty">Nenhum tecido descansando agora ✨</div>' : `
+        <table style="width: 100%; border-collapse: collapse;">
+          <thead>
+            <tr style="background: var(--bg);">
+              <th class="fj" style="text-align: left; padding: 10px 16px; font-size: 10px; text-transform: uppercase; letter-spacing: 0.5px; color: var(--mt); font-weight: 700; border-bottom: 1px solid var(--bd);">Corte</th>
+              <th class="fj" style="text-align: left; padding: 10px; font-size: 10px; text-transform: uppercase; letter-spacing: 0.5px; color: var(--mt); font-weight: 700; border-bottom: 1px solid var(--bd);">Peça</th>
+              <th class="fj" style="text-align: left; padding: 10px; font-size: 10px; text-transform: uppercase; letter-spacing: 0.5px; color: var(--mt); font-weight: 700; border-bottom: 1px solid var(--bd);">Tecido</th>
+              <th class="fj" style="text-align: left; padding: 10px; font-size: 10px; text-transform: uppercase; letter-spacing: 0.5px; color: var(--mt); font-weight: 700; border-bottom: 1px solid var(--bd);">Pediu em</th>
+              <th class="fj" style="text-align: right; padding: 10px 16px; font-size: 10px; text-transform: uppercase; letter-spacing: 0.5px; color: var(--mt); font-weight: 700; border-bottom: 1px solid var(--bd);">Tempo</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${descansando.map(c => {
+              const t = tempoDecorrido(c);
+              const trClass = t.nivel === 2 ? 'style="background: #FEF3C7;"' : '';
+              return `
+                <tr ${trClass} style="border-bottom: 1px solid var(--s2); cursor: pointer;" onclick="openDet('${c.id}')">
+                  <td class="fm" style="padding: 12px 16px; font-size: 12px; font-weight: 600; color: var(--grad-blue-1);">${c.ref || c.id}</td>
+                  <td class="fi" style="padding: 12px; font-size: 13px; color: var(--tx); font-weight: 500;">${c.nome}</td>
+                  <td class="fi" style="padding: 12px; font-size: 12px; color: var(--mt);">${c.tec || '—'}</td>
+                  <td class="fm" style="padding: 12px; font-size: 12px; color: var(--mt);">${dataAt(c)}</td>
+                  <td style="padding: 12px 16px; text-align: right;">${t.texto ? `<span class="tchip ${t.classe}">${t.texto}</span>` : '—'}</td>
+                </tr>`;
+            }).join('')}
+          </tbody>
+        </table>`}
+      </div>
+    </div>`;
+}
+
+// ── 4. DASHBOARD DAI/MARTHA ──
+function renderDashDai() {
+  const voltaram = cortes.filter(c => c.status === 'NO_CORTE');
+  const naOficina = cortes.filter(c => c.status === 'TECIDO_DESCANSADO' && c.numCorte);
+
+  const voltaramHTML = voltaram.length === 0 ? '' : `
+    <div class="dash-banner">
+      <div class="dash-banner-head">
+        <div>
+          <div class="dash-banner-ti">⚡ Voltaram da oficina</div>
+          <div class="dash-banner-sub">Confirme pra avançar o fluxo</div>
+        </div>
+        <span class="dash-banner-count">${voltaram.length}</span>
+      </div>
+      ${voltaram.map(c => `
+        <div class="dash-banner-item">
+          <div class="dash-banner-item-info">
+            <div class="dash-banner-item-id">${c.ref || c.id}${c.numCorte ? ' · ' + c.numCorte : ''}</div>
+            <div class="dash-banner-item-ti">${c.nome}</div>
+            <div class="dash-banner-item-meta">Voltou ${tempoDecorrido(c).texto}</div>
+          </div>
+          <button class="btn-grad-blue-sm" onclick="openDet('${c.id}')">Confirmar →</button>
+        </div>`).join('')}
+    </div>`;
+
+  document.getElementById('main-content').innerHTML = `
+    <div class="dash">
+      <div class="dash-hello">${saudacao()}, Dai ✂️</div>
+      <div class="dash-sub">${naOficina.length} cortes na oficina · ${voltaram.length} ${voltaram.length === 1 ? 'voltou pra confirmar' : 'voltaram pra confirmar'}</div>
+
+      ${voltaramHTML}
+
+      <div class="dash-panel">
+        <div class="dash-panel-head">
+          <div class="dash-panel-ti">✂️ Na oficina agora</div>
+          <span class="fm" style="font-size: 11px; color: var(--mt); background: var(--s2); padding: 3px 10px; border-radius: 99px;">${naOficina.length}</span>
+        </div>
+        ${naOficina.length === 0 ? '<div class="dash-empty">Nada na oficina agora ✨</div>' : `
+        <div class="dash-densa">
+          ${naOficina.map(c => `
+            <div class="dash-densa-row" onclick="openDet('${c.id}')" style="cursor: pointer;">
+              <div class="dash-densa-id">${c.ref || c.id}</div>
+              <div class="dash-densa-ti">${c.nome}</div>
+              <div class="dash-densa-meta">${tempoDecorrido(c).texto}</div>
+            </div>`).join('')}
+        </div>`}
+      </div>
+    </div>`;
+}
+
+// ── 5. DASHBOARD CAROL ──
+function renderDashCarol() {
+  const fotografar = cortes.filter(c => c.status === 'AG_FOTO');
+  const aprovar = cortes.filter(c => c.status === 'AGUARDANDO_APROVACAO').length;
+
+  const fotoUrgente = fotografar.find(c => tempoDecorrido(c).nivel >= 1);
+
+  document.getElementById('main-content').innerHTML = `
+    <div class="dash" style="max-width: 600px;">
+      <div class="dash-hello">Oi, Carol 📸</div>
+      <div class="dash-sub">${fotografar.length} ${fotografar.length === 1 ? 'novidade pra fotografar' : 'novidades pra fotografar'}</div>
+
+      <div class="dash-metrics cols-2">
+        <div class="dash-metric" style="background: linear-gradient(135deg, #FCE7F3 0%, #FDE0EC 100%); border-color: #EC4899;">
+          <div class="dash-metric-l" style="color: #9D174D;">Fotografar</div>
+          <div class="dash-metric-v" style="color: #9D174D;">${fotografar.length}</div>
+        </div>
+        <div class="dash-metric">
+          <div class="dash-metric-l">Aprovar encaixe</div>
+          <div class="dash-metric-v">${aprovar}</div>
+        </div>
+      </div>
+
+      ${fotografar.length === 0 ? '<div class="dash-empty">✨ Nenhuma novidade pra fotografar agora.</div>' : `
+        <div class="fj" style="font-size: 11px; text-transform: uppercase; letter-spacing: 0.5px; color: var(--mt); font-weight: 700; margin-bottom: 8px;">📸 Pra fotografar</div>
+        ${fotografar.map(c => {
+          const t = tempoDecorrido(c);
+          if (c === fotoUrgente) {
+            return `
+              <div style="background: linear-gradient(135deg, #FCE7F3 0%, #FDE0EC 100%); border: 1px solid #EC4899; border-radius: 14px; padding: 14px; margin-bottom: 8px;">
+                <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 6px;">
+                  <div>
+                    <div class="fm" style="font-size: 11px; font-weight: 700; color: #9D174D;">${c.ref || c.id}</div>
+                    <div class="fj" style="font-size: 15px; font-weight: 800; color: #831843;">${c.nome}</div>
+                  </div>
+                  <span class="grad-pink" style="color: white; padding: 2px 8px; border-radius: 99px; font-size: 10px; font-weight: 700;">✨ NEW</span>
+                </div>
+                <div class="fi" style="font-size: 11px; color: #9D174D; margin-bottom: 10px;">${c.numCorte || ''}</div>
+                <button class="btn-dark" style="width: 100%;" onclick="openDet('${c.id}')">📸 Tirar foto →</button>
+              </div>`;
+          }
+          return `
+            <div class="dash-bigcard" onclick="openDet('${c.id}')" style="cursor: pointer;">
+              <div class="dash-bigcard-head">
+                <div>
+                  <div class="dash-bigcard-id">${c.ref || c.id}</div>
+                  <div class="dash-bigcard-ti">${c.nome}</div>
+                </div>
+                <span class="tchip ${t.classe}">${t.texto}</span>
+              </div>
+              <div class="dash-bigcard-meta">${c.numCorte || ''}</div>
+            </div>`;
+        }).join('')}
+      `}
+
+      ${aprovar > 0 ? `
+        <div style="margin-top: 14px; padding-top: 14px; border-top: 1px solid var(--s2);">
+          <div class="fj" style="font-size: 11px; text-transform: uppercase; letter-spacing: 0.5px; color: var(--mt); font-weight: 700; margin-bottom: 6px;">Decisões pendentes</div>
+          <div class="fi" style="font-size: 12px; color: var(--tx); padding: 8px 10px; background: var(--bg); border-radius: 8px; cursor: pointer;" onclick="setSection('cortes')">${aprovar} ${aprovar === 1 ? 'encaixe' : 'encaixes'} do Edvaldo aguardando aprovação</div>
+        </div>` : ''}
+    </div>`;
+}
+
+// ── 6. DASHBOARD ESTOQUE ──
+function renderDashEstoque() {
+  const oficina = cortes.filter(c => c.status === 'EMBALAR');
+  const pedSep = pedidos.filter(p => p.status === 'PENDENTE' || p.status === 'SEPARANDO');
+
+  const itens = [
+    ...pedSep.map(p => ({ tipo: 'pedido', id: p.id, ref: p.id, nome: p.nome,
+      autor: UNAMES[p.autor] || p.autor, qtds: p.cores, t: { texto: '', nivel: 0, classe: '' },
+      action: () => openResp ? openResp(p.id) : openDetPedido(p.id), urgent: false })),
+    ...oficina.map(c => ({ tipo: 'oficina', id: c.id, ref: c.ref || c.id, nome: c.nome,
+      op: c.numCorte, novidade: c.tipo === 'novidade', cores: c.cores,
+      t: tempoDecorrido(c), action: () => openDet(c.id) }))
+  ];
+
+  // Marca urgência: pedidos atrasados ou cortes parados muito tempo
+  itens.forEach(it => {
+    if (it.tipo === 'pedido') {
+      // Sem timestamp real, considera todos não urgentes por padrão
+      it.urgent = false;
+    } else {
+      it.urgent = it.t.nivel === 2;
+    }
+  });
+
+  // Ordena: urgentes primeiro
+  itens.sort((a, b) => (b.urgent ? 1 : 0) - (a.urgent ? 1 : 0));
+
+  const totalFila = itens.length;
+  const urgentes = itens.filter(i => i.urgent).length;
+  const hoje = cortes.filter(c => c.status === 'PRONTO_RETIRADA').length;
+
+  const linhasHTML = itens.length === 0 ? '<div class="dash-empty"><div class="dash-empty-i">✨</div>Tudo separado! Nada na fila.</div>' :
+    itens.map(it => {
+      if (it.tipo === 'pedido') {
+        return `
+          <div class="dash-stock-row ${it.urgent ? 'danger' : ''}">
+            <div class="dash-stock-origin">
+              <span class="dash-stock-tag pedido ${it.urgent ? 'danger' : ''}">🛒 Pedido</span>
+            </div>
+            <div class="dash-stock-info">
+              <div class="dash-stock-id">${it.id}${it.autor ? ' · ' + it.autor : ''}</div>
+              <div class="dash-stock-ti">${it.nome}</div>
+            </div>
+            <span class="dash-stock-time">${it.t.texto || ''}</span>
+            <button class="${it.urgent ? 'btn-grad-blue-sm' : 'btn-dark-sm'}" onclick="(${it.action.toString()})()">Verificar →</button>
+          </div>`;
+      }
+      return `
+        <div class="dash-stock-row">
+          <div class="dash-stock-origin">
+            <span class="dash-stock-tag oficina">🏭 Oficina</span>
+            ${it.novidade ? '<span class="grad-pink" style="color:white;padding:2px 6px;border-radius:4px;font-size:9px;font-weight:700">✨ NEW</span>' : ''}
+          </div>
+          <div class="dash-stock-info">
+            <div class="dash-stock-id">${it.ref}${it.op ? ' · ' + it.op : ''}</div>
+            <div class="dash-stock-ti">${it.nome}</div>
+            ${it.cores && it.cores.length ? `<div class="dash-stock-meta">${it.cores.map(x => x.cor + ':' + x.qtd).join(' · ')}</div>` : ''}
+          </div>
+          <span class="dash-stock-time">${it.t.texto}</span>
+          <button class="${it.urgent ? 'btn-grad-blue-sm' : 'btn-dark-sm'}" onclick="(${it.action.toString()})()">Embalar →</button>
+        </div>`;
+    }).join('');
+
+  document.getElementById('main-content').innerHTML = `
+    <div class="dash">
+      <div class="dash-hello">Estoque · Separação 📦</div>
+      <div class="dash-sub">${totalFila} ${totalFila === 1 ? 'item pra separar pra loja' : 'itens pra separar pra loja'}</div>
+
+      <div class="dash-metrics cols-3">
+        <div class="dash-metric">
+          <div class="dash-metric-l">Total na fila</div>
+          <div class="dash-metric-v">${totalFila}</div>
+          <div class="dash-metric-sub">aguardando você</div>
+        </div>
+        <div class="dash-metric danger">
+          <div class="dash-metric-l">Urgentes</div>
+          <div class="dash-metric-v">${urgentes}</div>
+          <div class="dash-metric-sub">parado há 2+ dias</div>
+        </div>
+        <div class="dash-metric success">
+          <div class="dash-metric-l">Hoje</div>
+          <div class="dash-metric-v">${hoje}</div>
+          <div class="dash-metric-sub">já separados ✓</div>
+        </div>
+      </div>
+
+      <div class="dash-panel" style="padding: 0;">
+        <div class="dash-panel-head" style="padding: 14px 18px; background: var(--bg); border-bottom: 1px solid var(--bd); margin-bottom: 0;">
+          <div class="dash-panel-ti">🛒 Separar para a loja</div>
+        </div>
+        ${linhasHTML}
+      </div>
+    </div>`;
+}
+
+// ── 7. DASHBOARD VENDEDORA ──
+function renderDashVendedora() {
+  const meusPedidos = pedidos.filter(p => p.autor === user);
+  const ativos = meusPedidos.filter(p => !['RECEBIDO','ARQUIVADO'].includes(p.status));
+
+  const statusMap = {
+    PENDENTE: { l: 'Verificando', cls: 'warn' },
+    SEPARANDO: { l: 'Separando', cls: 'blue' },
+    PARCIAL: { l: 'Parcial', cls: 'warn' },
+    RECUSADO: { l: 'Não disponível', cls: 'warn' },
+    PRONTO: { l: '✓ Pronto p/ retirada', cls: 'success' },
+    TRANSFERIDO: { l: 'Transferindo', cls: 'blue' },
+  };
+
+  const cardsHTML = ativos.length === 0 ? '<div class="dash-empty">Você não tem pedidos ativos. Crie um novo acima 👆</div>' :
+    ativos.map(p => {
+      const s = statusMap[p.status] || { l: p.status, cls: 'blue' };
+      const isProto = p.status === 'PRONTO';
+      const sumQtd = (p.cores || []).reduce((acc, c) => {
+        return acc + Object.values(c.qtds || {}).reduce((s, v) => s + (parseInt(v) || 0), 0);
+      }, 0);
+      return `
+        <div class="dash-bigcard ${isProto ? 'success' : ''}" onclick="openDetPedido('${p.id}')" style="cursor: pointer;">
+          <div class="dash-bigcard-head">
+            <div class="dash-bigcard-id">${p.id}</div>
+            <span class="dash-bigcard-status ${s.cls}">${s.l}</span>
+          </div>
+          <div class="dash-bigcard-ti">${p.nome}</div>
+          <div class="dash-bigcard-meta">${(p.cores || []).map(x => x.cor + ': ' + Object.values(x.qtds || {}).reduce((a, b) => a + (parseInt(b) || 0), 0)).join(' · ')} · ${sumQtd} ${sumQtd === 1 ? 'peça' : 'peças'}</div>
+        </div>`;
+    }).join('');
+
+  const nome = primeiroNome(user);
+  document.getElementById('main-content').innerHTML = `
+    <div class="dash" style="max-width: 600px;">
+      <div class="dash-hello">Oi, ${nome} 🛍</div>
+      <div class="dash-sub">${ativos.length} ${ativos.length === 1 ? 'pedido seu em andamento' : 'pedidos seus em andamento'}</div>
+
+      <button class="btn-grad-blue" style="width: 100%; padding: 14px; font-size: 14px; margin-bottom: 14px;" onclick="openNovoPedido()">+ Novo pedido</button>
+
+      <div class="fj" style="font-size: 11px; text-transform: uppercase; letter-spacing: 0.5px; color: var(--mt); font-weight: 700; margin-bottom: 8px;">📦 Status dos seus pedidos</div>
+      ${cardsHTML}
+    </div>`;
+}
+
+// ── 8. DASHBOARD GI (GERENTE) ──
+function renderDashGerente() {
+  const decidir = cortes.filter(c => c.status === 'AGUARDANDO_GI');
+  const prontos = cortes.filter(c => c.status === 'PRONTO_RETIRADA');
+
+  const semana = pedidos.length;
+  const recebidos = pedidos.filter(p => p.status === 'RECEBIDO').length;
+  const emAndamento = pedidos.filter(p => !['RECEBIDO','RECUSADO','ARQUIVADO'].includes(p.status)).length;
+  const recusados = pedidos.filter(p => p.status === 'RECUSADO').length;
+
+  document.getElementById('main-content').innerHTML = `
+    <div class="dash">
+      <div class="dash-hello">${saudacao()}, Gi 🏪</div>
+      <div class="dash-sub">${decidir.length} ${decidir.length === 1 ? 'decisão de envio' : 'decisões de envio'} · ${prontos.length} prontos pra retirar</div>
+
+      <div class="dash-2col equal">
+        <div class="dash-panel" style="padding: 0; border-color: #F59E0B;">
+          <div class="dash-panel-head" style="padding: 14px 18px; background: #FEF3C7; border-bottom: 1px solid #F59E0B; margin: 0;">
+            <div class="dash-panel-ti" style="color: #78350F;">⚡ Decidir envio</div>
+            <span class="fm" style="background: #D97706; color: white; padding: 3px 10px; border-radius: 99px; font-size: 12px; font-weight: 700;">${decidir.length}</span>
+          </div>
+          <div style="padding: 12px;">
+            ${decidir.length === 0 ? '<div class="dash-empty">Nenhuma decisão pendente ✨</div>' :
+              decidir.map(c => {
+                const t = tempoDecorrido(c);
+                const btnClass = t.nivel === 2 ? 'btn-grad-blue-sm' : 'btn-dark-sm';
+                return `
+                  <div style="background: var(--sf); border: 1px solid var(--bd); border-radius: 10px; padding: 12px; margin-bottom: 6px;">
+                    <div class="fm" style="font-size: 11px; font-weight: 600; color: var(--grad-blue-1);">${c.ref || c.id}</div>
+                    <div class="fj" style="font-size: 13px; font-weight: 700; color: var(--tx);">${c.nome}</div>
+                    <div class="fi" style="font-size: 11px; color: var(--mt); margin-bottom: 8px;">${t.texto || 'agora'}</div>
+                    <button class="${btnClass}" style="width: 100%;" onclick="openDet('${c.id}')">Decidir →</button>
+                  </div>`;
+              }).join('')}
+          </div>
+        </div>
+
+        <div class="dash-panel" style="padding: 0; border-color: #10B981;">
+          <div class="dash-panel-head" style="padding: 14px 18px; background: #D1FAE5; border-bottom: 1px solid #10B981; margin: 0;">
+            <div class="dash-panel-ti" style="color: #065F46;">✓ Prontos pra retirar</div>
+            <span class="fm" style="background: #10B981; color: white; padding: 3px 10px; border-radius: 99px; font-size: 12px; font-weight: 700;">${prontos.length}</span>
+          </div>
+          <div style="padding: 12px; display: flex; flex-direction: column; gap: 6px;">
+            ${prontos.length === 0 ? '<div class="dash-empty">Nada pronto ainda</div>' :
+              prontos.map(c => `
+                <div class="dash-densa-row" onclick="openDet('${c.id}')" style="cursor: pointer;">
+                  <div class="dash-densa-id">${c.ref || c.id}</div>
+                  <div class="dash-densa-ti">${c.nome}${c.tipo === 'novidade' ? ' ✨' : ''}</div>
+                  <div class="dash-densa-meta">${tempoDecorrido(c).texto}</div>
+                </div>`).join('')}
+          </div>
+        </div>
+      </div>
+
+      <div class="dash-panel" style="margin-top: 16px;">
+        <div class="dash-panel-ti" style="margin-bottom: 12px;">📊 Esta semana na loja</div>
+        <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px;">
+          <div>
+            <div class="fm" style="font-size: 22px; font-weight: 600; color: var(--tx);">${semana}</div>
+            <div class="fi" style="font-size: 10px; color: var(--mt);">pedidos feitos</div>
+          </div>
+          <div>
+            <div class="fm" style="font-size: 22px; font-weight: 600; color: #10B981;">${recebidos}</div>
+            <div class="fi" style="font-size: 10px; color: var(--mt);">recebidos ✓</div>
+          </div>
+          <div>
+            <div class="fm" style="font-size: 22px; font-weight: 600; color: #F59E0B;">${emAndamento}</div>
+            <div class="fi" style="font-size: 10px; color: var(--mt);">em andamento</div>
+          </div>
+          <div>
+            <div class="fm" style="font-size: 22px; font-weight: 600; color: #EF4444;">${recusados}</div>
+            <div class="fi" style="font-size: 10px; color: var(--mt);">recusados</div>
+          </div>
+        </div>
+      </div>
+    </div>`;
+}
+
+// ═══ FIM FASE 2 ═══
+  
   
 // Auto-init: check if user is already logged in from localStorage
 window.addEventListener('DOMContentLoaded',()=>{
