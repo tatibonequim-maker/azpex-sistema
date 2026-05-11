@@ -2038,8 +2038,24 @@ function initApp(){
 
 function setSection(s,el){
   section=s;
-  document.querySelectorAll('.stab').forEach(b=>b.classList.remove('on'));
-  el.classList.add('on');
+  if(el){
+    document.querySelectorAll('.stab').forEach(b=>b.classList.remove('on'));
+    el.classList.add('on');
+  }
+  // Mostrar tabs/stats/toolbar de volta quando sai do dashboard
+  const stabs=document.getElementById('stabs');
+  const stats=document.getElementById('stats');
+  const tb=document.querySelector('.tb');
+  if(s==='dashboard'){
+    if(stabs)stabs.style.display='none';
+    if(stats)stats.style.display='none';
+    if(tb)tb.style.display='none';
+    renderDashboard();
+    return;
+  }
+  if(stabs)stabs.style.display='flex';
+  if(stats)stats.style.display='';
+  if(tb)tb.style.display='';
   if(s==='pedidos'){
     const canPed=['taty','carol','vendA','vendB','vendC','gerente'].includes(user);
     document.getElementById('btn-novo').style.display=canPed?'':'none';
@@ -2053,6 +2069,7 @@ function setSection(s,el){
   }
   render();
 }
+
 
 function setF(f,el){filtro=f;document.querySelectorAll('.fb').forEach(b=>b.classList.remove('on'));el.classList.add('on');render();}
 
