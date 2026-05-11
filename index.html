@@ -2005,23 +2005,22 @@ function initApp(){
   // Abas
   const stabsEl=document.getElementById('stabs');
   const showBothTabs=isTaty||user==='gerente'||user==='estoque'||user==='daimartha'||isCarol;
-  if(showBothTabs){
-    stabsEl.style.display='flex';
-    let cortesLabel='Cortes';
-    if(user==='gerente') cortesLabel='Reposições';
-    if(user==='estoque') cortesLabel='Embalar';
-    stabsEl.innerHTML=`
-      <button class="stab on" onclick="setSection('cortes',this)">${cortesLabel}</button>
-      <button class="stab" onclick="setSection('pedidos',this)">Pedidos</button>`;
-    section='cortes';
-  }else{
-    stabsEl.style.display='none';
-    section=isLoja?'pedidos':'cortes';
-  }
+
+  let cortesLabel='Cortes';
+  if(user==='gerente') cortesLabel='Reposições';
+  if(user==='estoque') cortesLabel='Embalar';
+  stabsEl.style.display='flex';
+  stabsEl.innerHTML=`
+    <button class="stab on" onclick="setSection('dashboard',this)">📊 Dashboard</button>
+    <button class="stab" onclick="setSection('cortes',this)">${cortesLabel}</button>
+    <button class="stab" onclick="setSection('pedidos',this)">Pedidos</button>`;
+  section='dashboard';
+
 
   populateSels();
-  render();
-      inicializarNotificacoes();
+  setSection('dashboard');
+  inicializarNotificacoes();
+
   if(cfg.url){
     setTimeout(syncAll,600);
     setInterval(()=>{if(cfg.url)syncAll(true);},30000);
