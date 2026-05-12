@@ -2243,6 +2243,7 @@ function calcPreview(){
 // ── RENDER ──
 function render(){
   if(!user)return;
+  if(section==='dashboard'){renderDashboard();return;}
   if(section==='cortes')renderCortes();
   else renderPedidos();
 }
