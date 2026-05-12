@@ -891,13 +891,24 @@ h1, h2, h3, .heading {
 @media(min-width: 1280px) { .board { grid-template-columns: repeat(auto-fill,minmax(268px,1fr)); } }
 
 /* TATY INTEGRATED VIEW */
-.taty-layout{display:flex;gap:0;min-height:0;flex:1;}
-.taty-board{flex:1;overflow-x:auto;overflow-y:auto;padding:12px 12px 48px;}
-.taty-phase{margin-bottom:18px;}
-.taty-phase-hd{font-size:.63rem;font-weight:700;text-transform:uppercase;letter-spacing:.9px;color:var(--mt);padding:0 2px 8px;display:flex;align-items:center;gap:8px;}
+.taty-overview{display:grid;grid-template-columns:repeat(4,minmax(120px,1fr));gap:8px;padding:10px 12px;background:var(--sf);border-bottom:1px solid var(--bd);flex-shrink:0;}
+.taty-overview .sb-metric{cursor:pointer;text-align:left;padding:10px 12px;}
+.taty-overview .sb-metric-v{font-size:1.15rem;}
+.taty-viewbar{display:flex;gap:6px;align-items:center;padding:9px 12px;background:var(--bg);border-bottom:1px solid var(--bd);overflow-x:auto;scrollbar-width:thin;flex-shrink:0;}
+.taty-chip{height:34px;padding:0 12px;border-radius:var(--r8);border:1px solid var(--bd);background:var(--sf);color:var(--mt);font-size:.76rem;font-weight:700;white-space:nowrap;cursor:pointer;}
+.taty-chip.on{background:var(--tx);border-color:var(--tx);color:#fff;}
+.taty-layout{display:flex;gap:0;min-height:0;flex:1;overflow:hidden;}
+.taty-board{flex:1;min-width:0;overflow:auto;padding:12px 12px 22px;scrollbar-width:auto;scrollbar-color:var(--ac) var(--s3);}
+.taty-board::-webkit-scrollbar{height:18px;width:12px;}
+.taty-board::-webkit-scrollbar-track{background:var(--s3);border-radius:var(--r99);}
+.taty-board::-webkit-scrollbar-thumb{background:var(--ac);border-radius:var(--r99);border:3px solid var(--s3);}
+.taty-board-track{display:flex;align-items:flex-start;gap:14px;min-width:max-content;padding-bottom:10px;}
+.taty-phase{flex:0 0 auto;min-width:max-content;}
+.taty-phase-hd{position:sticky;top:0;z-index:2;background:var(--bg);font-size:.63rem;font-weight:700;text-transform:uppercase;letter-spacing:.9px;color:var(--mt);padding:0 2px 8px;display:flex;align-items:center;gap:8px;}
 .taty-phase-hd::after{content:'';flex:1;height:1px;background:var(--bd);}
 .taty-phase-hd .ph-icon{font-size:.85rem;opacity:.7;}
-.taty-phase-cols{display:grid;gap:10px;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));}
+.taty-phase-cols{display:flex;gap:10px;align-items:flex-start;}
+.taty-phase-cols .col{width:280px;flex:0 0 280px;}
 .taty-sidebar{width:296px;min-width:296px;border-left:1px solid var(--bd);overflow-y:auto;background:var(--sf);padding:10px;display:flex;flex-direction:column;gap:8px;}
 .sb-card{background:var(--bg);border:1px solid var(--bd);border-radius:var(--r12);padding:11px 12px;}
 .sb-title{font-size:.62rem;font-weight:700;text-transform:uppercase;letter-spacing:.8px;color:var(--mt);margin-bottom:9px;display:flex;align-items:center;gap:5px;}
@@ -928,6 +939,14 @@ h1, h2, h3, .heading {
 .sb-act-dot{width:6px;height:6px;border-radius:50%;background:var(--ac);margin-top:5px;flex-shrink:0;}
 .sb-act-text{flex:1;font-size:.76rem;color:var(--tx);line-height:1.4;}
 .sb-act-time{font-size:.69rem;color:var(--mt);white-space:nowrap;padding-top:2px;}
+@media(max-width:900px){
+  #app.taty-mode{height:auto;min-height:100vh;overflow:visible;}
+  #app.taty-mode #main-content{overflow:visible;display:block;}
+  .taty-overview{grid-template-columns:repeat(2,minmax(0,1fr));}
+  .taty-layout{display:block;overflow:visible;}
+  .taty-board{max-height:none;overflow-x:auto;overflow-y:visible;padding-bottom:18px;}
+  .taty-sidebar{width:auto;min-width:0;border-left:none;border-top:1px solid var(--bd);}
+}
 
 /* COLUMN */
 .col {
@@ -1138,6 +1157,11 @@ h1, h2, h3, .heading {
 }
 .calc-k { color: #047857; }
 .calc-v { font-family: 'DM Mono', monospace; color: #047857; font-weight: 600; }
+.mini-grid{display:grid;grid-template-columns:1fr 1fr;gap:5px;margin:8px 0;font-size:.75rem;}
+.mini-item{background:var(--s2);border:1px solid var(--bd);border-radius:var(--r6);padding:6px 8px;min-width:0;}
+.mini-k{display:block;font-size:.58rem;text-transform:uppercase;letter-spacing:.5px;color:var(--mt);font-weight:700;margin-bottom:1px;}
+.mini-v{display:block;color:var(--tx);font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.mini-v.fm{font-family:'DM Mono',monospace;font-weight:600;}
 
 /* PEDIDOS */
 .pcard {
@@ -1941,7 +1965,7 @@ let cfg=(()=>{try{return JSON.parse(localStorage.getItem('az_cfg')||'{}');}catch
 if(!cfg.url)cfg.url=DURL;
 let cortes=(()=>{try{return JSON.parse(localStorage.getItem('az_cortes')||'[]');}catch(e){return [];}})();
 let pedidos=(()=>{try{return JSON.parse(localStorage.getItem('az_pedidos')||'[]');}catch(e){return [];}})();
-let user='',section='cortes',filtro='todos';
+let user='',section='cortes',filtro='todos',statusFilter='';
 let coresId=null,respId=null,corCount=0,editId=null,decisaoId=null;
 let lastPushTime=0;
 let pinUser='',pinVal='',pinSide='';
@@ -2089,6 +2113,7 @@ function initApp(){
 
 function setSection(s,el){
   section=s;
+  statusFilter='';
   if(el){
     document.querySelectorAll('.stab').forEach(b=>b.classList.remove('on'));
     el.classList.add('on');
@@ -2108,7 +2133,7 @@ function setSection(s,el){
 }
 
 
-function setF(f,el){filtro=f;document.querySelectorAll('.fb').forEach(b=>b.classList.remove('on'));el.classList.add('on');render();}
+function setF(f,el){filtro=f;statusFilter='';document.querySelectorAll('.fb').forEach(b=>b.classList.remove('on'));el.classList.add('on');render();}
 
 // ── API ──
 async function apip(b){
@@ -2266,6 +2291,16 @@ function calcDetalhe(c){
     <div class="calc-row"><span class="calc-k">Total</span><span class="calc-v">${total} peças</span></div>
   </div>`;
 }
+function miniInfoCorte(c){
+  return`<div class="mini-grid">
+    <div class="mini-item"><span class="mini-k">Tecido</span><span class="mini-v">${c.tec||'—'}</span></div>
+    <div class="mini-item"><span class="mini-k">Fornecedor</span><span class="mini-v">${c.tin||'—'}</span></div>
+    <div class="mini-item"><span class="mini-k">Grade</span><span class="mini-v fm">${c.grade||'—'}</span></div>
+    <div class="mini-item"><span class="mini-k">Rolo</span><span class="mini-v fm">${c.rolo?c.rolo+'m':'—'}</span></div>
+    <div class="mini-item"><span class="mini-k">Retalho</span><span class="mini-v">${c.ret||'—'}</span></div>
+    <div class="mini-item"><span class="mini-k">Entrada</span><span class="mini-v fm">${dout(c.data)}</span></div>
+  </div>`;
+}
 function calcPreview(){
   const rolo=parseFloat(document.getElementById('f-rolo')?.value)||0;
   const grade=document.getElementById('f-grade')?.value||'';
@@ -2291,6 +2326,7 @@ function getVisCortes(){
   let list=[...cortes];
   const q=(document.getElementById('srch')?.value||'').toLowerCase();
   if(q)list=list.filter(c=>(c.id+c.nome+(c.tec||'')+(c.ref||'')).toLowerCase().includes(q));
+  if(statusFilter)list=list.filter(c=>c.status===statusFilter);
   if(filtro==='minha'){
     if(user==='edvaldo')list=list.filter(c=>c.status==='AGUARDANDO_ENCAIXE'||c.status==='ENCAIXE_REPROVADO');
     if(user==='rosana')list=list.filter(c=>c.status==='DESCANSAR_TECIDO'||c.status==='TECIDO_DESCANSADO');
@@ -2418,7 +2454,7 @@ function renderCortesTaty(){
   fases.forEach(f=>f.cols.forEach(col=>{grouped[col.s]=[];}));
   vis.forEach(c=>{if(grouped[c.status]!==undefined)grouped[c.status].push(c);});
 
-  const boardHTML=fases.map(fase=>{
+  const boardHTML=`<div class="taty-board-track">${fases.map(fase=>{
     const colsHTML=fase.cols.map(col=>{
       const items=grouped[col.s]||[];
       return`<div class="col" data-status="${col.s}">
@@ -2431,7 +2467,7 @@ function renderCortesTaty(){
       <div class="taty-phase-hd"><span class="ph-icon">${fase.icon}</span>${fase.label}</div>
       <div class="taty-phase-cols">${colsHTML}</div>
     </div>`;
-  }).join('');
+  }).join('')}</div>`;
 
   // sidebar — alertas
   const nApr=cnt('AGUARDANDO_APROVACAO');
@@ -2476,6 +2512,9 @@ function renderCortesTaty(){
   const prontos=cnt('PRONTO_RETIRADA');
   const atrasados=cortes.filter(c=>!['ARQUIVADO','PRONTO_RETIRADA'].includes(c.status)&&tempoDecorrido(c).nivel>=2).length;
   const pedPend=pedidos.filter(p=>['PENDENTE','SEPARANDO'].includes(p.status)).length;
+  const allCols=fases.flatMap(f=>f.cols);
+  const totalBoard=allCols.reduce((sum,col)=>sum+cnt(col.s),0);
+  const statusBtns=allCols.map(col=>`<button class="taty-chip${statusFilter===col.s?' on':''}" onclick="setFiltroStatus('${col.s}')">${col.l} <span class="fm">${cnt(col.s)}</span></button>`).join('');
 
   // sidebar — atividade recente
   const recentHTML=activityLog.length?activityLog.slice(0,6).map(a=>`
@@ -2486,6 +2525,16 @@ function renderCortesTaty(){
     </div>`).join(''):'<div style="font-size:.8rem;color:var(--mt)">Nenhuma atividade registrada</div>';
 
   document.getElementById('main-content').innerHTML=`
+    <div class="taty-overview">
+      <div class="sb-metric" onclick="setFiltroStatus('')"><div class="sb-metric-v">${emProd}</div><div class="sb-metric-l">Em produção</div></div>
+      <div class="sb-metric" onclick="setFiltroStatus('DESCANSAR_TECIDO')"><div class="sb-metric-v">${cnt('DESCANSAR_TECIDO')}</div><div class="sb-metric-l">Descansar tecido</div></div>
+      <div class="sb-metric" onclick="setFiltroStatus('AGUARDANDO_APROVACAO')"><div class="sb-metric-v">${cnt('AGUARDANDO_APROVACAO')}</div><div class="sb-metric-l">Aprovar encaixe</div></div>
+      <div class="sb-metric${atrasados>0?' danger':''}" onclick="setF('atrasado',this)"><div class="sb-metric-v">${atrasados}</div><div class="sb-metric-l">Atrasados</div></div>
+    </div>
+    <div class="taty-viewbar">
+      <button class="taty-chip${!statusFilter?' on':''}" onclick="setFiltroStatus('')">Todos <span class="fm">${totalBoard}</span></button>
+      ${statusBtns}
+    </div>
     <div class="taty-layout">
       <div class="taty-board">${boardHTML}</div>
       <div class="taty-sidebar">
@@ -2529,6 +2578,7 @@ function renderCortesTaty(){
 }
 
 function setFiltroStatus(s){
+  statusFilter=s||'';
   filtro='todos';
   document.querySelectorAll('.fb').forEach(b=>b.classList.remove('on'));
   document.querySelector('.fb')?.classList.add('on');
@@ -2536,11 +2586,12 @@ function setFiltroStatus(s){
   if(s){
     const el=document.getElementById('main-content');
     const col=el?.querySelector(`[data-status="${s}"]`);
-    if(col)col.scrollIntoView({behavior:'smooth',block:'start'});
+    if(col)col.scrollIntoView({behavior:'smooth',block:'nearest',inline:'center'});
   }
 }
 
 function setFiltroUrgentes(){
+  statusFilter='';
   filtro='todos';
   document.querySelectorAll('.fb').forEach(b=>b.classList.remove('on'));
   const urgBtn=document.querySelector('.fb[data-f="urgente"]');
@@ -2665,6 +2716,7 @@ function cardEdvaldo(c){
       ${c.tin?`<span style="font-size:.78rem;padding:3px 9px;border-radius:20px;font-family:'DM Mono',monospace;background:#E1F5EE;color:#085041;font-weight:600">${c.tin}</span>`:''}
       ${c.grade?`<span class="tag" style="background:var(--s2);color:var(--mt)">${c.grade}</span>`:''}
     </div>
+    ${miniInfoCorte(c)}
     ${rep&&c.encObs?`<div class="obs-box obs-bl" style="margin-bottom:8px;font-size:.74rem">Motivo: ${c.encObs}</div>`:''}
     <div class="ef">
       <div class="efl"><label class="el">Comprimento (m) *</label><input class="ei" id="em-${c.id}" type="number" step="0.01" placeholder="0.00" value="${c.encM||''}" oninput="calcInline('${c.id}')"></div>
@@ -2709,6 +2761,7 @@ function cardRosana(c){
     <div class="cnome">${c.nome}</div>
     ${(c.obs||c.encObs)?`<div style="font-size:.73rem;color:#8B4513;background:#FFF3CD;border-radius:5px;padding:3px 7px;margin-bottom:5px">⚠ ${[c.obs,c.encObs].filter(Boolean).join(' · ')}</div>`:''}
     <div class="ctags">${c.grade?`<span style="font-size:.78rem;padding:3px 9px;border-radius:20px;font-family:'DM Mono',monospace;background:#E1F5EE;color:#085041;font-weight:600">${c.grade}</span>`:''}</div>
+    ${miniInfoCorte(c)}
     ${(c.cores||[]).map(x=>`
       <div class="ci ${checks[x.cor]?'done':''}" onclick="toggleDC('${c.id}','${x.cor}')">
         <div class="ci-l"><div class="ci-c">${x.cor}</div><div class="ci-q">${x.qtd} rolo(s)</div></div>
@@ -2731,6 +2784,7 @@ function cardRosanaNC(c){
     </div>
     <div class="cnome">${c.nome}</div>
     ${(c.obs||c.encObs)?`<div style="font-size:.73rem;color:#8B4513;background:#FFF3CD;border-radius:5px;padding:3px 7px;margin-bottom:5px">⚠ ${[c.obs,c.encObs].filter(Boolean).join(' · ')}</div>`:''}
+    ${miniInfoCorte(c)}
     <div style="font-size:.75rem;color:var(--c3);font-weight:500;margin-bottom:6px">✔ Tecidos descansados</div>
     <div style="font-size:.72rem;color:var(--mt);margin-bottom:4px">Nº do corte:</div>
     <div style="display:flex;gap:5px;align-items:center">
