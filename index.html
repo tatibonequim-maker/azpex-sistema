@@ -2278,6 +2278,7 @@ function calcPreview(){
 // ── RENDER ──
 function render(){
   if(!user)return;
+  if(section==='dashboard'){renderDashboard();return;}
   if(section==='cortes')renderCortes();
   else renderPedidos();
 }
@@ -3495,7 +3496,11 @@ function confirmarEnvio(){
   c.giObs=obs;c.status='EMBALAR';
   sl();cl('ov-decisao');cl('ov-envio');cl('ov-det');render();
   toast('✔ Aprovado para embalar!','s');
+ claude/add-mobile-meta-tags-c74pC
   logActivity(`<strong>${c.ref||c.id}</strong> aprovado para embalar`,'#10B981');
+
+  
+ main
   push(c._row,[['GI_OBS',obs],['STATUS','EMBALAR']]);
 }
 function confirmarArquivar(){
@@ -3503,9 +3508,17 @@ function confirmarArquivar(){
   c.status='ARQUIVADO';
   sl();cl('ov-decisao');cl('ov-det');render();
   toast('Arquivado.','i');
+ claude/add-mobile-meta-tags-c74pC
   logActivity(`<strong>${c.ref||c.id}</strong> arquivado`,'#6B7280');
   push(c._row,[['STATUS','ARQUIVADO']]);
 }
+
+  
+  push(c._row,[['STATUS','ARQUIVADO']]);
+}
+function addPedidoCor(){}
+function buildPedidoGrade(){}
+ main
 
 function salvarPedido(){
   const cod=document.getElementById('p-cod').value.trim();
@@ -3638,6 +3651,14 @@ function saveCfgWpp(){
   localStorage.setItem('az_cfg',JSON.stringify(cfg));toast('Números salvos!','s');
 }
 function saveGrades(){cfg.customGrades=document.getElementById('cfg-grades').value.trim();localStorage.setItem('az_cfg',JSON.stringify(cfg));populateSels();toast('Grades atualizadas!','s');}
+
+  
+ claude/add-mobile-meta-tags-c74pC
+
+
+
+
+ main
 function savePins(){
   const map={pt:'taty',pe:'edvaldo',pr:'rosana',pd:'daimartha',pc:'carol',pes:'estoque',pva:'vendA',pvb:'vendB',pvc:'vendC',pge:'gerente'};
   Object.entries(map).forEach(([k,u])=>{const v=document.getElementById('cfg-'+k)?.value.trim();if(v&&v.length===4)localStorage.setItem('az_pin_'+u,v);});
