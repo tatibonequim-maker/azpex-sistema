@@ -2593,7 +2593,7 @@ function renderEstoqueIPad(){
                 <button class="ipad-btn" style="background:var(--c1);color:#fff" onclick="event.stopPropagation();abrirResponderEstoque('${p.id}')">
                   📋 Verificar estoque
                 </button>`:`
-                <button class="ipad-btn" style="background:var(--c3);color:#fff" onclick="event.stopPropagation();marcarPronto('${p.id}');render()">
+                <button class="ipad-btn" style="background:var(--c3);color:#fff" onclick="event.stopPropagation();marcarPronto('${p.id}').then(()=>render())">
                   ✔ Separado — avisar loja
                 </button>`}
             </div>`).join(''):`<div class="empty" style="font-size:1rem;padding:40px 20px">✔ Nenhum pedido pendente</div>`}
@@ -3240,6 +3240,21 @@ function removePedidoRow(i){
   });
 }
 
+function confirmarEnvio(){
+  const c=cortes.find(x=>x.id===decisaoId);if(!c)return;
+  const obs=document.getElementById('decisao-obs')?.value.trim()||document.getElementById('envio-obs')?.value.trim()||'';
+  c.giObs=obs;c.status='EMBALAR';
+  sl();cl('ov-decisao');cl('ov-envio');cl('ov-det');render();
+  toast('✔ Aprovado para embalar!','s');
+  push(c._row,[['GI_OBS',obs],['STATUS','EMBALAR']]);
+}
+function confirmarArquivar(){
+  const c=cortes.find(x=>x.id===decisaoId);if(!c)return;
+  c.status='ARQUIVADO';
+  sl();cl('ov-decisao');cl('ov-det');render();
+  toast('Arquivado.','i');
+  push(c._row,[['STATUS','ARQUIVADO']]);
+}
 function addPedidoCor(){}
 function buildPedidoGrade(){}
 
@@ -3336,7 +3351,7 @@ function responderPedido(tipo){
   p.respCores=rc;p.respObs=document.getElementById('resp-obs').value.trim();
   if(tipo==='aprovado')p.status='SEPARANDO';
   else if(tipo==='parcial')p.status='PARCIAL';
-  else p.status='INDISPONIVEL';
+  else p.status='RECUSADO';
   p.respondidoPor=user;sl();cl('ov-resp');
   if(user==='estoque')fecharPedidoEstoque();
   render();
