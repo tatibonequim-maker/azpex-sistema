@@ -3390,18 +3390,7 @@ function saveCfgWpp(){
 }
 function saveGrades(){cfg.customGrades=document.getElementById('cfg-grades').value.trim();localStorage.setItem('az_cfg',JSON.stringify(cfg));populateSels();toast('Grades atualizadas!','s');}
 
-function openCfg(){
-  document.getElementById('cfg-pins-sec').style.display=user==='taty'?'':'none';
-  if(cfg.url)document.getElementById('cfg-url').value=cfg.url;
-  ['wcarol','wdm','wgi','wedv','wros'].forEach(k=>{const el=document.getElementById('cfg-'+k);if(el&&cfg[k])el.value=cfg[k];});
-  if(cfg.customGrades)document.getElementById('cfg-grades').value=cfg.customGrades;
-  op('ov-cfg');
-}
-function saveCfgUrl(){cfg.url=document.getElementById('cfg-url').value.trim();localStorage.setItem('az_cfg',JSON.stringify(cfg));toast('Conectado!','i');cl('ov-cfg');setTimeout(syncAll,400);}
-function saveCfgWpp(){
-  ['wcarol','wdm','wgi','wedv','wros'].forEach(k=>{const v=document.getElementById('cfg-'+k)?.value.trim();if(v)cfg[k]=v;});
-  localStorage.setItem('az_cfg',JSON.stringify(cfg));toast('Números salvos!','s');
-}
+
 function savePins(){
   const map={pt:'taty',pe:'edvaldo',pr:'rosana',pd:'daimartha',pc:'carol',pes:'estoque',pva:'vendA',pvb:'vendB',pvc:'vendC',pge:'gerente'};
   Object.entries(map).forEach(([k,u])=>{const v=document.getElementById('cfg-'+k)?.value.trim();if(v&&v.length===4)localStorage.setItem('az_pin_'+u,v);});
