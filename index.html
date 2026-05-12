@@ -1965,7 +1965,7 @@ let cfg=(()=>{try{return JSON.parse(localStorage.getItem('az_cfg')||'{}');}catch
 if(!cfg.url)cfg.url=DURL;
 let cortes=(()=>{try{return JSON.parse(localStorage.getItem('az_cortes')||'[]');}catch(e){return [];}})();
 let pedidos=(()=>{try{return JSON.parse(localStorage.getItem('az_pedidos')||'[]');}catch(e){return [];}})();
-let user='',section='cortes',filtro='todos',statusFilter='';
+let user='',section='cortes',filtro='todos',statusFilter='',tipoFilter='';
 let coresId=null,respId=null,corCount=0,editId=null,decisaoId=null;
 let lastPushTime=0;
 let pinUser='',pinVal='',pinSide='';
@@ -2080,9 +2080,19 @@ function initApp(){
   if(user==='gerente') cortesLabel='Reposições';
   if(user==='estoque') cortesLabel='Embalar';
 
-  const defaultSection=isVend?'pedidos':'cortes';
+  const defaultSection=isTaty||user==='estoque'?'dashboard':isVend?'pedidos':'cortes';
   stabsEl.style.display='flex';
-  if(isVend){
+  if(isTaty){
+    stabsEl.innerHTML=`
+      <button class="stab on" onclick="setSection('dashboard',this)">Visão do dia</button>
+      <button class="stab" onclick="setSection('cortes',this)">Cortes</button>
+      <button class="stab" onclick="setSection('pedidos',this)">Pedidos</button>`;
+  } else if(user==='estoque'){
+    stabsEl.innerHTML=`
+      <button class="stab on" onclick="setSection('dashboard',this)">Fila do dia</button>
+      <button class="stab" onclick="setSection('cortes',this)">Peças da oficina</button>
+      <button class="stab" onclick="setSection('pedidos',this)">Pedidos da loja</button>`;
+  } else if(isVend){
     stabsEl.innerHTML=`<button class="stab on" onclick="setSection('pedidos',this)">Pedidos</button>`;
   } else if(['edvaldo','rosana','daimartha','carol','estoque'].includes(user)){
     stabsEl.innerHTML=`<button class="stab on" onclick="setSection('cortes',this)">${cortesLabel}</button>`;
@@ -2114,9 +2124,21 @@ function initApp(){
 function setSection(s,el){
   section=s;
   statusFilter='';
+  tipoFilter='';
   if(el){
     document.querySelectorAll('.stab').forEach(b=>b.classList.remove('on'));
     el.classList.add('on');
+  }
+  const stabs=document.getElementById('stabs');if(stabs)stabs.style.display='flex';
+  const stats=document.getElementById('stats');if(stats)stats.style.display='';
+  const tb=document.querySelector('.tb');if(tb)tb.style.display='';
+  if(s==='dashboard'){
+    const canNovo=user==='taty'||user==='carol';
+    document.getElementById('btn-novo').style.display=canNovo?'':'none';
+    document.getElementById('btn-novo').textContent='+ Novo corte';
+    document.getElementById('btn-novo').onclick=openNovo;
+    renderDashboard();
+    return;
   }
   if(s==='pedidos'){
     const canPed=['taty','carol','vendA','vendB','vendC','gerente'].includes(user);
@@ -2133,7 +2155,7 @@ function setSection(s,el){
 }
 
 
-function setF(f,el){filtro=f;statusFilter='';document.querySelectorAll('.fb').forEach(b=>b.classList.remove('on'));el.classList.add('on');render();}
+function setF(f,el){filtro=f;statusFilter='';tipoFilter='';document.querySelectorAll('.fb').forEach(b=>b.classList.remove('on'));if(el)el.classList.add('on');render();}
 
 // ── API ──
 async function apip(b){
@@ -2327,6 +2349,7 @@ function getVisCortes(){
   const q=(document.getElementById('srch')?.value||'').toLowerCase();
   if(q)list=list.filter(c=>(c.id+c.nome+(c.tec||'')+(c.ref||'')).toLowerCase().includes(q));
   if(statusFilter)list=list.filter(c=>c.status===statusFilter);
+  if(tipoFilter)list=list.filter(c=>(c.tipo||'reposicao')===tipoFilter);
   if(filtro==='minha'){
     if(user==='edvaldo')list=list.filter(c=>c.status==='AGUARDANDO_ENCAIXE'||c.status==='ENCAIXE_REPROVADO');
     if(user==='rosana')list=list.filter(c=>c.status==='DESCANSAR_TECIDO'||c.status==='TECIDO_DESCANSADO');
@@ -2358,7 +2381,6 @@ function getColsCortes(){
   if(user==='edvaldo')return[
     {s:'AGUARDANDO_ENCAIXE',l:'Fila de encaixe',c:'var(--c1)'},
     {s:'ENCAIXE_REPROVADO',l:'Reprovado — refazer',c:'var(--c4)'},
-    {s:'__TODOS__',l:'Todos os cortes',c:'var(--mt)'},
   ];
   if(user==='rosana')return[
     {s:'DESCANSAR_TECIDO',l:'Para descansar',c:'var(--c5)'},
@@ -2508,6 +2530,8 @@ function renderCortesTaty(){
 
   // sidebar — resumo operacional
   const emProd=cortes.filter(c=>!['ARQUIVADO','PRONTO_RETIRADA'].includes(c.status)).length;
+  const repos=cortes.filter(c=>!['ARQUIVADO','PRONTO_RETIRADA'].includes(c.status)&&(c.tipo||'reposicao')==='reposicao').length;
+  const novidades=cortes.filter(c=>!['ARQUIVADO','PRONTO_RETIRADA'].includes(c.status)&&c.tipo==='novidade').length;
   const emPrep=cnt('DESCANSAR_TECIDO')+cnt('TECIDO_DESCANSADO')+cnt('AGUARDANDO_ENCAIXE');
   const prontos=cnt('PRONTO_RETIRADA');
   const atrasados=cortes.filter(c=>!['ARQUIVADO','PRONTO_RETIRADA'].includes(c.status)&&tempoDecorrido(c).nivel>=2).length;
@@ -2533,6 +2557,8 @@ function renderCortesTaty(){
     </div>
     <div class="taty-viewbar">
       <button class="taty-chip${!statusFilter?' on':''}" onclick="setFiltroStatus('')">Todos <span class="fm">${totalBoard}</span></button>
+      <button class="taty-chip${tipoFilter==='reposicao'?' on':''}" onclick="setTipoFilter('reposicao')">Reposição <span class="fm">${repos}</span></button>
+      <button class="taty-chip${tipoFilter==='novidade'?' on':''}" onclick="setTipoFilter('novidade')">Novidade <span class="fm">${novidades}</span></button>
       ${statusBtns}
     </div>
     <div class="taty-layout">
@@ -2579,6 +2605,7 @@ function renderCortesTaty(){
 
 function setFiltroStatus(s){
   statusFilter=s||'';
+  tipoFilter='';
   filtro='todos';
   document.querySelectorAll('.fb').forEach(b=>b.classList.remove('on'));
   document.querySelector('.fb')?.classList.add('on');
@@ -2590,13 +2617,36 @@ function setFiltroStatus(s){
   }
 }
 
+function setTipoFilter(tipo){
+  tipoFilter=tipo||'';
+  statusFilter='';
+  filtro='todos';
+  document.querySelectorAll('.fb').forEach(b=>b.classList.remove('on'));
+  document.querySelector('.fb')?.classList.add('on');
+  render();
+}
+
 function setFiltroUrgentes(){
   statusFilter='';
+  tipoFilter='';
   filtro='todos';
   document.querySelectorAll('.fb').forEach(b=>b.classList.remove('on'));
   const urgBtn=document.querySelector('.fb[data-f="urgente"]');
   if(urgBtn){urgBtn.classList.add('on');filtro='urgente';}
   render();
+}
+
+function groupedRosanaHTML(items,cardFn){
+  const groups={};
+  items.forEach(c=>{
+    const cores=(c.cores||[]).map(x=>x.cor).filter(Boolean).join(', ')||'sem cor';
+    const key=(c.tec||'Sem tecido')+' · '+cores;
+    (groups[key]||(groups[key]=[])).push(c);
+  });
+  return Object.entries(groups).map(([key,list])=>`
+    <div style="font-size:.63rem;text-transform:uppercase;letter-spacing:.7px;color:var(--mt);font-weight:800;padding:6px 2px 2px">${key}</div>
+    ${list.map(c=>cardFn(c)).join('')}
+  `).join('');
 }
 
 function renderCortes(){
@@ -2621,7 +2671,7 @@ function renderCortes(){
     return`<div class="col" data-status="${col.s}">
       <div class="col-top" style="background:${col.c}"></div>
       <div class="col-hd"><span class="col-ti">${col.l}</span><span class="col-cn">${items.length}</span></div>
-      <div class="col-bd">${items.length?items.map(c=>cardFn(c)).join(''):'<div class="empty">Vazio</div>'}</div>
+      <div class="col-bd">${items.length?(user==='rosana'&&col.s==='DESCANSAR_TECIDO'?groupedRosanaHTML(items,cardFn):items.map(c=>cardFn(c)).join('')):'<div class="empty">Vazio</div>'}</div>
     </div>`;
   }).join('')}</div>`;
   renderStats();
@@ -2662,6 +2712,7 @@ function cardBase(c){
       ${total?`<span class="tag" style="background:var(--al);color:var(--ac)">~${total} pç</span>`:''}
       ${c.tipo?`<span class="tag" style="background:${c.tipo==='novidade'?'var(--b6)':'var(--b2)'};color:${c.tipo==='novidade'?'var(--c6)':'var(--c2)'}">${c.tipo}</span>`:''}
     </div>
+    <div style="margin:4px 0 6px">${tempoChipHTML(c)}</div>
     ${canCores?calcDetalhe(c):''}
     <div class="cfoot">
       <span class="cdate">${dout(c.data)}</span>
@@ -2716,6 +2767,7 @@ function cardEdvaldo(c){
       ${c.tin?`<span style="font-size:.78rem;padding:3px 9px;border-radius:20px;font-family:'DM Mono',monospace;background:#E1F5EE;color:#085041;font-weight:600">${c.tin}</span>`:''}
       ${c.grade?`<span class="tag" style="background:var(--s2);color:var(--mt)">${c.grade}</span>`:''}
     </div>
+    <div style="margin:4px 0 6px">${tempoChipHTML(c)}</div>
     ${miniInfoCorte(c)}
     ${rep&&c.encObs?`<div class="obs-box obs-bl" style="margin-bottom:8px;font-size:.74rem">Motivo: ${c.encObs}</div>`:''}
     <div class="ef">
@@ -2760,6 +2812,7 @@ function cardRosana(c){
     </div>
     <div class="cnome">${c.nome}</div>
     ${(c.obs||c.encObs)?`<div style="font-size:.73rem;color:#8B4513;background:#FFF3CD;border-radius:5px;padding:3px 7px;margin-bottom:5px">⚠ ${[c.obs,c.encObs].filter(Boolean).join(' · ')}</div>`:''}
+    <div style="margin:4px 0 6px">${tempoChipHTML(c)}</div>
     <div class="ctags">${c.grade?`<span style="font-size:.78rem;padding:3px 9px;border-radius:20px;font-family:'DM Mono',monospace;background:#E1F5EE;color:#085041;font-weight:600">${c.grade}</span>`:''}</div>
     ${miniInfoCorte(c)}
     ${(c.cores||[]).map(x=>`
@@ -2784,6 +2837,7 @@ function cardRosanaNC(c){
     </div>
     <div class="cnome">${c.nome}</div>
     ${(c.obs||c.encObs)?`<div style="font-size:.73rem;color:#8B4513;background:#FFF3CD;border-radius:5px;padding:3px 7px;margin-bottom:5px">⚠ ${[c.obs,c.encObs].filter(Boolean).join(' · ')}</div>`:''}
+    <div style="margin:4px 0 6px">${tempoChipHTML(c)}</div>
     ${miniInfoCorte(c)}
     <div style="font-size:.75rem;color:var(--c3);font-weight:500;margin-bottom:6px">✔ Tecidos descansados</div>
     <div style="font-size:.72rem;color:var(--mt);margin-bottom:4px">Nº do corte:</div>
@@ -2805,6 +2859,7 @@ function cardChegou(c){
     </div>
     <div class="cnome">${c.nome}</div>
     ${(c.obs||c.encObs)?`<div style="font-size:.73rem;color:#8B4513;background:#FFF3CD;border-radius:5px;padding:3px 7px;margin-bottom:5px">⚠ ${[c.obs,c.encObs].filter(Boolean).join(' · ')}</div>`:''}
+    <div style="margin:4px 0 6px">${tempoChipHTML(c)}</div>
     <div class="ctags">${c.grade?`<span style="font-size:.78rem;padding:3px 9px;border-radius:20px;font-family:'DM Mono',monospace;background:#E1F5EE;color:#085041;font-weight:600">${c.grade}</span>`:''}</div>
     <div style="font-size:.76rem;color:var(--mt);margin-bottom:6px">Chegou da oficina?</div>
     <div class="arr-btns">
@@ -2822,6 +2877,7 @@ function cardCarol(c){
       <span style="background:var(--b6);color:var(--c6);font-size:.63rem;padding:2px 7px;border-radius:5px;font-weight:500">✨ Novidade</span>
     </div>
     <div class="cnome">${c.nome}</div>
+    <div style="margin:4px 0 6px">${tempoChipHTML(c)}</div>
     <div class="ctags">
       ${c.grade?`<span style="font-size:.78rem;padding:3px 9px;border-radius:20px;font-family:'DM Mono',monospace;background:#E1F5EE;color:#085041;font-weight:600">${c.grade}</span>`:''}
       ${total?`<span class="tag" style="background:var(--al);color:var(--ac)">~${total} pç</span>`:''}
@@ -2844,6 +2900,7 @@ function cardEstoque(c){
       ${c.numCorte?`<span class="tag" style="background:var(--b3);color:var(--c3)">${c.numCorte}</span>`:''}
     </div>
     <div class="cnome">${c.nome}</div>
+    <div style="margin:4px 0 6px">${tempoChipHTML(c)}</div>
     <div class="ctags">
       ${c.grade?`<span style="font-size:.78rem;padding:3px 9px;border-radius:20px;font-family:'DM Mono',monospace;background:#E1F5EE;color:#085041;font-weight:600">${c.grade}</span>`:''}
       ${total?`<span class="tag" style="background:var(--al);color:var(--ac)">~${total} pç</span>`:''}
@@ -3859,7 +3916,22 @@ window.addEventListener('orientationchange',()=>{setTimeout(()=>{if(user==='esto
 
 // ═══ FASE 1 · TEMPO DECORRIDO + NOTIFICAÇÕES ═══
 
-// Calcula tempo decorrido com base na data de referência
+const PRAZOS_STATUS={
+  AGUARDANDO_ENCAIXE:1,
+  ENCAIXE_REPROVADO:1,
+  AGUARDANDO_APROVACAO:1,
+  DEFINIR_CORES:1,
+  DESCANSAR_TECIDO:2,
+  TECIDO_DESCANSADO:1,
+  NO_CORTE:3,
+  AG_FOTO:1,
+  AGUARDANDO_GI:1,
+  EMBALAR:1,
+  PRONTO_RETIRADA:2,
+};
+function prazoStatus(s){return PRAZOS_STATUS[s]||2;}
+
+// Calcula tempo decorrido com base na data de referência e prazo da etapa
 function tempoDecorrido(c) {
   const ref = c.dataDesc || c.data;
   if (!ref) return { texto: '', nivel: 0, classe: '' };
@@ -3869,23 +3941,25 @@ function tempoDecorrido(c) {
     const p = ref.split('/');
     dt = new Date(p[2] + '-' + p[1] + '-' + p[0] + 'T08:00:00');
   } else return { texto: '', nivel: 0, classe: '' };
-  const horas = Math.floor((Date.now() - dt.getTime()) / 3600000);
-  if (horas < 1) return { texto: 'agora', nivel: 0, classe: '' };
-  if (horas < 8) return { texto: 'há ' + horas + 'h', nivel: 0, classe: '' };
-  if (horas < 24) return { texto: 'há ' + horas + 'h', nivel: 1, classe: 'warn' };
+  const horas = Math.max(0, Math.floor((Date.now() - dt.getTime()) / 3600000));
+  const prazo = prazoStatus(c.status);
+  const diasCalc = Math.floor(horas / 24);
+  const nivel = diasCalc > prazo ? 2 : diasCalc >= prazo ? 1 : 0;
+  const classe = nivel === 2 ? 'danger' : nivel === 1 ? 'warn' : '';
+  if (horas < 1) return { texto: 'agora', nivel, classe, prazo };
+  if (horas < 24) return { texto: 'há ' + horas + 'h', nivel, classe, prazo };
   const dias = Math.floor(horas / 24);
-  if (dias === 1) return { texto: 'ontem', nivel: 1, classe: 'warn' };
-  if (dias <= 2) return { texto: 'há ' + dias + 'd', nivel: 1, classe: 'warn' };
-  return { texto: 'há ' + dias + 'd', nivel: 2, classe: 'danger' };
+  return { texto: dias === 1 ? 'ontem' : 'há ' + dias + 'd', nivel, classe, prazo };
 }
 
 // HTML do chip de tempo decorrido (use nos cards)
 function tempoChipHTML(c) {
   const t = tempoDecorrido(c);
   if (!t.texto) return '';
-  if (t.classe === 'danger') return '<span class="tchip danger">🔥 ' + t.texto + '</span>';
-  if (t.classe === 'warn') return '<span class="tchip warn">⏱ ' + t.texto + '</span>';
-  return '<span class="tchip">' + t.texto + '</span>';
+  const prazo = t.prazo ? ' / ' + t.prazo + 'd' : '';
+  if (t.classe === 'danger') return '<span class="tchip danger">🔥 ' + t.texto + prazo + '</span>';
+  if (t.classe === 'warn') return '<span class="tchip warn">⏱ ' + t.texto + prazo + '</span>';
+  return '<span class="tchip">' + t.texto + prazo + '</span>';
 }
 
 // ── NOTIFICAÇÕES PUSH + SOM ──
@@ -4057,108 +4131,94 @@ function renderDashboard() {
 // ── 1. DASHBOARD TATY (ADMIN) ──
 function renderDashTaty() {
   const ativos = cortes.filter(c => !['ARQUIVADO','PRONTO_RETIRADA'].includes(c.status));
-  const atrasados = ativos.filter(c => tempoDecorrido(c).nivel === 2);
+  const atrasados = ativos.filter(c => tempoDecorrido(c).nivel >= 1);
+  const urgentes = ativos.filter(c => c.urg);
+  const aprovar = cortes.filter(c => c.status === 'AGUARDANDO_APROVACAO');
+  const semCor = cortes.filter(c => c.status === 'DEFINIR_CORES');
+  const prontosRetirada = cortes.filter(c => c.status === 'PRONTO_RETIRADA');
   const pedPendentes = pedidos.filter(p => p.status === 'PENDENTE' || p.status === 'SEPARANDO');
-  const prontosHoje = cortes.filter(c => c.status === 'PRONTO_RETIRADA').length;
-
-  // Ações que precisam da Taty
-  const acoes = [];
-  cortes.filter(c => c.status === 'AGUARDANDO_APROVACAO').forEach(c => acoes.push({
-    id: c.id, ref: c.ref || c.id, ti: 'Aprovar encaixe · ' + c.nome,
-    meta: 'Edvaldo enviou', t: tempoDecorrido(c), action: () => openDet(c.id)
-  }));
-  cortes.filter(c => c.status === 'DEFINIR_CORES').forEach(c => acoes.push({
-    id: c.id, ref: c.ref || c.id, ti: 'Definir cores · ' + c.nome,
-    meta: '', t: tempoDecorrido(c), action: () => openCores(c.id)
-  }));
-  cortes.filter(c => c.status === 'AGUARDANDO_GI').forEach(c => acoes.push({
-    id: c.id, ref: c.ref || c.id, ti: 'Decisão de envio · ' + c.nome,
-    meta: '', t: tempoDecorrido(c), action: () => openDet(c.id)
-  }));
-
-  const acoesHTML = acoes.length ? acoes.slice(0, 6).map(a => `
-    <div class="dash-act ${a.t.classe}">
-      <div class="dash-act-id">${a.ref}</div>
-      <div class="dash-act-info">
-        <div class="dash-act-ti">${a.ti}</div>
-        <div class="dash-act-meta">${a.meta}${a.meta && a.t.texto ? ' · ' : ''}${a.t.texto}</div>
-      </div>
-      <button class="${a.t.classe === 'danger' ? 'btn-grad-blue-sm' : 'btn-dark-sm'}" onclick="(${a.action.toString()})()">Abrir</button>
-    </div>`).join('') : '<div class="dash-empty">✨ Tudo em dia! Nada esperando você.</div>';
- 
-  // Fluxo do dia
+  const semanaInicio = Date.now() - 7*24*60*60*1000;
+  const entraramSemana = cortes.filter(c => {
+    const d = c.data ? new Date(c.data).getTime() : 0;
+    return d && d >= semanaInicio;
+  }).length;
+  const finalizaramSemana = prontosRetirada.length;
   const fluxo = [
     { s: 'AGUARDANDO_ENCAIXE', l: 'Encaixe', cor: '#F59E0B' },
     { s: 'DEFINIR_CORES', l: 'Definir cores', cor: '#EC4899' },
     { s: 'DESCANSAR_TECIDO', l: 'Descansar', cor: '#8B5CF6' },
-    { s: 'NO_CORTE', l: 'No corte', cor: '#3B82F6' },
+    { s: 'NO_CORTE', l: 'Oficina', cor: '#3B82F6' },
     { s: 'EMBALAR', l: 'Embalar', cor: '#10B981' },
   ];
+  const gargalo = fluxo.map(f => ({...f,n:cortes.filter(c => c.status===f.s).length})).sort((a,b)=>b.n-a.n)[0];
+
+  const cardLinha = (c,acao='Abrir') => {
+    const t=tempoDecorrido(c);
+    return `<div class="dash-act ${t.classe}" onclick="openDet('${c.id}')" style="cursor:pointer">
+      <div class="dash-act-id">${c.ref||c.id}</div>
+      <div class="dash-act-info">
+        <div class="dash-act-ti">${c.nome}</div>
+        <div class="dash-act-meta">${csi(c.status).l} · ${c.tec||'sem tecido'} · ${t.texto||'agora'}</div>
+      </div>
+      <button class="${t.classe==='danger'?'btn-grad-blue-sm':'btn-dark-sm'}" onclick="event.stopPropagation();openDet('${c.id}')">${acao}</button>
+    </div>`;
+  };
+  const bloco = (titulo,arr,vazio,acao) => `
+    <div class="dash-panel">
+      <div class="dash-panel-head"><div class="dash-panel-ti">${titulo}</div><span class="fm" style="font-size:12px;color:var(--mt)">${arr.length}</span></div>
+      <div class="dash-acts">${arr.length?arr.slice(0,6).map(c=>cardLinha(c,acao)).join(''):`<div class="dash-empty">${vazio}</div>`}</div>
+    </div>`;
 
   document.getElementById('main-content').innerHTML = `
     <div class="dash">
-      <div class="dash-hello">${saudacao()}, Cinthia 👋</div>
-      <div class="dash-sub">Hoje é ${new Date().toLocaleDateString('pt-BR', {day: 'numeric', month: 'long'})} · ${acoes.length} ${acoes.length === 1 ? 'item precisa' : 'itens precisam'} da sua atenção</div>
+      <div class="dash-hello">Visão do Dia · Cinthia/Taty</div>
+      <div class="dash-sub">${new Date().toLocaleDateString('pt-BR', {day: 'numeric', month: 'long'})} · gargalo atual: ${gargalo?.l||'sem gargalo'}</div>
 
       <div class="dash-metrics cols-4">
-        <div class="dash-metric" onclick="setSection('cortes')">
-          <div class="dash-metric-head">
-            <div class="dash-metric-l">Em produção</div>
-            <span class="dash-metric-i">⚙️</span>
-          </div>
-          <div class="dash-metric-v">${ativos.length}</div>
-          <div class="dash-metric-sub">cortes ativos</div>
-        </div>
-        <div class="dash-metric warn" onclick="setSection('cortes')">
-          <div class="dash-metric-head">
-            <div class="dash-metric-l">Atrasados</div>
-            <span class="dash-metric-i">⚠️</span>
-          </div>
+        <div class="dash-metric warn" onclick="setSection('cortes');setF('atrasado',null)">
+          <div class="dash-metric-l">Atrasados</div>
           <div class="dash-metric-v">${atrasados.length}</div>
-          <div class="dash-metric-sub">parados há 2+ dias</div>
+          <div class="dash-metric-sub">passando do prazo da etapa</div>
         </div>
-        <div class="dash-metric" onclick="setSection('pedidos')">
-          <div class="dash-metric-head">
-            <div class="dash-metric-l">Pedidos da loja</div>
-            <span class="dash-metric-i">🛒</span>
-          </div>
-          <div class="dash-metric-v">${pedPendentes.length}</div>
-          <div class="dash-metric-sub">aguardando resposta</div>
+        <div class="dash-metric danger" onclick="setSection('cortes');setFiltroUrgentes()">
+          <div class="dash-metric-l">Urgentes</div>
+          <div class="dash-metric-v">${urgentes.length}</div>
+          <div class="dash-metric-sub">marcados como urgente</div>
         </div>
-        <div class="dash-metric success" onclick="setSection('cortes')">
-          <div class="dash-metric-head">
-            <div class="dash-metric-l">Prontos hoje</div>
-            <span class="dash-metric-i">✓</span>
-          </div>
-          <div class="dash-metric-v">${prontosHoje}</div>
+        <div class="dash-metric" onclick="setSection('cortes');setFiltroStatus('AGUARDANDO_APROVACAO')">
+          <div class="dash-metric-l">Aprovar encaixe</div>
+          <div class="dash-metric-v">${aprovar.length}</div>
+          <div class="dash-metric-sub">aguardando Taty</div>
+        </div>
+        <div class="dash-metric success" onclick="setSection('cortes');setFiltroStatus('PRONTO_RETIRADA')">
+          <div class="dash-metric-l">Prontos retirada</div>
+          <div class="dash-metric-v">${prontosRetirada.length}</div>
           <div class="dash-metric-sub">para retirada</div>
         </div>
       </div>
 
       <div class="dash-2col">
-        <div class="dash-panel">
-          <div class="dash-panel-head">
-            <div class="dash-panel-ti">⚡ Precisa da sua ação</div>
-            <button class="dash-panel-link" onclick="setSection('cortes')">Ver todas →</button>
-          </div>
-          <div class="dash-acts">${acoesHTML}</div>
+        <div style="display:flex;flex-direction:column;gap:12px">
+          ${bloco('Atrasados',atrasados,'Nenhum atraso agora.','Abrir')}
+          ${bloco('Aguardando aprovação',aprovar,'Nada para aprovar.','Aprovar')}
+          ${bloco('Sem cor definida',semCor,'Nenhum corte sem cor.','Cores')}
         </div>
 
         <div style="display: flex; flex-direction: column; gap: 12px;">
+          ${bloco('Urgentes',urgentes,'Nenhuma urgência marcada.','Abrir')}
+          ${bloco('Prontos para retirada',prontosRetirada,'Nada pronto para retirada.','Abrir')}
           <div class="dash-panel">
-            <div class="dash-panel-ti" style="margin-bottom: 10px;">Fluxo do dia</div>
+            <div class="dash-panel-ti" style="margin-bottom: 10px;">Resumo semanal</div>
             <div class="dash-flow">
+              <div class="dash-flow-row"><span class="dash-flow-l">Entraram</span><span class="dash-flow-v">${entraramSemana}</span></div>
+              <div class="dash-flow-row"><span class="dash-flow-l">Finalizaram</span><span class="dash-flow-v">${finalizaramSemana}</span></div>
+              <div class="dash-flow-row"><span class="dash-flow-l">Pedidos pendentes</span><span class="dash-flow-v">${pedPendentes.length}</span></div>
               ${fluxo.map(f => `
                 <div class="dash-flow-row">
                   <span class="dash-flow-l"><span class="dash-flow-dot" style="background:${f.cor}"></span>${f.l}</span>
                   <span class="dash-flow-v">${cortes.filter(c => c.status === f.s).length}</span>
                 </div>`).join('')}
             </div>
-          </div>
-          <div class="dash-gradcard">
-            <div class="dash-gradcard-ti">📊 Esta semana</div>
-            <div class="dash-gradcard-v">${prontosHoje}</div>
-            <div class="dash-gradcard-sub">cortes finalizados</div>
           </div>
         </div>
       </div>
@@ -4394,64 +4454,39 @@ function renderDashCarol() {
 function renderDashEstoque() {
   const oficina = cortes.filter(c => c.status === 'EMBALAR');
   const pedSep = pedidos.filter(p => p.status === 'PENDENTE' || p.status === 'SEPARANDO');
-
-  const itens = [
-    ...pedSep.map(p => ({ tipo: 'pedido', id: p.id, ref: p.id, nome: p.nome,
-      autor: UNAMES[p.autor] || p.autor, qtds: p.cores, t: { texto: '', nivel: 0, classe: '' },
-      action: () => openResp ? openResp(p.id) : openDetPedido(p.id), urgent: false })),
-    ...oficina.map(c => ({ tipo: 'oficina', id: c.id, ref: c.ref || c.id, nome: c.nome,
-      op: c.numCorte, novidade: c.tipo === 'novidade', cores: c.cores,
-      t: tempoDecorrido(c), action: () => openDet(c.id) }))
-  ];
-
-  // Marca urgência: pedidos atrasados ou cortes parados muito tempo
-  itens.forEach(it => {
-    if (it.tipo === 'pedido') {
-      // Sem timestamp real, considera todos não urgentes por padrão
-      it.urgent = false;
-    } else {
-      it.urgent = it.t.nivel === 2;
-    }
-  });
-
-  // Ordena: urgentes primeiro
-  itens.sort((a, b) => (b.urgent ? 1 : 0) - (a.urgent ? 1 : 0));
-
-  const totalFila = itens.length;
-  const urgentes = itens.filter(i => i.urgent).length;
+  const totalFila = oficina.length + pedSep.length;
+  const urgentes = oficina.filter(c => tempoDecorrido(c).nivel >= 1 || c.urg).length;
   const hoje = cortes.filter(c => c.status === 'PRONTO_RETIRADA').length;
 
-  const linhasHTML = itens.length === 0 ? '<div class="dash-empty"><div class="dash-empty-i">✨</div>Tudo separado! Nada na fila.</div>' :
-    itens.map(it => {
-      if (it.tipo === 'pedido') {
-        return `
-          <div class="dash-stock-row ${it.urgent ? 'danger' : ''}">
-            <div class="dash-stock-origin">
-              <span class="dash-stock-tag pedido ${it.urgent ? 'danger' : ''}">🛒 Pedido</span>
-            </div>
-            <div class="dash-stock-info">
-              <div class="dash-stock-id">${it.id}${it.autor ? ' · ' + it.autor : ''}</div>
-              <div class="dash-stock-ti">${it.nome}</div>
-            </div>
-            <span class="dash-stock-time">${it.t.texto || ''}</span>
-            <button class="${it.urgent ? 'btn-grad-blue-sm' : 'btn-dark-sm'}" onclick="(${it.action.toString()})()">Verificar →</button>
-          </div>`;
-      }
-      return `
+  const pedidosHTML = pedSep.length ? pedSep.map(p => `
         <div class="dash-stock-row">
           <div class="dash-stock-origin">
-            <span class="dash-stock-tag oficina">🏭 Oficina</span>
-            ${it.novidade ? '<span class="grad-pink" style="color:white;padding:2px 6px;border-radius:4px;font-size:9px;font-weight:700">✨ NEW</span>' : ''}
+            <span class="dash-stock-tag pedido">🛒 Pedido</span>
           </div>
           <div class="dash-stock-info">
-            <div class="dash-stock-id">${it.ref}${it.op ? ' · ' + it.op : ''}</div>
-            <div class="dash-stock-ti">${it.nome}</div>
-            ${it.cores && it.cores.length ? `<div class="dash-stock-meta">${it.cores.map(x => x.cor + ':' + x.qtd).join(' · ')}</div>` : ''}
+            <div class="dash-stock-id">${p.id} · ${UNAMES[p.autor] || p.autor}</div>
+            <div class="dash-stock-ti">${p.nome}</div>
+            <div class="dash-stock-meta">${(p.cores||[]).map(x => x.cor + ' · ' + Object.entries(x.qtds||{}).map(([t,q])=>t+':'+q).join(' ')).join(' · ')}</div>
           </div>
-          <span class="dash-stock-time">${it.t.texto}</span>
-          <button class="${it.urgent ? 'btn-grad-blue-sm' : 'btn-dark-sm'}" onclick="(${it.action.toString()})()">Embalar →</button>
+          <button class="btn-dark-sm" onclick="openResp('${p.id}')">Verificar →</button>
+        </div>`).join('') : '<div class="dash-empty">Nenhum pedido da loja pendente.</div>';
+  const oficinaHTML = oficina.length ? oficina.map(c => {
+    const t=tempoDecorrido(c);
+    return `
+        <div class="dash-stock-row ${t.classe}">
+          <div class="dash-stock-origin">
+            <span class="dash-stock-tag oficina">🏭 Oficina</span>
+            ${c.tipo === 'novidade' ? '<span class="grad-pink" style="color:white;padding:2px 6px;border-radius:4px;font-size:9px;font-weight:700">✨ NEW</span>' : ''}
+          </div>
+          <div class="dash-stock-info">
+            <div class="dash-stock-id">${c.ref||c.id}${c.numCorte ? ' · ' + c.numCorte : ''}</div>
+            <div class="dash-stock-ti">${c.nome}</div>
+            <div class="dash-stock-meta">${c.grade||'sem grade'} · ${c.tec||'sem tecido'}${(c.cores||[]).length?' · '+c.cores.map(x => x.cor + ':' + x.qtd).join(' · '):''}</div>
+          </div>
+          <span class="dash-stock-time">${t.texto}</span>
+          <button class="${t.classe === 'danger' ? 'btn-grad-blue-sm' : 'btn-dark-sm'}" onclick="openDet('${c.id}')">Embalar →</button>
         </div>`;
-    }).join('');
+  }).join('') : '<div class="dash-empty">Nenhuma peça da oficina para embalar.</div>';
 
   document.getElementById('main-content').innerHTML = `
     <div class="dash">
@@ -4476,11 +4511,21 @@ function renderDashEstoque() {
         </div>
       </div>
 
-      <div class="dash-panel" style="padding: 0;">
-        <div class="dash-panel-head" style="padding: 14px 18px; background: var(--bg); border-bottom: 1px solid var(--bd); margin-bottom: 0;">
-          <div class="dash-panel-ti">🛒 Separar para a loja</div>
+      <div class="dash-2col equal">
+        <div class="dash-panel" style="padding: 0;">
+          <div class="dash-panel-head" style="padding: 14px 18px; background: var(--bg); border-bottom: 1px solid var(--bd); margin-bottom: 0;">
+            <div class="dash-panel-ti">🛒 Pedidos da loja</div>
+            <span class="fm" style="font-size:12px;color:var(--mt)">${pedSep.length}</span>
+          </div>
+          ${pedidosHTML}
         </div>
-        ${linhasHTML}
+        <div class="dash-panel" style="padding: 0;">
+          <div class="dash-panel-head" style="padding: 14px 18px; background: var(--bg); border-bottom: 1px solid var(--bd); margin-bottom: 0;">
+            <div class="dash-panel-ti">🏭 Peças da oficina</div>
+            <span class="fm" style="font-size:12px;color:var(--mt)">${oficina.length}</span>
+          </div>
+          ${oficinaHTML}
+        </div>
       </div>
     </div>`;
 }
