@@ -757,6 +757,8 @@ h1, h2, h3, .heading {
 
 /* APP SHELL */
 #app { display: none; min-height: 100vh; }
+#app.taty-mode { display: flex; flex-direction: column; height: 100vh; overflow: hidden; }
+#app.taty-mode #main-content { flex: 1; min-height: 0; display: flex; flex-direction: column; overflow: hidden; }
 
 /* HEADER */
 .hdr {
@@ -887,6 +889,45 @@ h1, h2, h3, .heading {
 @media(min-width: 640px)  { .board { grid-template-columns: repeat(2,1fr); padding: 14px 14px 48px; } }
 @media(min-width: 960px)  { .board { grid-template-columns: repeat(3,1fr); } }
 @media(min-width: 1280px) { .board { grid-template-columns: repeat(auto-fill,minmax(268px,1fr)); } }
+
+/* TATY INTEGRATED VIEW */
+.taty-layout{display:flex;gap:0;min-height:0;flex:1;}
+.taty-board{flex:1;overflow-x:auto;overflow-y:auto;padding:12px 12px 48px;}
+.taty-phase{margin-bottom:18px;}
+.taty-phase-hd{font-size:.63rem;font-weight:700;text-transform:uppercase;letter-spacing:.9px;color:var(--mt);padding:0 2px 8px;display:flex;align-items:center;gap:8px;}
+.taty-phase-hd::after{content:'';flex:1;height:1px;background:var(--bd);}
+.taty-phase-hd .ph-icon{font-size:.85rem;opacity:.7;}
+.taty-phase-cols{display:grid;gap:10px;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));}
+.taty-sidebar{width:296px;min-width:296px;border-left:1px solid var(--bd);overflow-y:auto;background:var(--sf);padding:10px;display:flex;flex-direction:column;gap:8px;}
+.sb-card{background:var(--bg);border:1px solid var(--bd);border-radius:var(--r12);padding:11px 12px;}
+.sb-title{font-size:.62rem;font-weight:700;text-transform:uppercase;letter-spacing:.8px;color:var(--mt);margin-bottom:9px;display:flex;align-items:center;gap:5px;}
+.sb-alert{display:flex;align-items:center;gap:9px;padding:6px 0;border-bottom:1px solid var(--bd);font-size:.8rem;cursor:pointer;transition:opacity .12s;}
+.sb-alert:last-child{border-bottom:none;}
+.sb-alert:hover{opacity:.75;}
+.sb-alert-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0;}
+.sb-alert-text{flex:1;color:var(--tx);}
+.sb-alert-count{font-family:'DM Mono',monospace;font-size:.72rem;font-weight:700;background:var(--s2);padding:1px 6px;border-radius:99px;color:var(--mt);}
+.sb-pri{display:flex;gap:8px;align-items:flex-start;padding:6px 0;border-bottom:1px solid var(--bd);cursor:pointer;transition:opacity .12s;}
+.sb-pri:last-child{border-bottom:none;}
+.sb-pri:hover{opacity:.75;}
+.sb-pri-id{font-family:'DM Mono',monospace;font-size:.72rem;font-weight:700;color:var(--ac);min-width:38px;padding-top:1px;}
+.sb-pri-info{flex:1;min-width:0;}
+.sb-pri-name{font-size:.79rem;font-weight:600;color:var(--tx);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.sb-pri-meta{font-size:.7rem;color:var(--mt);margin-top:1px;}
+.sb-pri-badge{font-size:.63rem;padding:2px 6px;border-radius:99px;font-weight:600;white-space:nowrap;}
+.sb-metrics{display:grid;grid-template-columns:1fr 1fr;gap:7px;}
+.sb-metric{background:var(--s2);border-radius:var(--r8);padding:9px 10px;text-align:center;}
+.sb-metric-v{font-family:'DM Mono',monospace;font-size:1.35rem;font-weight:700;color:var(--tx);}
+.sb-metric-l{font-size:.66rem;color:var(--mt);margin-top:1px;}
+.sb-metric.danger .sb-metric-v{color:var(--c4);}
+.sb-actions{display:grid;grid-template-columns:1fr 1fr;gap:5px;}
+.sb-act-btn{padding:8px 4px;border-radius:var(--r8);border:1px solid var(--bd);background:var(--s2);font-size:.74rem;font-weight:600;color:var(--tx);cursor:pointer;text-align:center;transition:all .12s;}
+.sb-act-btn:hover{background:var(--sf);border-color:var(--ac);color:var(--ac);}
+.sb-activity{display:flex;flex-direction:column;gap:5px;}
+.sb-act-item{display:flex;gap:8px;align-items:flex-start;}
+.sb-act-dot{width:6px;height:6px;border-radius:50%;background:var(--ac);margin-top:5px;flex-shrink:0;}
+.sb-act-text{flex:1;font-size:.76rem;color:var(--tx);line-height:1.4;}
+.sb-act-time{font-size:.69rem;color:var(--mt);white-space:nowrap;padding-top:2px;}
 
 /* COLUMN */
 .col {
@@ -1904,6 +1945,7 @@ let user='',section='cortes',filtro='todos';
 let coresId=null,respId=null,corCount=0,editId=null,decisaoId=null;
 let lastPushTime=0;
 let pinUser='',pinVal='',pinSide='';
+let activityLog=JSON.parse(localStorage.getItem('az_activity')||'[]');
 
 // ── PORTAL ──
 function openLogin(side){
@@ -1974,6 +2016,7 @@ function initApp(){
   localStorage.setItem('az_user',user);
   document.getElementById('portal').style.display='none';
   document.getElementById('app').style.display='block';
+  document.getElementById('app').classList.toggle('taty-mode',user==='taty');
   document.getElementById('app-user').textContent=UNAMES[user]||user;
 
   const isTaty=user==='taty';
@@ -2009,16 +2052,23 @@ function initApp(){
   let cortesLabel='Cortes';
   if(user==='gerente') cortesLabel='Reposições';
   if(user==='estoque') cortesLabel='Embalar';
-  stabsEl.style.display='flex';
-  stabsEl.innerHTML=`
-    <button class="stab on" onclick="setSection('dashboard',this)">📊 Dashboard</button>
-    <button class="stab" onclick="setSection('cortes',this)">${cortesLabel}</button>
-    <button class="stab" onclick="setSection('pedidos',this)">Pedidos</button>`;
-  section='dashboard';
-
+  if(isTaty){
+    stabsEl.style.display='flex';
+    stabsEl.innerHTML=`
+      <button class="stab on" onclick="setSection('cortes',this)">Cortes</button>
+      <button class="stab" onclick="setSection('pedidos',this)">Pedidos</button>`;
+    section='cortes';
+  } else {
+    stabsEl.style.display='flex';
+    stabsEl.innerHTML=`
+      <button class="stab on" onclick="setSection('dashboard',this)">📊 Dashboard</button>
+      <button class="stab" onclick="setSection('cortes',this)">${cortesLabel}</button>
+      <button class="stab" onclick="setSection('pedidos',this)">Pedidos</button>`;
+    section='dashboard';
+  }
 
   populateSels();
-  setSection('dashboard');
+  setSection(isTaty?'cortes':'dashboard');
   inicializarNotificacoes();
 
   if(cfg.url){
@@ -2143,7 +2193,7 @@ async function syncAll(silent){
       }));
     }
     if(l&&l.tecidos){localStorage.setItem('az_listas',JSON.stringify(l));populateSels();}
-    sl();render();if(!silent)toast('Sincronizado ✔','s');
+    sl();render();if(!silent){toast('Sincronizado ✔','s');logActivity('Sincronização concluída com sucesso','#10B981');}
         checarNovosNaFila();
   }catch(e){console.error(e);if(!silent)toast('Erro ao sincronizar','w');}
 }
@@ -2243,6 +2293,7 @@ function calcPreview(){
 // ── RENDER ──
 function render(){
   if(!user)return;
+  if(section==='dashboard'){renderDashboard();return;}
   if(section==='cortes')renderCortes();
   else renderPedidos();
 }
@@ -2251,7 +2302,7 @@ function render(){
 function getVisCortes(){
   let list=[...cortes];
   const q=(document.getElementById('srch')?.value||'').toLowerCase();
-  if(q)list=list.filter(c=>(c.id+c.nome+c.tec+c.ref).toLowerCase().includes(q));
+  if(q)list=list.filter(c=>(c.id+c.nome+(c.tec||'')+(c.ref||'')).toLowerCase().includes(q));
   if(filtro==='minha'){
     if(user==='edvaldo')list=list.filter(c=>c.status==='AGUARDANDO_ENCAIXE'||c.status==='ENCAIXE_REPROVADO');
     if(user==='rosana')list=list.filter(c=>c.status==='DESCANSAR_TECIDO'||c.status==='TECIDO_DESCANSADO');
@@ -2259,6 +2310,10 @@ function getVisCortes(){
     if(user==='carol')list=list.filter(c=>c.status==='AG_FOTO'||c.status==='FOTO_OK');
     if(user==='estoque')list=list.filter(c=>c.status==='EMBALAR');
   }
+  if(filtro==='urgente')list=list.filter(c=>c.urg);
+  if(filtro==='atrasado')list=list.filter(c=>tempoDecorrido(c).nivel>=2);
+  if(filtro==='semcor')list=list.filter(c=>c.status==='DEFINIR_CORES');
+  if(filtro==='semtecido')list=list.filter(c=>!c.tec&&!['ARQUIVADO','PRONTO_RETIRADA'].includes(c.status));
   if(user==='gerente'&&section==='cortes')list=list.filter(c=>c.tipo!=='novidade'||c.status==='PRONTO_RETIRADA'||c.status==='ARQUIVADO');
   return list;
 }
@@ -2315,7 +2370,196 @@ function getColsCortes(){
   return[];
 }
 
+function logActivity(text,color){
+  activityLog.unshift({text,color:color||'var(--ac)',ts:Date.now()});
+  if(activityLog.length>30)activityLog.length=30;
+  localStorage.setItem('az_activity',JSON.stringify(activityLog));
+}
+
+function _agoText(ts){
+  const m=Math.floor((Date.now()-ts)/60000);
+  if(m<1)return'agora';if(m<60)return'há '+m+'min';
+  const h=Math.floor(m/60);if(h<24)return'há '+h+'h';
+  return'há '+Math.floor(h/24)+'d';
+}
+
+function renderCortesTaty(){
+  // Toolbar rica para Taty
+  const nUrg=cortes.filter(c=>c.urg&&!['ARQUIVADO','PRONTO_RETIRADA'].includes(c.status)).length;
+  const nAtr=cortes.filter(c=>!['ARQUIVADO','PRONTO_RETIRADA'].includes(c.status)&&tempoDecorrido(c).nivel>=2).length;
+  const tb=document.querySelector('.tb');
+  if(tb){
+    tb.innerHTML=`
+      <input class="srch" id="srch" placeholder="Buscar por código, peça, tecido, observação..." oninput="render()" value="${(document.getElementById('srch')?.value||'')}">
+      <button class="fb${filtro==='todos'?' on':''}" data-f="todos" onclick="setF('todos',this)">Todos</button>
+      <button class="fb${filtro==='minha'?' on':''}" data-f="minha" onclick="setF('minha',this)">Minha fila</button>
+      <button class="fb${filtro==='urgente'?' on':''}" data-f="urgente" onclick="setF('urgente',this)">Urgentes${nUrg?` <span style="background:var(--c4);color:#fff;border-radius:99px;padding:1px 5px;font-size:.65rem">${nUrg}</span>`:''}</button>
+      <button class="fb${filtro==='atrasado'?' on':''}" data-f="atrasado" onclick="setF('atrasado',this)">Atrasados${nAtr?` <span style="background:var(--c8);color:#fff;border-radius:99px;padding:1px 5px;font-size:.65rem">${nAtr}</span>`:''}</button>
+      <button class="fb${filtro==='semcor'?' on':''}" onclick="setF('semcor',this)">Sem cor definida</button>
+      <button class="fb${filtro==='semtecido'?' on':''}" onclick="setF('semtecido',this)">Sem tecido definido</button>`;
+  }
+
+  const vis=getVisCortes();
+  const cnt=s=>cortes.filter(c=>c.status===s).length;
+
+  // fases e colunas
+  const fases=[
+    {label:'Decisão',icon:'⚖️',cols:[
+      {s:'AGUARDANDO_APROVACAO',l:'Ag. Aprovação',c:'var(--c2)'},
+      {s:'DEFINIR_CORES',l:'Definir Cores',c:'var(--c6)'},
+    ]},
+    {label:'Preparação',icon:'🛏️',cols:[
+      {s:'AGUARDANDO_ENCAIXE',l:'Ag. Encaixe',c:'var(--c1)'},
+      {s:'ENCAIXE_REPROVADO',l:'Encaixe Reprovado',c:'var(--c4)'},
+      {s:'DESCANSAR_TECIDO',l:'Descansar Tecido',c:'var(--c5)'},
+      {s:'TECIDO_DESCANSADO',l:'Tecido Descansado',c:'var(--c3)'},
+    ]},
+    {label:'Produção',icon:'✂️',cols:[
+      {s:'NO_CORTE',l:'Corte / Oficina',c:'var(--c3)'},
+      {s:'AG_FOTO',l:'Ag. Foto',c:'var(--c6)'},
+      {s:'AGUARDANDO_GI',l:'Ag. Decisão de Envio',c:'var(--c8)'},
+    ]},
+    {label:'Finalização',icon:'📦',cols:[
+      {s:'EMBALAR',l:'Embalar / Separar',c:'var(--c7)'},
+      {s:'PRONTO_RETIRADA',l:'Pronto p/ Retirada',c:'var(--c3)'},
+    ]},
+  ];
+
+  const grouped={};
+  fases.forEach(f=>f.cols.forEach(col=>{grouped[col.s]=[];}));
+  vis.forEach(c=>{if(grouped[c.status]!==undefined)grouped[c.status].push(c);});
+
+  const boardHTML=fases.map(fase=>{
+    const colsHTML=fase.cols.map(col=>{
+      const items=grouped[col.s]||[];
+      return`<div class="col" data-status="${col.s}">
+        <div class="col-top" style="background:${col.c}"></div>
+        <div class="col-hd"><span class="col-ti">${col.l}</span><span class="col-cn">${items.length}</span></div>
+        <div class="col-bd">${items.length?items.map(c=>corteCardHTML(c)).join(''):'<div class="empty">Vazio</div>'}</div>
+      </div>`;
+    }).join('');
+    return`<div class="taty-phase">
+      <div class="taty-phase-hd"><span class="ph-icon">${fase.icon}</span>${fase.label}</div>
+      <div class="taty-phase-cols">${colsHTML}</div>
+    </div>`;
+  }).join('');
+
+  // sidebar — alertas
+  const nApr=cnt('AGUARDANDO_APROVACAO');
+  const nCores=cnt('DEFINIR_CORES');
+  const nUrgOf=cortes.filter(c=>c.urg&&c.status==='NO_CORTE').length;
+  const nParados=cortes.filter(c=>!['ARQUIVADO','PRONTO_RETIRADA'].includes(c.status)&&tempoDecorrido(c).nivel>=2).length;
+  const alertas=[
+    nApr&&{cor:'#EF4444',txt:`${nApr} ${nApr===1?'item aguarda':'itens aguardam'} aprovação`,s:'AGUARDANDO_APROVACAO'},
+    nCores&&{cor:'#8B5CF6',txt:`${nCores} cortes sem cor definida`,s:'DEFINIR_CORES'},
+    nUrgOf&&{cor:'#F59E0B',txt:`${nUrgOf} ${nUrgOf===1?'peça urgente':'peças urgentes'} na oficina`,s:'NO_CORTE'},
+    nParados&&{cor:'#F97316',txt:`${nParados} ${nParados===1?'item parado':'itens parados'} há 2+ dias`,s:''},
+  ].filter(Boolean);
+  const alertasHTML=alertas.length?alertas.map(a=>`
+    <div class="sb-alert" onclick="${a.s?`setFiltroStatus('${a.s}')`:``}">
+      <div class="sb-alert-dot" style="background:${a.cor}"></div>
+      <div class="sb-alert-text">${a.txt}</div>
+    </div>`).join(''):'<div style="font-size:.8rem;color:var(--mt);padding:4px 0">Nenhum alerta no momento ✨</div>';
+
+  // sidebar — prioridades
+  const pris=[...cortes.filter(c=>!['ARQUIVADO','PRONTO_RETIRADA'].includes(c.status))]
+    .sort((a,b)=>{
+      const ua=a.urg?2:0,ub=b.urg?2:0;
+      const ta=tempoDecorrido(a).nivel,tb=tempoDecorrido(b).nivel;
+      return(ub+tb)-(ua+ta);
+    }).slice(0,6);
+  const priColors={0:'#6B7280',1:'#F59E0B',2:'#EF4444'};
+  const priLabels={0:'Baixa',1:'Média',2:'Alta'};
+  const prisHTML=pris.length?pris.map(c=>{
+    const t=tempoDecorrido(c);const nivel=c.urg?2:t.nivel;
+    return`<div class="sb-pri" onclick="openDet('${c.id}')">
+      <div class="sb-pri-id">${c.ref||c.id}</div>
+      <div class="sb-pri-info">
+        <div class="sb-pri-name">${c.nome}</div>
+        <div class="sb-pri-meta">${csi(c.status).l}${t.texto?' · '+t.texto:''}</div>
+      </div>
+      <span class="sb-pri-badge" style="background:${priColors[nivel]}22;color:${priColors[nivel]}">${priLabels[nivel]}</span>
+    </div>`;}).join(''):'<div style="font-size:.8rem;color:var(--mt)">Nenhuma prioridade</div>';
+
+  // sidebar — resumo operacional
+  const emProd=cortes.filter(c=>!['ARQUIVADO','PRONTO_RETIRADA'].includes(c.status)).length;
+  const emPrep=cnt('DESCANSAR_TECIDO')+cnt('TECIDO_DESCANSADO')+cnt('AGUARDANDO_ENCAIXE');
+  const prontos=cnt('PRONTO_RETIRADA');
+  const atrasados=cortes.filter(c=>!['ARQUIVADO','PRONTO_RETIRADA'].includes(c.status)&&tempoDecorrido(c).nivel>=2).length;
+  const pedPend=pedidos.filter(p=>['PENDENTE','SEPARANDO'].includes(p.status)).length;
+
+  // sidebar — atividade recente
+  const recentHTML=activityLog.length?activityLog.slice(0,6).map(a=>`
+    <div class="sb-act-item">
+      <div class="sb-act-dot" style="background:${a.color}"></div>
+      <div class="sb-act-text">${a.text}</div>
+      <div class="sb-act-time">${_agoText(a.ts)}</div>
+    </div>`).join(''):'<div style="font-size:.8rem;color:var(--mt)">Nenhuma atividade registrada</div>';
+
+  document.getElementById('main-content').innerHTML=`
+    <div class="taty-layout">
+      <div class="taty-board">${boardHTML}</div>
+      <div class="taty-sidebar">
+        <div class="sb-card">
+          <div class="sb-title">🔔 Alertas do dia</div>
+          ${alertasHTML}
+        </div>
+        <div class="sb-card">
+          <div class="sb-title">⭐ Prioridades</div>
+          ${prisHTML}
+          <div style="margin-top:8px"><button class="sb-act-btn" style="width:100%" onclick="setFiltroStatus('')">Ver todas prioridades →</button></div>
+        </div>
+        <div class="sb-card">
+          <div class="sb-title">📊 Resumo operacional</div>
+          <div class="sb-metrics">
+            <div class="sb-metric"><div class="sb-metric-v">${emProd}</div><div class="sb-metric-l">Em produção</div></div>
+            <div class="sb-metric"><div class="sb-metric-v">${emPrep}</div><div class="sb-metric-l">Em preparação</div></div>
+            <div class="sb-metric"><div class="sb-metric-v">${prontos}</div><div class="sb-metric-l">Prontos hoje</div></div>
+            <div class="sb-metric${atrasados>0?' danger':''}"><div class="sb-metric-v">${atrasados}</div><div class="sb-metric-l">Atrasados</div></div>
+          </div>
+          ${pedPend?`<div style="margin-top:8px;padding:8px;background:var(--b1);border-radius:var(--r8);font-size:.78rem;color:var(--c1);font-weight:600;cursor:pointer" onclick="setSection('pedidos')">🛒 ${pedPend} ${pedPend===1?'pedido pendente':'pedidos pendentes'} na loja</div>`:''}
+        </div>
+        <div class="sb-card">
+          <div class="sb-title">⚡ Ações rápidas</div>
+          <div class="sb-actions">
+            <button class="sb-act-btn" onclick="openNovo()">+ Novo corte</button>
+            <button class="sb-act-btn" onclick="setFiltroUrgentes()">Ver urgentes</button>
+            <button class="sb-act-btn" onclick="setFiltroStatus('DEFINIR_CORES')">Sem cor</button>
+            <button class="sb-act-btn" onclick="setSection('pedidos')">Abrir pedidos</button>
+          </div>
+        </div>
+        <div class="sb-card">
+          <div class="sb-title">🕐 Atividade recente</div>
+          <div class="sb-activity">${recentHTML}</div>
+          ${activityLog.length?`<div style="margin-top:8px"><button class="sb-act-btn" style="width:100%" onclick="activityLog=[];localStorage.removeItem('az_activity');render()">Limpar histórico</button></div>`:''}
+        </div>
+      </div>
+    </div>`;
+  renderStats();
+}
+
+function setFiltroStatus(s){
+  filtro='todos';
+  document.querySelectorAll('.fb').forEach(b=>b.classList.remove('on'));
+  document.querySelector('.fb')?.classList.add('on');
+  render();
+  if(s){
+    const el=document.getElementById('main-content');
+    const col=el?.querySelector(`[data-status="${s}"]`);
+    if(col)col.scrollIntoView({behavior:'smooth',block:'start'});
+  }
+}
+
+function setFiltroUrgentes(){
+  filtro='todos';
+  document.querySelectorAll('.fb').forEach(b=>b.classList.remove('on'));
+  const urgBtn=document.querySelector('.fb[data-f="urgente"]');
+  if(urgBtn){urgBtn.classList.add('on');filtro='urgente';}
+  render();
+}
+
 function renderCortes(){
+  if(user==='taty'){renderCortesTaty();return;}
   const cols=getColsCortes();const vis=getVisCortes();
   const grouped={};cols.forEach(c=>{grouped[c.s]=[];});
   vis.forEach(c=>{if(grouped[c.status]!==undefined)grouped[c.status].push(c);});
@@ -2593,7 +2837,7 @@ function renderEstoqueIPad(){
                 <button class="ipad-btn" style="background:var(--c1);color:#fff" onclick="event.stopPropagation();abrirResponderEstoque('${p.id}')">
                   📋 Verificar estoque
                 </button>`:`
-                <button class="ipad-btn" style="background:var(--c3);color:#fff" onclick="event.stopPropagation();marcarPronto('${p.id}');render()">
+                <button class="ipad-btn" style="background:var(--c3);color:#fff" onclick="event.stopPropagation();marcarPronto('${p.id}').then(()=>render())">
                   ✔ Separado — avisar loja
                 </button>`}
             </div>`).join(''):`<div class="empty" style="font-size:1rem;padding:40px 20px">✔ Nenhum pedido pendente</div>`}
@@ -2731,6 +2975,7 @@ async function salvarEncaixe(id){
     c.status='DEFINIR_CORES';
     sl();render();
     toast('Encaixe aprovado! Defina as cores.','s');
+    logActivity(`Encaixe de <strong>${c.ref||c.id}</strong> aprovado`,'#10B981');
     if(c._row){
       await apip({action:'atualizarCampos',row:c._row,campos:[['ENCAIXE_M',m],['RENDIMENTO',pct],['OBS_CAD',c.encObs],['STATUS','DEFINIR_CORES']]});
       setTimeout(()=>syncAll(true),3000);
@@ -3240,8 +3485,23 @@ function removePedidoRow(i){
   });
 }
 
-function addPedidoCor(){}
-function buildPedidoGrade(){}
+function confirmarEnvio(){
+  const c=cortes.find(x=>x.id===decisaoId);if(!c)return;
+  const obs=document.getElementById('decisao-obs')?.value.trim()||document.getElementById('envio-obs')?.value.trim()||'';
+  c.giObs=obs;c.status='EMBALAR';
+  sl();cl('ov-decisao');cl('ov-envio');cl('ov-det');render();
+  toast('✔ Aprovado para embalar!','s');
+  logActivity(`<strong>${c.ref||c.id}</strong> aprovado para embalar`,'#10B981');
+  push(c._row,[['GI_OBS',obs],['STATUS','EMBALAR']]);
+}
+function confirmarArquivar(){
+  const c=cortes.find(x=>x.id===decisaoId);if(!c)return;
+  c.status='ARQUIVADO';
+  sl();cl('ov-decisao');cl('ov-det');render();
+  toast('Arquivado.','i');
+  logActivity(`<strong>${c.ref||c.id}</strong> arquivado`,'#6B7280');
+  push(c._row,[['STATUS','ARQUIVADO']]);
+}
 
 function salvarPedido(){
   const cod=document.getElementById('p-cod').value.trim();
@@ -3336,7 +3596,7 @@ function responderPedido(tipo){
   p.respCores=rc;p.respObs=document.getElementById('resp-obs').value.trim();
   if(tipo==='aprovado')p.status='SEPARANDO';
   else if(tipo==='parcial')p.status='PARCIAL';
-  else p.status='INDISPONIVEL';
+  else p.status='RECUSADO';
   p.respondidoPor=user;sl();cl('ov-resp');
   if(user==='estoque')fecharPedidoEstoque();
   render();
@@ -3374,19 +3634,6 @@ function saveCfgWpp(){
   localStorage.setItem('az_cfg',JSON.stringify(cfg));toast('Números salvos!','s');
 }
 function saveGrades(){cfg.customGrades=document.getElementById('cfg-grades').value.trim();localStorage.setItem('az_cfg',JSON.stringify(cfg));populateSels();toast('Grades atualizadas!','s');}
-
-function openCfg(){
-  document.getElementById('cfg-pins-sec').style.display=user==='taty'?'':'none';
-  if(cfg.url)document.getElementById('cfg-url').value=cfg.url;
-  ['wcarol','wdm','wgi','wedv','wros'].forEach(k=>{const el=document.getElementById('cfg-'+k);if(el&&cfg[k])el.value=cfg[k];});
-  if(cfg.customGrades)document.getElementById('cfg-grades').value=cfg.customGrades;
-  op('ov-cfg');
-}
-function saveCfgUrl(){cfg.url=document.getElementById('cfg-url').value.trim();localStorage.setItem('az_cfg',JSON.stringify(cfg));toast('Conectado!','i');cl('ov-cfg');setTimeout(syncAll,400);}
-function saveCfgWpp(){
-  ['wcarol','wdm','wgi','wedv','wros'].forEach(k=>{const v=document.getElementById('cfg-'+k)?.value.trim();if(v)cfg[k]=v;});
-  localStorage.setItem('az_cfg',JSON.stringify(cfg));toast('Números salvos!','s');
-}
 function savePins(){
   const map={pt:'taty',pe:'edvaldo',pr:'rosana',pd:'daimartha',pc:'carol',pes:'estoque',pva:'vendA',pvb:'vendB',pvc:'vendC',pge:'gerente'};
   Object.entries(map).forEach(([k,u])=>{const v=document.getElementById('cfg-'+k)?.value.trim();if(v&&v.length===4)localStorage.setItem('az_pin_'+u,v);});
@@ -4045,7 +4292,7 @@ function renderDashCarol() {
                   <span class="grad-pink" style="color: white; padding: 2px 8px; border-radius: 99px; font-size: 10px; font-weight: 700;">✨ NEW</span>
                 </div>
                 <div class="fi" style="font-size: 11px; color: #9D174D; margin-bottom: 10px;">${c.numCorte || ''}</div>
-                <button class="btn-dark" style="width: 100%;" onclick="openDet('${c.id}')">📸 Tirar foto →</button>
+                <button class="btn-dark-sm" style="width: 100%; padding: 12px; font-size: .86rem;" onclick="openDet('${c.id}')">📸 Tirar foto →</button>
               </div>`;
           }
           return `
