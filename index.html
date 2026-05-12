@@ -1951,7 +1951,9 @@ let activityLog=JSON.parse(localStorage.getItem('az_activity')||'[]');
 function openLogin(side){
   pinSide=side;
   document.getElementById('portal').style.display='none';
-  document.getElementById('login-'+side).classList.add('open');
+  const loginEl=document.getElementById('login-'+side);
+  loginEl.style.display='';
+  loginEl.classList.add('open');
 }
 function backPortal(){
   document.getElementById('login-fabrica').classList.remove('open');
@@ -2003,9 +2005,10 @@ function logout(){localStorage.removeItem('az_user');
   document.getElementById('app').style.display='none';
   document.getElementById('portal').style.display='flex';
   ['fabrica','loja'].forEach(s=>{
-    const el=document.getElementById('login-'+s);
-    el.classList.remove('open');
-    document.getElementById('lusers-'+s).style.display='flex';
+const el=document.getElementById('login-'+s);
+el.classList.remove('open');
+el.style.display='';
+document.getElementById('lusers-'+s).style.display='flex';
     document.getElementById('pin-area-'+s).classList.remove('show');
   });
 }
@@ -4580,3 +4583,5 @@ window.addEventListener('DOMContentLoaded',()=>{
 });</script>
 </body>
 </html>
+
+fix: corrigir botões Fábrica e Loja
