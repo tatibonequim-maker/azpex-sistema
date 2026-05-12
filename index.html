@@ -2016,7 +2016,7 @@ function initApp(){
   localStorage.setItem('az_user',user);
   document.getElementById('portal').style.display='none';
   document.getElementById('app').style.display='block';
-  document.getElementById('app').classList.toggle('taty-mode',user==='taty');
+  document.getElementById('app').classList.toggle('taty-mode',user==='taty'||user==='carol');
   document.getElementById('app-user').textContent=UNAMES[user]||user;
 
   const isTaty=user==='taty';
@@ -2052,23 +2052,22 @@ function initApp(){
   let cortesLabel='Cortes';
   if(user==='gerente') cortesLabel='Reposições';
   if(user==='estoque') cortesLabel='Embalar';
-  if(isTaty){
-    stabsEl.style.display='flex';
+
+  const defaultSection=isVend?'pedidos':'cortes';
+  stabsEl.style.display='flex';
+  if(isVend){
+    stabsEl.innerHTML=`<button class="stab on" onclick="setSection('pedidos',this)">Pedidos</button>`;
+  } else if(['edvaldo','rosana','daimartha','carol','estoque'].includes(user)){
+    stabsEl.innerHTML=`<button class="stab on" onclick="setSection('cortes',this)">${cortesLabel}</button>`;
+  } else {
     stabsEl.innerHTML=`
       <button class="stab on" onclick="setSection('cortes',this)">Cortes</button>
       <button class="stab" onclick="setSection('pedidos',this)">Pedidos</button>`;
-    section='cortes';
-  } else {
-    stabsEl.style.display='flex';
-    stabsEl.innerHTML=`
-      <button class="stab on" onclick="setSection('dashboard',this)">📊 Dashboard</button>
-      <button class="stab" onclick="setSection('cortes',this)">${cortesLabel}</button>
-      <button class="stab" onclick="setSection('pedidos',this)">Pedidos</button>`;
-    section='dashboard';
   }
+  section=defaultSection;
 
   populateSels();
-  setSection(isTaty?'cortes':'dashboard');
+  setSection(defaultSection);
   inicializarNotificacoes();
 
   if(cfg.url){
@@ -2091,20 +2090,6 @@ function setSection(s,el){
     document.querySelectorAll('.stab').forEach(b=>b.classList.remove('on'));
     el.classList.add('on');
   }
-  // Mostrar tabs/stats/toolbar de volta quando sai do dashboard
-  const stabs=document.getElementById('stabs');
-  const stats=document.getElementById('stats');
-  const tb=document.querySelector('.tb');
-  if(s==='dashboard'){
-    if(stabs)stabs.style.display='none';
-    if(stats)stats.style.display='none';
-    if(tb)tb.style.display='none';
-    renderDashboard();
-    return;
-  }
-  if(stabs)stabs.style.display='flex';
-  if(stats)stats.style.display='';
-  if(tb)tb.style.display='';
   if(s==='pedidos'){
     const canPed=['taty','carol','vendA','vendB','vendC','gerente'].includes(user);
     document.getElementById('btn-novo').style.display=canPed?'':'none';
@@ -2293,7 +2278,6 @@ function calcPreview(){
 // ── RENDER ──
 function render(){
   if(!user)return;
-  if(section==='dashboard'){renderDashboard();return;}
   if(section==='cortes')renderCortes();
   else renderPedidos();
 }
@@ -2390,13 +2374,14 @@ function renderCortesTaty(){
   const tb=document.querySelector('.tb');
   if(tb){
     tb.innerHTML=`
-      <input class="srch" id="srch" placeholder="Buscar por código, peça, tecido, observação..." oninput="render()" value="${(document.getElementById('srch')?.value||'')}">
-      <button class="fb${filtro==='todos'?' on':''}" data-f="todos" onclick="setF('todos',this)">Todos</button>
-      <button class="fb${filtro==='minha'?' on':''}" data-f="minha" onclick="setF('minha',this)">Minha fila</button>
-      <button class="fb${filtro==='urgente'?' on':''}" data-f="urgente" onclick="setF('urgente',this)">Urgentes${nUrg?` <span style="background:var(--c4);color:#fff;border-radius:99px;padding:1px 5px;font-size:.65rem">${nUrg}</span>`:''}</button>
-      <button class="fb${filtro==='atrasado'?' on':''}" data-f="atrasado" onclick="setF('atrasado',this)">Atrasados${nAtr?` <span style="background:var(--c8);color:#fff;border-radius:99px;padding:1px 5px;font-size:.65rem">${nAtr}</span>`:''}</button>
-      <button class="fb${filtro==='semcor'?' on':''}" onclick="setF('semcor',this)">Sem cor definida</button>
-      <button class="fb${filtro==='semtecido'?' on':''}" onclick="setF('semtecido',this)">Sem tecido definido</button>`;
+      <input class="srch" id="srch" placeholder="Buscar código, peça, tecido..." oninput="render()" value="${(document.getElementById('srch')?.value||'')}">
+      <div style="display:flex;gap:5px;overflow-x:auto;flex-shrink:0;scrollbar-width:none;padding-bottom:1px">
+        <button class="fb${filtro==='todos'?' on':''}" data-f="todos" onclick="setF('todos',this)">Todos</button>
+        <button class="fb${filtro==='urgente'?' on':''}" data-f="urgente" onclick="setF('urgente',this)">⚡ Urgentes${nUrg?` <span style="background:var(--c4);color:#fff;border-radius:99px;padding:0 5px;font-size:.65rem;margin-left:2px">${nUrg}</span>`:''}</button>
+        <button class="fb${filtro==='atrasado'?' on':''}" data-f="atrasado" onclick="setF('atrasado',this)">⏱ Atrasados${nAtr?` <span style="background:var(--c8);color:#fff;border-radius:99px;padding:0 5px;font-size:.65rem;margin-left:2px">${nAtr}</span>`:''}</button>
+        <button class="fb${filtro==='semcor'?' on':''}" onclick="setF('semcor',this)">Sem cor</button>
+        <button class="fb${filtro==='semtecido'?' on':''}" onclick="setF('semtecido',this)">Sem tecido</button>
+      </div>`;
   }
 
   const vis=getVisCortes();
@@ -2522,10 +2507,11 @@ function renderCortesTaty(){
         <div class="sb-card">
           <div class="sb-title">⚡ Ações rápidas</div>
           <div class="sb-actions">
-            <button class="sb-act-btn" onclick="openNovo()">+ Novo corte</button>
-            <button class="sb-act-btn" onclick="setFiltroUrgentes()">Ver urgentes</button>
+            ${user==='taty'?`<button class="sb-act-btn" onclick="openNovo()">+ Novo corte</button>`:''}
+            <button class="sb-act-btn" onclick="setFiltroUrgentes()">⚡ Urgentes</button>
             <button class="sb-act-btn" onclick="setFiltroStatus('DEFINIR_CORES')">Sem cor</button>
-            <button class="sb-act-btn" onclick="setSection('pedidos')">Abrir pedidos</button>
+            ${user==='taty'?`<button class="sb-act-btn" onclick="setSection('pedidos')">Pedidos da loja</button>`:''}
+            ${user==='carol'?`<button class="sb-act-btn" onclick="openNovo()">+ Novo corte</button>`:''}
           </div>
         </div>
         <div class="sb-card">
@@ -2559,18 +2545,26 @@ function setFiltroUrgentes(){
 }
 
 function renderCortes(){
-  if(user==='taty'){renderCortesTaty();return;}
+  if(user==='taty'||user==='carol'){renderCortesTaty();return;}
   const cols=getColsCortes();const vis=getVisCortes();
   const grouped={};cols.forEach(c=>{grouped[c.s]=[];});
   vis.forEach(c=>{if(grouped[c.status]!==undefined)grouped[c.status].push(c);});
   const TODOS_STATUS=['AGUARDANDO_ENCAIXE','ENCAIXE_REPROVADO','AGUARDANDO_APROVACAO','DEFINIR_CORES','DESCANSAR_TECIDO','TECIDO_DESCANSADO','NO_CORTE'];
-  const todosItems=vis.filter(c=>TODOS_STATUS.includes(c.status));
-  grouped['__TODOS__']=todosItems;
+  grouped['__TODOS__']=vis.filter(c=>TODOS_STATUS.includes(c.status));
+
+  // toolbar simples para outros usuários
+  const tb=document.querySelector('.tb');
+  if(tb&&!tb.querySelector('input#srch')){
+    tb.innerHTML=`<input class="srch" id="srch" placeholder="Buscar..." oninput="render()" value="">
+      <button class="fb on" onclick="setF('todos',this)">Todos</button>
+      <button class="fb" onclick="setF('minha',this)">Minha fila</button>`;
+  }
 
   document.getElementById('main-content').innerHTML=`<div class="board">${cols.map(col=>{
     const items=grouped[col.s]||[];
     const cardFn=col.s==='__TODOS__'?cardEdvaldoInfo:corteCardHTML;
-    return`<div class="col"><div class="col-top" style="background:${col.c}"></div>
+    return`<div class="col" data-status="${col.s}">
+      <div class="col-top" style="background:${col.c}"></div>
       <div class="col-hd"><span class="col-ti">${col.l}</span><span class="col-cn">${items.length}</span></div>
       <div class="col-bd">${items.length?items.map(c=>cardFn(c)).join(''):'<div class="empty">Vazio</div>'}</div>
     </div>`;
@@ -2944,15 +2938,25 @@ function abrirResponderEstoque(id){
 function renderStats(){
   if(section==='pedidos'){renderStatsPedidos();return;}
   const sts=[
-    {s:'AGUARDANDO_ENCAIXE',l:'Encaixe'},{s:'AGUARDANDO_APROVACAO',l:'Aprovação'},
-    {s:'DEFINIR_CORES',l:'Cores'},{s:'NO_CORTE',l:'Corte/Ofic.'},
-    {s:'AG_FOTO',l:'Ag. foto'},{s:'SEPARAR_ENVIO',l:'Separar'},
-    {s:'EMBALAR',l:'Embalar'},{s:'PRONTO_RETIRADA',l:'Retirada'},
+    {s:'AGUARDANDO_ENCAIXE',l:'Ag. Encaixe'},{s:'ENCAIXE_REPROVADO',l:'Reprovado'},
+    {s:'AGUARDANDO_APROVACAO',l:'Ag. Aprovação'},{s:'DEFINIR_CORES',l:'Definir Cores'},
+    {s:'DESCANSAR_TECIDO',l:'Descansar'},{s:'TECIDO_DESCANSADO',l:'Descansado'},
+    {s:'NO_CORTE',l:'Corte/Ofic.'},{s:'AG_FOTO',l:'Ag. Foto'},
+    {s:'AGUARDANDO_GI',l:'Ag. Envio'},{s:'EMBALAR',l:'Embalar'},
+    {s:'PRONTO_RETIRADA',l:'Retirada'},
   ];
   document.getElementById('stats').innerHTML=sts.map(({s,l})=>{
     const info=csi(s);const n=cortes.filter(c=>c.status===s).length;
-    return`<div class="sc" style="border-top-color:${info.c}"><div class="sc-l">${l}</div><div class="sc-v" style="color:${info.c}">${n}</div></div>`;
+    return`<div class="sc" style="border-top-color:${info.c};cursor:pointer" onclick="scrollToCol('${s}')" title="Ir para ${l}">
+      <div class="sc-l">${l}</div>
+      <div class="sc-v" style="color:${info.c}">${n}</div>
+    </div>`;
   }).join('');
+}
+
+function scrollToCol(status){
+  const col=document.querySelector(`[data-status="${status}"]`);
+  if(col)col.scrollIntoView({behavior:'smooth',block:'nearest',inline:'start'});
 }
 function renderStatsPedidos(){
   const sts=[{s:'PENDENTE',l:'Pendentes'},{s:'APROVADO',l:'Aprovados'},{s:'PARCIAL',l:'Parciais'},{s:'RECUSADO',l:'Recusados'},{s:'TRANSFERIDO',l:'Transferidos'}];
