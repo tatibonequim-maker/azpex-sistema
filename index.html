@@ -2287,9 +2287,14 @@ function populateSels(){
   const tecs=stored.tecidos?.length?stored.tecidos:['Montaria','Montaria Light','Canelado Montaria','Visco Caneladinho','Canelado 70','Canelado Visco','New Light','Fluity','Flamê','Jeans','Viscose','Cirrê','Moletinho'];
   const tins=stored.tinturarias?.length?stored.tinturarias:['GUARA','MAR','N/A'];
   const grades=getGrades();
+  // Preserve current selections before rebuilding options
+  const saved={};
+  ['f-tec','f-tin','f-grade','p-tec','p-grade'].forEach(id=>{const el=document.getElementById(id);if(el)saved[id]=el.value;});
   ['f-tec','p-tec'].forEach(id=>{const el=document.getElementById(id);if(el)el.innerHTML='<option value="">Selecionar...</option>'+tecs.map(t=>`<option>${t}</option>`).join('');});
   ['f-tin'].forEach(id=>{const el=document.getElementById(id);if(el)el.innerHTML='<option value="">Selecionar...</option>'+tins.map(t=>`<option>${t}</option>`).join('');});
   ['f-grade','p-grade'].forEach(id=>{const el=document.getElementById(id);if(el)el.innerHTML='<option value="">Selecionar...</option>'+grades.map(g=>`<option>${g}</option>`).join('');});
+  // Restore selections
+  Object.entries(saved).forEach(([id,val])=>{const el=document.getElementById(id);if(el&&val)el.value=val;});
 }
 
 // ── CALC ──
@@ -2435,8 +2440,13 @@ function renderCortesTaty(){
   const nAtr=cortes.filter(c=>!['ARQUIVADO','PRONTO_RETIRADA'].includes(c.status)&&tempoDecorrido(c).nivel>=2).length;
   const tb=document.querySelector('.tb');
   if(tb){
+    const prevSrch=document.getElementById('srch');
+    const srchVal=prevSrch?.value||'';
+    const srchFocused=prevSrch&&prevSrch===document.activeElement;
+    const selStart=srchFocused?prevSrch.selectionStart:0;
+    const selEnd=srchFocused?prevSrch.selectionEnd:0;
     tb.innerHTML=`
-      <input class="srch" id="srch" placeholder="Buscar código, peça, tecido..." oninput="render()" value="${(document.getElementById('srch')?.value||'')}">
+      <input class="srch" id="srch" placeholder="Buscar código, peça, tecido..." oninput="render()" value="${srchVal}">
       <div style="display:flex;gap:5px;overflow-x:auto;flex-shrink:0;scrollbar-width:none;padding-bottom:1px">
         <button class="fb${filtro==='todos'?' on':''}" data-f="todos" onclick="setF('todos',this)">Todos</button>
         <button class="fb${filtro==='urgente'?' on':''}" data-f="urgente" onclick="setF('urgente',this)">⚡ Urgentes${nUrg?` <span style="background:var(--c4);color:#fff;border-radius:99px;padding:0 5px;font-size:.65rem;margin-left:2px">${nUrg}</span>`:''}</button>
@@ -2444,6 +2454,7 @@ function renderCortesTaty(){
         <button class="fb${filtro==='semcor'?' on':''}" onclick="setF('semcor',this)">Sem cor</button>
         <button class="fb${filtro==='semtecido'?' on':''}" onclick="setF('semtecido',this)">Sem tecido</button>
       </div>`;
+    if(srchFocused){const s=document.getElementById('srch');if(s){s.focus();s.setSelectionRange(selStart,selEnd);}}
   }
 
   const vis=getVisCortes();
