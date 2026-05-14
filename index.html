@@ -2592,7 +2592,7 @@ function renderCortes(){
         {s:'AGUARDANDO_ENCAIXE',l:'Fila de encaixe',c:'var(--c1)',b:'var(--b1)'},
         {s:'DESCANSAR_TECIDO',l:'Para descansar',c:'var(--c5)',b:'var(--b5)'},
         {s:'TECIDO_DESCANSADO',l:'Descansado',c:'var(--c3)',b:'var(--b3)'},
-      ].map(q=>`<button onclick="document.querySelector('.col[data-status=\\'${q.s}\\']')?.scrollIntoView({behavior:'smooth',block:'nearest',inline:'start'})"
+      ].map(q=>`<button onclick="document.querySelector('.col[data-status=\\'${q.s}\\']')?.scrollIntoView({behavior:'smooth',block:'start',inline:'nearest'})"
         style="flex-shrink:0;padding:6px 14px;border-radius:99px;border:1.5px solid ${q.c};background:${q.b};color:${q.c};font-size:.78rem;font-weight:700;cursor:pointer;white-space:nowrap">
         ${q.l} <span style="font-family:'DM Mono',monospace;font-size:.7rem">${grouped[q.s]?.length||0}</span>
       </button>`).join('')}
