@@ -2390,6 +2390,8 @@ function getColsCortes(){
   if(user==='edvaldo')return[
     {s:'AGUARDANDO_ENCAIXE',l:'Fila de encaixe',c:'var(--c1)'},
     {s:'ENCAIXE_REPROVADO',l:'Reprovado — refazer',c:'var(--c4)'},
+    {s:'DESCANSAR_TECIDO',l:'Descansando',c:'var(--c5)'},
+    {s:'TECIDO_DESCANSADO',l:'Descansado',c:'var(--c3)'},
   ];
   if(user==='rosana')return[
     {s:'DESCANSAR_TECIDO',l:'Para descansar',c:'var(--c5)'},
@@ -2588,7 +2590,9 @@ function renderCortes(){
 
   document.getElementById('main-content').innerHTML=`<div class="board">${cols.map(col=>{
     const items=grouped[col.s]||[];
-    const cardFn=col.s==='__TODOS__'?cardEdvaldoInfo:corteCardHTML;
+    const cardFn=col.s==='__TODOS__'?cardEdvaldoInfo:
+      (user==='edvaldo'&&(col.s==='DESCANSAR_TECIDO'||col.s==='TECIDO_DESCANSADO'))?cardRosanaReadOnly:
+      corteCardHTML;
     return`<div class="col" data-status="${col.s}">
       <div class="col-top" style="background:${col.c}"></div>
       <div class="col-hd"><span class="col-ti">${col.l}</span><span class="col-cn">${items.length}</span></div>
@@ -2766,6 +2770,35 @@ function cardRosanaNC(c){
       <input style="flex:1;background:var(--s2);border:.5px solid var(--bd);border-radius:7px;padding:6px 8px;font-size:14px;color:var(--tx);outline:none;min-width:0" id="nc-${c.id}" placeholder="ex: C-0046" value="${c.numCorte||''}">
       <button style="padding:6px 10px;border-radius:7px;border:none;background:var(--c3);color:#fff;font-size:.75rem;font-weight:600;cursor:pointer;white-space:nowrap;flex-shrink:0" onclick="salvarNumCorte('${c.id}')">✔ Ok</button>
     </div>
+  </div>`;
+}
+
+function cardRosanaReadOnly(c){
+  const checks=c.checksDesc||{};
+  const total=c.cores?.length||0;
+  const done=Object.values(checks).filter(Boolean).length;
+  const pct=total?Math.round(done/total*100):0;
+  const descansado=c.status==='TECIDO_DESCANSADO';
+  return`<div class="card-r">
+    <div style="display:flex;justify-content:space-between;margin-bottom:4px">
+      <div>
+        ${c.ref?`<div style="font-family:'DM Mono',monospace;font-size:.88rem;font-weight:600;color:var(--ac)">${c.ref}</div>`:''}
+        <div style="font-family:'DM Mono',monospace;font-size:.88rem;font-weight:500;color:#555">${c.id}</div>
+      </div>
+      <div style="display:flex;gap:5px;align-items:center">
+        ${c.urg?'<span class="tag tur">⚡</span>':''}
+      </div>
+    </div>
+    <div class="cnome">${c.nome}</div>
+    ${miniInfoCorte(c)}
+    ${(c.cores||[]).map(x=>`
+      <div class="ci ${checks[x.cor]?'done':''}" style="pointer-events:none;cursor:default">
+        <div class="ci-l"><div class="ci-c">${x.cor}</div><div class="ci-q">${x.qtd} rolo(s)</div></div>
+        <div class="ci-b"><svg class="ci-chk" width="10" height="10" viewBox="0 0 10 10" fill="none"><path d="M1.5 5L4 7.5L8.5 2.5" stroke="white" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+      </div>`).join('')}
+    ${total>0?`<div class="pb"><div class="pf" style="width:${pct}%"></div></div>
+    <div class="pl">${done} de ${total} descansados</div>`:''}
+    ${descansado?`<div style="font-size:.75rem;color:var(--c3);font-weight:600;margin-top:6px">✔ Tecidos descansados${c.numCorte?' · OP: '+c.numCorte:''}</div>`:''}
   </div>`;
 }
 
