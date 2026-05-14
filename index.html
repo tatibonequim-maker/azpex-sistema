@@ -2464,15 +2464,14 @@ function renderCortesTaty(){
   const vis=getVisCortes();
   const cnt=s=>cortes.filter(c=>c.status===s).length;
 
-  // fases e colunas
+  // fases e colunas — ordem do fluxo real
   const fases=[
-    {label:'Decisão',icon:'⚖️',cols:[
+    {label:'Encaixe',icon:'📐',cols:[
+      {s:'AGUARDANDO_ENCAIXE',l:'Ag. Encaixe',c:'var(--c1)'},
       {s:'AGUARDANDO_APROVACAO',l:'Ag. Aprovação',c:'var(--c2)'},
-      {s:'DEFINIR_CORES',l:'Definir Cores',c:'var(--c6)'},
     ]},
     {label:'Preparação',icon:'🛏️',cols:[
-      {s:'AGUARDANDO_ENCAIXE',l:'Ag. Encaixe',c:'var(--c1)'},
-      {s:'ENCAIXE_REPROVADO',l:'Encaixe Reprovado',c:'var(--c4)'},
+      {s:'DEFINIR_CORES',l:'Definir Cores',c:'var(--c6)'},
       {s:'DESCANSAR_TECIDO',l:'Descansar Tecido',c:'var(--c5)'},
       {s:'TECIDO_DESCANSADO',l:'Tecido Descansado',c:'var(--c3)'},
     ]},
