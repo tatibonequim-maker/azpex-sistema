@@ -886,6 +886,7 @@ h1, h2, h3, .heading {
   padding: 12px 12px 48px;
   display: grid; gap: 10px; align-items: start;
 }
+@media(max-width: 639px)  { .board { grid-template-columns: 1fr; } }
 @media(min-width: 640px)  { .board { grid-template-columns: repeat(2,1fr); padding: 14px 14px 48px; } }
 @media(min-width: 960px)  { .board { grid-template-columns: repeat(3,1fr); } }
 @media(min-width: 1280px) { .board { grid-template-columns: repeat(auto-fill,minmax(268px,1fr)); } }
@@ -2131,7 +2132,7 @@ function setSection(s,el){
     document.querySelectorAll('.stab').forEach(b=>b.classList.remove('on'));
     el.classList.add('on');
   }
-  const stabs=document.getElementById('stabs');if(stabs)stabs.style.display='flex';
+  const stabs=document.getElementById('stabs');if(stabs)stabs.style.display=user==='edvaldo'?'none':'flex';
   const stats=document.getElementById('stats');if(stats)stats.style.display='';
   const tb=document.querySelector('.tb');if(tb)tb.style.display='';
   if(s==='dashboard'){
@@ -2587,7 +2588,7 @@ function renderCortes(){
   }
 
   const edvQuickNav=user==='edvaldo'?`
-    <div style="display:flex;gap:8px;padding:10px 12px 4px;overflow-x:auto;scrollbar-width:none">
+    <div style="position:sticky;top:var(--hdr-h);z-index:50;background:var(--sf);border-bottom:1px solid var(--bd);display:flex;gap:8px;padding:8px 12px;overflow-x:auto;scrollbar-width:none">
       ${[
         {s:'AGUARDANDO_ENCAIXE',l:'Fila de encaixe',c:'var(--c1)',b:'var(--b1)'},
         {s:'DESCANSAR_TECIDO',l:'Para descansar',c:'var(--c5)',b:'var(--b5)'},
