@@ -2570,53 +2570,8 @@ function groupedRosanaHTML(items,cardFn){
   `).join('');
 }
 
-function renderCortesEdvaldo(){
-  const vis=getVisCortes();
-  const cols=getColsCortes();
-  const grouped={};
-  cols.forEach(c=>{grouped[c.s]=[];});
-  vis.forEach(c=>{if(grouped[c.status]!==undefined)grouped[c.status].push(c);});
-
-  const tb=document.querySelector('.tb');
-  if(tb){
-    const prevVal=document.getElementById('srch')?.value||'';
-    const focused=document.getElementById('srch')===document.activeElement;
-    const ss=focused?document.getElementById('srch').selectionStart:0;
-    const se=focused?document.getElementById('srch').selectionEnd:0;
-    tb.innerHTML=`<input class="srch" id="srch" placeholder="Buscar..." oninput="render()" value="${prevVal}">
-      <button class="fb${filtro==='todos'?' on':''}" onclick="setF('todos',this)">Todos</button>
-      <button class="fb${filtro==='minha'?' on':''}" onclick="setF('minha',this)">Minha fila</button>`;
-    if(focused){const s=document.getElementById('srch');if(s){s.focus();s.setSelectionRange(ss,se);}}
-  }
-
-  const secHTML=cols.map(col=>{
-    const items=grouped[col.s]||[];
-    const readOnly=col.s==='DESCANSAR_TECIDO'||col.s==='TECIDO_DESCANSADO';
-    const cardFn=readOnly?cardRosanaReadOnly:c=>cardEdvaldo(c);
-    if(filtro==='minha'&&readOnly)return'';
-    return`<div style="margin-bottom:16px">
-      <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px">
-        <div style="width:4px;height:22px;border-radius:99px;background:${col.c};flex-shrink:0"></div>
-        <span style="font-family:'Plus Jakarta Sans',sans-serif;font-size:.85rem;font-weight:800;color:var(--tx);text-transform:uppercase;letter-spacing:.04em">${col.l}</span>
-        <span style="background:var(--s2);color:var(--mt);font-size:.72rem;font-weight:700;padding:2px 8px;border-radius:99px;font-family:'DM Mono',monospace">${items.length}</span>
-        ${readOnly?`<span style="font-size:.65rem;color:var(--mts);margin-left:auto">somente visualização</span>`:''}
-      </div>
-      ${items.length
-        ?items.map(c=>cardFn(c)).join('')
-        :`<div style="padding:18px 12px;background:var(--s2);border-radius:10px;text-align:center;font-size:.8rem;color:var(--mts)">Vazio</div>`}
-    </div>`;
-  }).join('');
-
-  document.getElementById('main-content').innerHTML=`
-    <div style="padding:12px 12px 48px;max-width:600px;margin:0 auto">
-      ${secHTML}
-    </div>`;
-  renderStats();
-}
-
 function renderCortes(){
   if(user==='taty'||user==='carol'){renderCortesTaty();return;}
-  if(user==='edvaldo'){renderCortesEdvaldo();return;}
   const cols=getColsCortes();const vis=getVisCortes();
   const grouped={};cols.forEach(c=>{grouped[c.s]=[];});
   vis.forEach(c=>{if(grouped[c.status]!==undefined)grouped[c.status].push(c);});
