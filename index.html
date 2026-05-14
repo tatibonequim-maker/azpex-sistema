@@ -2586,7 +2586,19 @@ function renderCortes(){
       <button class="fb" onclick="setF('minha',this)">Minha fila</button>`;
   }
 
-  document.getElementById('main-content').innerHTML=`<div class="board">${cols.map(col=>{
+  const edvQuickNav=user==='edvaldo'?`
+    <div style="display:flex;gap:8px;padding:10px 12px 4px;overflow-x:auto;scrollbar-width:none">
+      ${[
+        {s:'AGUARDANDO_ENCAIXE',l:'Fila de encaixe',c:'var(--c1)',b:'var(--b1)'},
+        {s:'DESCANSAR_TECIDO',l:'Para descansar',c:'var(--c5)',b:'var(--b5)'},
+        {s:'TECIDO_DESCANSADO',l:'Descansado',c:'var(--c3)',b:'var(--b3)'},
+      ].map(q=>`<button onclick="document.querySelector('.col[data-status=\\'${q.s}\\']')?.scrollIntoView({behavior:'smooth',block:'nearest',inline:'start'})"
+        style="flex-shrink:0;padding:6px 14px;border-radius:99px;border:1.5px solid ${q.c};background:${q.b};color:${q.c};font-size:.78rem;font-weight:700;cursor:pointer;white-space:nowrap">
+        ${q.l} <span style="font-family:'DM Mono',monospace;font-size:.7rem">${grouped[q.s]?.length||0}</span>
+      </button>`).join('')}
+    </div>`:'';
+
+  document.getElementById('main-content').innerHTML=`${edvQuickNav}<div class="board">${cols.map(col=>{
     const items=grouped[col.s]||[];
     const cardFn=col.s==='__TODOS__'?cardEdvaldoInfo:
       (user==='edvaldo'&&(col.s==='DESCANSAR_TECIDO'||col.s==='TECIDO_DESCANSADO'))?cardRosanaReadOnly:
