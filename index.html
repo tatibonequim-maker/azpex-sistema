@@ -2081,7 +2081,7 @@ function initApp(){
   if(user==='gerente') cortesLabel='Reposições';
   if(user==='estoque') cortesLabel='Embalar';
 
-  const defaultSection=(user==='estoque'||user==='edvaldo')?'dashboard':isVend?'pedidos':'cortes';
+  const defaultSection=user==='estoque'?'dashboard':isVend?'pedidos':'cortes';
   stabsEl.style.display='flex';
   if(isTaty){
     stabsEl.innerHTML=`
@@ -2094,8 +2094,8 @@ function initApp(){
       <button class="stab" onclick="setSection('pedidos',this)">Pedidos da loja</button>`;
   } else if(user==='edvaldo'){
     stabsEl.innerHTML=`
-      <button class="stab on" onclick="setSection('dashboard',this)">Minha fila</button>
-      <button class="stab" onclick="setSection('cortes',this)">Encaixes</button>`;
+      <button class="stab" onclick="setSection('dashboard',this)">Resumo</button>
+      <button class="stab on" onclick="setSection('cortes',this)">Encaixes</button>`;
   } else if(isVend){
     stabsEl.innerHTML=`<button class="stab on" onclick="setSection('pedidos',this)">Pedidos</button>`;
   } else if(['rosana','daimartha','carol'].includes(user)){
