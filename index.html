@@ -1066,6 +1066,7 @@ h1, h2, h3, .heading {
   width: 100%; padding: 12px;
   border-radius: var(--r8); border: none;
   font-size: .86rem; font-weight: 700; letter-spacing: .01em;
+  color: #fff;
   cursor: pointer; transition: filter .13s, transform .1s;
 }
 .ebtn:hover { filter: brightness(1.06); }
@@ -3267,8 +3268,17 @@ async function marcarImpresso(id){
   const c=cortes.find(x=>x.id===id);if(!c)return;
   c.impresso=c.impresso==='sim'?'nao':'sim';
   sl();render();
-  toast(c.impresso==='sim'?'✔ Marcado como impresso':'Desmarcado','s');
-  await push(c._row,[['IMPRESSO',c.impresso]]);
+  if(!cfg.url){toast('Configure o URL da planilha para salvar','w');return;}
+  if(!c._row){toast('Erro: item sem referência na planilha','w');return;}
+  toast('Salvando...','i');
+  try{
+    await apip({action:'atualizarCampos',row:c._row,campos:[['IMPRESSO',c.impresso]]});
+    toast(c.impresso==='sim'?'✔ Impresso registrado na planilha':'Desmarcado na planilha','s');
+    setTimeout(()=>{if(cfg.url)syncAll(true);},3000);
+  }catch(e){
+    toast('Erro ao salvar na planilha — verifique conexão','w');
+    console.error('marcarImpresso error:',e);
+  }
 }
 
 async function arquivar(id){
