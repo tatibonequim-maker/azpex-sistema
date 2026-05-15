@@ -2827,6 +2827,10 @@ function cardRosana(c){
       </div>`).join('')}
     <div class="pb"><div class="pf" id="pf-${c.id}" style="width:${pct}%"></div></div>
     <div class="pl" id="pl-${c.id}">${done} de ${total} descansados</div>
+    <div style="font-size:.73rem;font-weight:600;padding:4px 8px;border-radius:6px;margin-bottom:6px;display:inline-block;
+      background:${c.impresso==='sim'?'var(--b3)':'var(--s2)'};color:${c.impresso==='sim'?'var(--c3)':'var(--mt)'}">
+      ${c.impresso==='sim'?'✔ Encaixe impresso':'Encaixe não impresso'}
+    </div>
     <button class="dbtn" style="background:#1D9E75;color:#fff" id="db-${c.id}" ${done<total?'disabled':''} onclick="event.stopPropagation();salvarDescanso('${c.id}')">Confirmar tudo descansado ✔</button>
   </div>`;
 }
@@ -2845,6 +2849,10 @@ function cardRosanaNC(c){
     <div style="margin:4px 0 6px">${tempoChipHTML(c)}</div>
     ${miniInfoCorte(c)}
     <div style="font-size:.75rem;color:var(--c3);font-weight:500;margin-bottom:6px">✔ Tecidos descansados</div>
+    <div style="font-size:.73rem;font-weight:600;padding:4px 8px;border-radius:6px;margin-bottom:6px;display:inline-block;
+      background:${c.impresso==='sim'?'var(--b3)':'var(--s2)'};color:${c.impresso==='sim'?'var(--c3)':'var(--mt)'}">
+      ${c.impresso==='sim'?'✔ Encaixe impresso':'Encaixe não impresso'}
+    </div>
     <div style="font-size:.72rem;color:var(--mt);margin-bottom:4px">Nº do corte:</div>
     <div style="display:flex;gap:5px;align-items:center">
       <input style="flex:1;background:var(--s2);border:.5px solid var(--bd);border-radius:7px;padding:6px 8px;font-size:14px;color:var(--tx);outline:none;min-width:0" id="nc-${c.id}" placeholder="ex: C-0046" value="${c.numCorte||''}">
