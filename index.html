@@ -2826,6 +2826,11 @@ function cardRosanaReadOnly(c){
     ${total>0?`<div class="pb"><div class="pf" style="width:${pct}%"></div></div>
     <div class="pl">${done} de ${total} descansados</div>`:''}
     ${descansado?`<div style="font-size:.75rem;color:var(--c3);font-weight:600;margin-top:6px">✔ Tecidos descansados${c.numCorte?' · OP: '+c.numCorte:''}</div>`:''}
+    <button onclick="event.stopPropagation();marcarImpresso('${c.id}')"
+      style="width:100%;margin-top:8px;padding:8px;border-radius:var(--r8);border:1.5px solid var(--bd);font-size:.78rem;font-weight:600;cursor:pointer;
+      background:${c.impresso==='sim'?'var(--b3)':'transparent'};color:${c.impresso==='sim'?'var(--c3)':'var(--mt)'}">
+      ${c.impresso==='sim'?'✔ Impresso':'Marcar como impresso'}
+    </button>
   </div>`;
 }
 
