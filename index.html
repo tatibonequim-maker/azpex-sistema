@@ -2724,6 +2724,11 @@ function cardEdvaldo(c){
     <button class="ebtn" onclick="salvarEncaixe('${c.id}')" style="background:${user==='taty'?'var(--ac)':'var(--c2)'}">
       ${user==='taty'?'Salvar e aprovar encaixe ✔':'Enviar para aprovação →'}
     </button>
+    <button onclick="event.stopPropagation();marcarImpresso('${c.id}')"
+      style="width:100%;margin-top:6px;padding:8px;border-radius:var(--r8);border:1.5px solid var(--bd);font-size:.78rem;font-weight:600;cursor:pointer;
+      background:${c.impresso==='sim'?'var(--b3)':'transparent'};color:${c.impresso==='sim'?'var(--c3)':'var(--mt)'}">
+      ${c.impresso==='sim'?'✔ Impresso':'Marcar como impresso'}
+    </button>
   </div>`;
 }
 
