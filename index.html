@@ -2588,7 +2588,7 @@ function renderCortes(){
     const ss=focused?document.getElementById('srch').selectionStart:0;
     const se=focused?document.getElementById('srch').selectionEnd:0;
     const quickNav=user==='edvaldo'?`
-      <div style="display:flex;gap:6px;overflow-x:auto;scrollbar-width:none;padding-top:6px;flex-wrap:nowrap">
+      <div style="display:flex;gap:6px;overflow-x:auto;scrollbar-width:none;padding-top:2px;flex-wrap:nowrap;width:100%">
         ${[
           {s:'AGUARDANDO_ENCAIXE',l:'Fila de encaixe',c:'var(--c1)',b:'var(--b1)'},
           {s:'DESCANSAR_TECIDO',l:'Para descansar',c:'var(--c5)',b:'var(--b5)'},
@@ -2598,8 +2598,10 @@ function renderCortes(){
           ${q.l} <span style="font-family:'DM Mono',monospace;font-size:.68rem">${grouped[q.s]?.length||0}</span>
         </button>`).join('')}
       </div>`:'';
+    tb.style.flexWrap='wrap';
+    tb.style.alignItems='center';
     tb.innerHTML=`
-      <div style="display:flex;gap:6px;width:100%">
+      <div style="display:flex;gap:6px;flex:1;min-width:0">
         <input class="srch" id="srch" placeholder="Buscar..." oninput="render()" value="${prevVal}" style="flex:1;min-width:0">
         <button class="fb${filtro==='todos'?' on':''}" onclick="setF('todos',this)">Todos</button>
         <button class="fb${filtro==='minha'?' on':''}" onclick="setF('minha',this)">Minha fila</button>
