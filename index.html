@@ -2580,27 +2580,35 @@ function renderCortes(){
   const TODOS_STATUS=['AGUARDANDO_ENCAIXE','ENCAIXE_REPROVADO','AGUARDANDO_APROVACAO','DEFINIR_CORES','DESCANSAR_TECIDO','TECIDO_DESCANSADO','NO_CORTE'];
   grouped['__TODOS__']=vis.filter(c=>TODOS_STATUS.includes(c.status));
 
-  // toolbar simples para outros usuários
+  // toolbar
   const tb=document.querySelector('.tb');
-  if(tb&&!tb.querySelector('input#srch')){
-    tb.innerHTML=`<input class="srch" id="srch" placeholder="Buscar..." oninput="render()" value="">
-      <button class="fb on" onclick="setF('todos',this)">Todos</button>
-      <button class="fb" onclick="setF('minha',this)">Minha fila</button>`;
+  if(tb){
+    const prevVal=document.getElementById('srch')?.value||'';
+    const focused=document.getElementById('srch')===document.activeElement;
+    const ss=focused?document.getElementById('srch').selectionStart:0;
+    const se=focused?document.getElementById('srch').selectionEnd:0;
+    const quickNav=user==='edvaldo'?`
+      <div style="display:flex;gap:6px;overflow-x:auto;scrollbar-width:none;padding-top:6px;flex-wrap:nowrap">
+        ${[
+          {s:'AGUARDANDO_ENCAIXE',l:'Fila de encaixe',c:'var(--c1)',b:'var(--b1)'},
+          {s:'DESCANSAR_TECIDO',l:'Para descansar',c:'var(--c5)',b:'var(--b5)'},
+          {s:'TECIDO_DESCANSADO',l:'Descansado',c:'var(--c3)',b:'var(--b3)'},
+        ].map(q=>`<button onclick="document.querySelector('.col[data-status=\\'${q.s}\\']')?.scrollIntoView({behavior:'smooth',block:'start',inline:'nearest'})"
+          style="flex-shrink:0;padding:5px 13px;border-radius:99px;border:1.5px solid ${q.c};background:${q.b};color:${q.c};font-size:.76rem;font-weight:700;cursor:pointer;white-space:nowrap">
+          ${q.l} <span style="font-family:'DM Mono',monospace;font-size:.68rem">${grouped[q.s]?.length||0}</span>
+        </button>`).join('')}
+      </div>`:'';
+    tb.innerHTML=`
+      <div style="display:flex;gap:6px;width:100%">
+        <input class="srch" id="srch" placeholder="Buscar..." oninput="render()" value="${prevVal}" style="flex:1;min-width:0">
+        <button class="fb${filtro==='todos'?' on':''}" onclick="setF('todos',this)">Todos</button>
+        <button class="fb${filtro==='minha'?' on':''}" onclick="setF('minha',this)">Minha fila</button>
+      </div>
+      ${quickNav}`;
+    if(focused){const s=document.getElementById('srch');if(s){s.focus();s.setSelectionRange(ss,se);}}
   }
 
-  const edvQuickNav=user==='edvaldo'?`
-    <div style="position:sticky;top:var(--hdr-h);z-index:50;background:var(--sf);border-bottom:1px solid var(--bd);display:flex;gap:8px;padding:8px 12px;overflow-x:auto;scrollbar-width:none">
-      ${[
-        {s:'AGUARDANDO_ENCAIXE',l:'Fila de encaixe',c:'var(--c1)',b:'var(--b1)'},
-        {s:'DESCANSAR_TECIDO',l:'Para descansar',c:'var(--c5)',b:'var(--b5)'},
-        {s:'TECIDO_DESCANSADO',l:'Descansado',c:'var(--c3)',b:'var(--b3)'},
-      ].map(q=>`<button onclick="document.querySelector('.col[data-status=\\'${q.s}\\']')?.scrollIntoView({behavior:'smooth',block:'start',inline:'nearest'})"
-        style="flex-shrink:0;padding:6px 14px;border-radius:99px;border:1.5px solid ${q.c};background:${q.b};color:${q.c};font-size:.78rem;font-weight:700;cursor:pointer;white-space:nowrap">
-        ${q.l} <span style="font-family:'DM Mono',monospace;font-size:.7rem">${grouped[q.s]?.length||0}</span>
-      </button>`).join('')}
-    </div>`:'';
-
-  document.getElementById('main-content').innerHTML=`${edvQuickNav}<div class="board">${cols.map(col=>{
+  document.getElementById('main-content').innerHTML=`<div class="board">${cols.map(col=>{
     const items=grouped[col.s]||[];
     const cardFn=col.s==='__TODOS__'?cardEdvaldoInfo:
       (user==='edvaldo'&&(col.s==='DESCANSAR_TECIDO'||col.s==='TECIDO_DESCANSADO'))?cardRosanaReadOnly:
