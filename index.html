@@ -2330,6 +2330,8 @@ function miniInfoCorte(c){
     <div class="mini-item"><span class="mini-k">Rolo</span><span class="mini-v fm">${c.rolo?c.rolo+'m':'—'}</span></div>
     <div class="mini-item"><span class="mini-k">Retalho</span><span class="mini-v">${c.ret||'—'}</span></div>
     <div class="mini-item"><span class="mini-k">Entrada</span><span class="mini-v fm">${dout(c.data)}</span></div>
+    ${c.encM?`<div class="mini-item"><span class="mini-k">Comprimento</span><span class="mini-v fm">${c.encM}m</span></div>`:''}
+    ${c.encPct?`<div class="mini-item"><span class="mini-k">Aproveitamento</span><span class="mini-v fm">${c.encPct}%</span></div>`:''}
   </div>`;
 }
 function calcPreview(){
