@@ -2333,6 +2333,8 @@ function getColsCortes(){
   if(user==='edvaldo')return[
     {s:'AGUARDANDO_ENCAIXE',l:'Fila de encaixe',c:'var(--c1)'},
     {s:'ENCAIXE_REPROVADO',l:'Reprovado — refazer',c:'var(--c4)'},
+    {s:'AGUARDANDO_APROVACAO',l:'Enviados — ag. aprovação',c:'var(--c2)'},
+    {s:'DEFINIR_CORES',l:'Aprovados',c:'var(--c3)'},
   ];
   if(user==='rosana')return[
     {s:'DESCANSAR_TECIDO',l:'Para descansar',c:'var(--c5)'},
@@ -2792,6 +2794,13 @@ function cardEdvaldo(c){
     <button class="ebtn" onclick="salvarEncaixe('${c.id}')" style="background:${user==='taty'?'var(--ac)':'var(--c2)'}">
       ${user==='taty'?'Salvar e aprovar encaixe ✔':'Enviar para aprovação →'}
     </button>
+    <button onclick="event.stopPropagation();marcarImpresso('${c.id}')"
+      style="width:100%;padding:7px;border-radius:7px;font-size:.78rem;font-weight:600;cursor:pointer;margin-top:6px;
+      ${c.impresso==='sim'
+        ? 'background:var(--b3);color:var(--c3);border:none;'
+        : 'background:transparent;color:var(--c2);border:1.5px solid var(--c2);'}">
+      ${c.impresso==='sim'?'✔ Impresso':'🖨 Marcar como impresso'}
+    </button>
   </div>`;
 }
 
@@ -2835,6 +2844,10 @@ function cardRosana(c){
       </div>`).join('')}
     <div class="pb"><div class="pf" id="pf-${c.id}" style="width:${pct}%"></div></div>
     <div class="pl" id="pl-${c.id}">${done} de ${total} descansados</div>
+    <div style="font-size:.73rem;font-weight:600;padding:4px 8px;border-radius:6px;margin-bottom:6px;display:inline-block;
+      background:${c.impresso==='sim'?'var(--b3)':'var(--s2)'};color:${c.impresso==='sim'?'var(--c3)':'var(--mt)'}">
+      ${c.impresso==='sim'?'✔ Encaixe impresso':'Encaixe não impresso'}
+    </div>
     <button class="dbtn" style="background:#1D9E75;color:#fff" id="db-${c.id}" ${done<total?'disabled':''} onclick="event.stopPropagation();salvarDescanso('${c.id}')">Confirmar tudo descansado ✔</button>
   </div>`;
 }
@@ -2853,6 +2866,10 @@ function cardRosanaNC(c){
     <div style="margin:4px 0 6px">${tempoChipHTML(c)}</div>
     ${miniInfoCorte(c)}
     <div style="font-size:.75rem;color:var(--c3);font-weight:500;margin-bottom:6px">✔ Tecidos descansados</div>
+    <div style="font-size:.73rem;font-weight:600;padding:4px 8px;border-radius:6px;margin-bottom:6px;display:inline-block;
+      background:${c.impresso==='sim'?'var(--b3)':'var(--s2)'};color:${c.impresso==='sim'?'var(--c3)':'var(--mt)'}">
+      ${c.impresso==='sim'?'✔ Encaixe impresso':'Encaixe não impresso'}
+    </div>
     <div style="font-size:.72rem;color:var(--mt);margin-bottom:4px">Nº do corte:</div>
     <div style="display:flex;gap:5px;align-items:center">
       <input style="flex:1;background:var(--s2);border:.5px solid var(--bd);border-radius:7px;padding:6px 8px;font-size:14px;color:var(--tx);outline:none;min-width:0" id="nc-${c.id}" placeholder="ex: C-0046" value="${c.numCorte||''}">
