@@ -886,6 +886,7 @@ h1, h2, h3, .heading {
   padding: 12px 12px 48px;
   display: grid; gap: 10px; align-items: start;
 }
+@media(max-width: 639px)  { .board { grid-template-columns: 1fr; } }
 @media(min-width: 640px)  { .board { grid-template-columns: repeat(2,1fr); padding: 14px 14px 48px; } }
 @media(min-width: 960px)  { .board { grid-template-columns: repeat(3,1fr); } }
 @media(min-width: 1280px) { .board { grid-template-columns: repeat(auto-fill,minmax(268px,1fr)); } }
@@ -903,6 +904,7 @@ h1, h2, h3, .heading {
 .taty-board::-webkit-scrollbar-track{background:var(--s3);border-radius:var(--r99);}
 .taty-board::-webkit-scrollbar-thumb{background:var(--ac);border-radius:var(--r99);border:3px solid var(--s3);}
 .taty-board-track{display:flex;align-items:flex-start;gap:14px;min-width:max-content;padding-bottom:10px;}
+.taty-board-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(265px,1fr));gap:14px;align-items:start;padding:12px 12px 22px;}
 .taty-phase{flex:0 0 auto;min-width:max-content;}
 .taty-phase-hd{position:sticky;top:0;z-index:2;background:var(--bg);font-size:.63rem;font-weight:700;text-transform:uppercase;letter-spacing:.9px;color:var(--mt);padding:0 2px 8px;display:flex;align-items:center;gap:8px;}
 .taty-phase-hd::after{content:'';flex:1;height:1px;background:var(--bd);}
@@ -1064,6 +1066,7 @@ h1, h2, h3, .heading {
   width: 100%; padding: 12px;
   border-radius: var(--r8); border: none;
   font-size: .86rem; font-weight: 700; letter-spacing: .01em;
+  color: #fff;
   cursor: pointer; transition: filter .13s, transform .1s;
 }
 .ebtn:hover { filter: brightness(1.06); }
@@ -2042,9 +2045,11 @@ function initApp(){
       <button class="stab" onclick="setSection('pedidos',this)">Pedidos</button>`;
   } else if(user==='estoque'){
     stabsEl.style.display='none';
+  } else if(user==='edvaldo'){
+    stabsEl.style.display='none';
   } else if(isVend){
     stabsEl.innerHTML=`<button class="stab on" onclick="setSection('pedidos',this)">Pedidos</button>`;
-  } else if(['edvaldo','rosana','daimartha','carol','estoque'].includes(user)){
+  } else if(['rosana','daimartha','carol'].includes(user)){
     stabsEl.innerHTML=`<button class="stab on" onclick="setSection('cortes',this)">${cortesLabel}</button>`;
   } else {
     stabsEl.innerHTML=`
@@ -2079,8 +2084,10 @@ function setSection(s,el){
     document.querySelectorAll('.stab').forEach(b=>b.classList.remove('on'));
     el.classList.add('on');
   }
-  if(user!=='estoque'){
+  if(user!=='estoque'&&user!=='edvaldo'){
     const stabs=document.getElementById('stabs');if(stabs)stabs.style.display='flex';
+  }
+  if(user!=='estoque'){
     const stats=document.getElementById('stats');if(stats)stats.style.display='';
   }
   const tb=document.querySelector('.tb');if(tb)tb.style.display='';
@@ -2239,9 +2246,14 @@ function populateSels(){
   const tecs=stored.tecidos?.length?stored.tecidos:['Montaria','Montaria Light','Canelado Montaria','Visco Caneladinho','Canelado 70','Canelado Visco','New Light','Fluity','Flamê','Jeans','Viscose','Cirrê','Moletinho'];
   const tins=stored.tinturarias?.length?stored.tinturarias:['GUARA','MAR','N/A'];
   const grades=getGrades();
+  // Preserve current selections before rebuilding options
+  const saved={};
+  ['f-tec','f-tin','f-grade','p-tec','p-grade'].forEach(id=>{const el=document.getElementById(id);if(el)saved[id]=el.value;});
   ['f-tec','p-tec'].forEach(id=>{const el=document.getElementById(id);if(el)el.innerHTML='<option value="">Selecionar...</option>'+tecs.map(t=>`<option>${t}</option>`).join('');});
   ['f-tin'].forEach(id=>{const el=document.getElementById(id);if(el)el.innerHTML='<option value="">Selecionar...</option>'+tins.map(t=>`<option>${t}</option>`).join('');});
   ['f-grade','p-grade'].forEach(id=>{const el=document.getElementById(id);if(el)el.innerHTML='<option value="">Selecionar...</option>'+grades.map(g=>`<option>${g}</option>`).join('');});
+  // Restore selections
+  Object.entries(saved).forEach(([id,val])=>{const el=document.getElementById(id);if(el&&val)el.value=val;});
 }
 
 // ── CALC ──
@@ -2273,6 +2285,8 @@ function miniInfoCorte(c){
     <div class="mini-item"><span class="mini-k">Rolo</span><span class="mini-v fm">${c.rolo?c.rolo+'m':'—'}</span></div>
     <div class="mini-item"><span class="mini-k">Retalho</span><span class="mini-v">${c.ret||'—'}</span></div>
     <div class="mini-item"><span class="mini-k">Entrada</span><span class="mini-v fm">${dout(c.data)}</span></div>
+    ${c.encM?`<div class="mini-item"><span class="mini-k">Comprimento</span><span class="mini-v fm">${c.encM}m</span></div>`:''}
+    ${c.encPct?`<div class="mini-item"><span class="mini-k">Aproveitamento</span><span class="mini-v fm">${c.encPct}%</span></div>`:''}
   </div>`;
 }
 function calcPreview(){
@@ -2335,6 +2349,8 @@ function getColsCortes(){
     {s:'ENCAIXE_REPROVADO',l:'Reprovado — refazer',c:'var(--c4)'},
     {s:'AGUARDANDO_APROVACAO',l:'Enviados — ag. aprovação',c:'var(--c2)'},
     {s:'DEFINIR_CORES',l:'Aprovados',c:'var(--c3)'},
+    {s:'DESCANSAR_TECIDO',l:'Descansando',c:'var(--c5)'},
+    {s:'TECIDO_DESCANSADO',l:'Descansado',c:'var(--c3)'},
   ];
   if(user==='rosana')return[
     {s:'DESCANSAR_TECIDO',l:'Para descansar',c:'var(--c5)'},
@@ -2389,8 +2405,13 @@ function renderCortesTaty(){
   const nAtr=cortes.filter(c=>!['ARQUIVADO','PRONTO_RETIRADA'].includes(c.status)&&tempoDecorrido(c).nivel>=2).length;
   const tb=document.querySelector('.tb');
   if(tb){
+    const prevSrch=document.getElementById('srch');
+    const srchVal=prevSrch?.value||'';
+    const srchFocused=prevSrch&&prevSrch===document.activeElement;
+    const selStart=srchFocused?prevSrch.selectionStart:0;
+    const selEnd=srchFocused?prevSrch.selectionEnd:0;
     tb.innerHTML=`
-      <input class="srch" id="srch" placeholder="Buscar código, peça, tecido..." oninput="render()" value="${(document.getElementById('srch')?.value||'')}">
+      <input class="srch" id="srch" placeholder="Buscar código, peça, tecido..." oninput="render()" value="${srchVal}">
       <div style="display:flex;gap:5px;overflow-x:auto;flex-shrink:0;scrollbar-width:none;padding-bottom:1px">
         <button class="fb${filtro==='todos'?' on':''}" data-f="todos" onclick="setF('todos',this)">Todos</button>
         <button class="fb${filtro==='urgente'?' on':''}" data-f="urgente" onclick="setF('urgente',this)">⚡ Urgentes${nUrg?` <span style="background:var(--c4);color:#fff;border-radius:99px;padding:0 5px;font-size:.65rem;margin-left:2px">${nUrg}</span>`:''}</button>
@@ -2398,20 +2419,20 @@ function renderCortesTaty(){
         <button class="fb${filtro==='semcor'?' on':''}" onclick="setF('semcor',this)">Sem cor</button>
         <button class="fb${filtro==='semtecido'?' on':''}" onclick="setF('semtecido',this)">Sem tecido</button>
       </div>`;
+    if(srchFocused){const s=document.getElementById('srch');if(s){s.focus();s.setSelectionRange(selStart,selEnd);}}
   }
 
   const vis=getVisCortes();
   const cnt=s=>cortes.filter(c=>c.status===s).length;
 
-  // fases e colunas
+  // fases e colunas — ordem do fluxo real
   const fases=[
-    {label:'Decisão',icon:'⚖️',cols:[
+    {label:'Encaixe',icon:'📐',cols:[
+      {s:'AGUARDANDO_ENCAIXE',l:'Ag. Encaixe',c:'var(--c1)'},
       {s:'AGUARDANDO_APROVACAO',l:'Ag. Aprovação',c:'var(--c2)'},
-      {s:'DEFINIR_CORES',l:'Definir Cores',c:'var(--c6)'},
     ]},
     {label:'Preparação',icon:'🛏️',cols:[
-      {s:'AGUARDANDO_ENCAIXE',l:'Ag. Encaixe',c:'var(--c1)'},
-      {s:'ENCAIXE_REPROVADO',l:'Encaixe Reprovado',c:'var(--c4)'},
+      {s:'DEFINIR_CORES',l:'Definir Cores',c:'var(--c6)'},
       {s:'DESCANSAR_TECIDO',l:'Descansar Tecido',c:'var(--c5)'},
       {s:'TECIDO_DESCANSADO',l:'Tecido Descansado',c:'var(--c3)'},
     ]},
@@ -2430,77 +2451,22 @@ function renderCortesTaty(){
   fases.forEach(f=>f.cols.forEach(col=>{grouped[col.s]=[];}));
   vis.forEach(c=>{if(grouped[c.status]!==undefined)grouped[c.status].push(c);});
 
-  const boardHTML=`<div class="taty-board-track">${fases.map(fase=>{
-    const colsHTML=fase.cols.map(col=>{
-      const items=grouped[col.s]||[];
-      return`<div class="col" data-status="${col.s}">
-        <div class="col-top" style="background:${col.c}"></div>
-        <div class="col-hd"><span class="col-ti">${col.l}</span><span class="col-cn">${items.length}</span></div>
-        <div class="col-bd">${items.length?items.map(c=>corteCardHTML(c)).join(''):'<div class="empty">Vazio</div>'}</div>
-      </div>`;
-    }).join('');
-    return`<div class="taty-phase">
-      <div class="taty-phase-hd"><span class="ph-icon">${fase.icon}</span>${fase.label}</div>
-      <div class="taty-phase-cols">${colsHTML}</div>
+  const boardHTML=fases.flatMap(fase=>fase.cols.map(col=>{
+    const items=grouped[col.s]||[];
+    return`<div class="col" data-status="${col.s}">
+      <div class="col-top" style="background:${col.c}"></div>
+      <div class="col-hd"><span class="col-ti">${col.l}</span><span class="col-cn">${items.length}</span></div>
+      <div class="col-bd">${items.length?items.map(c=>corteCardHTML(c)).join(''):'<div class="empty">Vazio</div>'}</div>
     </div>`;
-  }).join('')}</div>`;
+  })).join('');
 
-  // sidebar — alertas
-  const nApr=cnt('AGUARDANDO_APROVACAO');
-  const nCores=cnt('DEFINIR_CORES');
-  const nUrgOf=cortes.filter(c=>c.urg&&c.status==='NO_CORTE').length;
-  const nParados=cortes.filter(c=>!['ARQUIVADO','PRONTO_RETIRADA'].includes(c.status)&&tempoDecorrido(c).nivel>=2).length;
-  const alertas=[
-    nApr&&{cor:'#EF4444',txt:`${nApr} ${nApr===1?'item aguarda':'itens aguardam'} aprovação`,s:'AGUARDANDO_APROVACAO'},
-    nCores&&{cor:'#8B5CF6',txt:`${nCores} cortes sem cor definida`,s:'DEFINIR_CORES'},
-    nUrgOf&&{cor:'#F59E0B',txt:`${nUrgOf} ${nUrgOf===1?'peça urgente':'peças urgentes'} na oficina`,s:'NO_CORTE'},
-    nParados&&{cor:'#F97316',txt:`${nParados} ${nParados===1?'item parado':'itens parados'} há 2+ dias`,s:''},
-  ].filter(Boolean);
-  const alertasHTML=alertas.length?alertas.map(a=>`
-    <div class="sb-alert" onclick="${a.s?`setFiltroStatus('${a.s}')`:``}">
-      <div class="sb-alert-dot" style="background:${a.cor}"></div>
-      <div class="sb-alert-text">${a.txt}</div>
-    </div>`).join(''):'<div style="font-size:.8rem;color:var(--mt);padding:4px 0">Nenhum alerta no momento ✨</div>';
-
-  // sidebar — prioridades
-  const pris=[...cortes.filter(c=>!['ARQUIVADO','PRONTO_RETIRADA'].includes(c.status))]
-    .sort((a,b)=>{
-      const ua=a.urg?2:0,ub=b.urg?2:0;
-      const ta=tempoDecorrido(a).nivel,tb=tempoDecorrido(b).nivel;
-      return(ub+tb)-(ua+ta);
-    }).slice(0,6);
-  const priColors={0:'#6B7280',1:'#F59E0B',2:'#EF4444'};
-  const priLabels={0:'Baixa',1:'Média',2:'Alta'};
-  const prisHTML=pris.length?pris.map(c=>{
-    const t=tempoDecorrido(c);const nivel=c.urg?2:t.nivel;
-    return`<div class="sb-pri" onclick="openDet('${c.id}')">
-      <div class="sb-pri-id">${c.ref||c.id}</div>
-      <div class="sb-pri-info">
-        <div class="sb-pri-name">${c.nome}</div>
-        <div class="sb-pri-meta">${csi(c.status).l}${t.texto?' · '+t.texto:''}</div>
-      </div>
-      <span class="sb-pri-badge" style="background:${priColors[nivel]}22;color:${priColors[nivel]}">${priLabels[nivel]}</span>
-    </div>`;}).join(''):'<div style="font-size:.8rem;color:var(--mt)">Nenhuma prioridade</div>';
-
-  // sidebar — resumo operacional
   const emProd=cortes.filter(c=>!['ARQUIVADO','PRONTO_RETIRADA'].includes(c.status)).length;
   const repos=cortes.filter(c=>!['ARQUIVADO','PRONTO_RETIRADA'].includes(c.status)&&(c.tipo||'reposicao')==='reposicao').length;
   const novidades=cortes.filter(c=>!['ARQUIVADO','PRONTO_RETIRADA'].includes(c.status)&&c.tipo==='novidade').length;
-  const emPrep=cnt('DESCANSAR_TECIDO')+cnt('TECIDO_DESCANSADO')+cnt('AGUARDANDO_ENCAIXE');
-  const prontos=cnt('PRONTO_RETIRADA');
   const atrasados=cortes.filter(c=>!['ARQUIVADO','PRONTO_RETIRADA'].includes(c.status)&&tempoDecorrido(c).nivel>=2).length;
-  const pedPend=pedidos.filter(p=>['PENDENTE','SEPARANDO'].includes(p.status)).length;
   const allCols=fases.flatMap(f=>f.cols);
   const totalBoard=allCols.reduce((sum,col)=>sum+cnt(col.s),0);
   const statusBtns=allCols.map(col=>`<button class="taty-chip${statusFilter===col.s?' on':''}" onclick="setFiltroStatus('${col.s}')">${col.l} <span class="fm">${cnt(col.s)}</span></button>`).join('');
-
-  // sidebar — atividade recente
-  const recentHTML=activityLog.length?activityLog.slice(0,6).map(a=>`
-    <div class="sb-act-item">
-      <div class="sb-act-dot" style="background:${a.color}"></div>
-      <div class="sb-act-text">${a.text}</div>
-      <div class="sb-act-time">${_agoText(a.ts)}</div>
-    </div>`).join(''):'<div style="font-size:.8rem;color:var(--mt)">Nenhuma atividade registrada</div>';
 
   document.getElementById('main-content').innerHTML=`
     <div class="taty-overview">
@@ -2515,45 +2481,7 @@ function renderCortesTaty(){
       <button class="taty-chip${tipoFilter==='novidade'?' on':''}" onclick="setTipoFilter('novidade')">Novidade <span class="fm">${novidades}</span></button>
       ${statusBtns}
     </div>
-    <div class="taty-layout">
-      <div class="taty-board">${boardHTML}</div>
-      <div class="taty-sidebar">
-        <div class="sb-card">
-          <div class="sb-title">🔔 Alertas do dia</div>
-          ${alertasHTML}
-        </div>
-        <div class="sb-card">
-          <div class="sb-title">⭐ Prioridades</div>
-          ${prisHTML}
-          <div style="margin-top:8px"><button class="sb-act-btn" style="width:100%" onclick="setFiltroStatus('')">Ver todas prioridades →</button></div>
-        </div>
-        <div class="sb-card">
-          <div class="sb-title">📊 Resumo operacional</div>
-          <div class="sb-metrics">
-            <div class="sb-metric"><div class="sb-metric-v">${emProd}</div><div class="sb-metric-l">Em produção</div></div>
-            <div class="sb-metric"><div class="sb-metric-v">${emPrep}</div><div class="sb-metric-l">Em preparação</div></div>
-            <div class="sb-metric"><div class="sb-metric-v">${prontos}</div><div class="sb-metric-l">Prontos hoje</div></div>
-            <div class="sb-metric${atrasados>0?' danger':''}"><div class="sb-metric-v">${atrasados}</div><div class="sb-metric-l">Atrasados</div></div>
-          </div>
-          ${pedPend?`<div style="margin-top:8px;padding:8px;background:var(--b1);border-radius:var(--r8);font-size:.78rem;color:var(--c1);font-weight:600;cursor:pointer" onclick="setSection('pedidos')">🛒 ${pedPend} ${pedPend===1?'pedido pendente':'pedidos pendentes'} na loja</div>`:''}
-        </div>
-        <div class="sb-card">
-          <div class="sb-title">⚡ Ações rápidas</div>
-          <div class="sb-actions">
-            ${user==='taty'?`<button class="sb-act-btn" onclick="openNovo()">+ Novo corte</button>`:''}
-            <button class="sb-act-btn" onclick="setFiltroUrgentes()">⚡ Urgentes</button>
-            <button class="sb-act-btn" onclick="setFiltroStatus('DEFINIR_CORES')">Sem cor</button>
-            ${user==='taty'?`<button class="sb-act-btn" onclick="setSection('pedidos')">Pedidos da loja</button>`:''}
-            ${user==='carol'?`<button class="sb-act-btn" onclick="openNovo()">+ Novo corte</button>`:''}
-          </div>
-        </div>
-        <div class="sb-card">
-          <div class="sb-title">🕐 Atividade recente</div>
-          <div class="sb-activity">${recentHTML}</div>
-          ${activityLog.length?`<div style="margin-top:8px"><button class="sb-act-btn" style="width:100%" onclick="activityLog=[];localStorage.removeItem('az_activity');render()">Limpar histórico</button></div>`:''}
-        </div>
-      </div>
-    </div>`;
+    <div class="taty-board-grid">${boardHTML}</div>`;
   renderStats();
 }
 
@@ -2672,17 +2600,41 @@ function renderCortes(){
   const TODOS_STATUS=['AGUARDANDO_ENCAIXE','ENCAIXE_REPROVADO','AGUARDANDO_APROVACAO','DEFINIR_CORES','DESCANSAR_TECIDO','TECIDO_DESCANSADO','NO_CORTE'];
   grouped['__TODOS__']=vis.filter(c=>TODOS_STATUS.includes(c.status));
 
-  // toolbar simples para outros usuários
+  // toolbar
   const tb=document.querySelector('.tb');
-  if(tb&&!tb.querySelector('input#srch')){
-    tb.innerHTML=`<input class="srch" id="srch" placeholder="Buscar..." oninput="render()" value="">
-      <button class="fb on" onclick="setF('todos',this)">Todos</button>
-      <button class="fb" onclick="setF('minha',this)">Minha fila</button>`;
+  if(tb){
+    const prevVal=document.getElementById('srch')?.value||'';
+    const focused=document.getElementById('srch')===document.activeElement;
+    const ss=focused?document.getElementById('srch').selectionStart:0;
+    const se=focused?document.getElementById('srch').selectionEnd:0;
+    const quickNav=user==='edvaldo'?`
+      <div style="display:flex;gap:6px;overflow-x:auto;scrollbar-width:none;padding-top:2px;flex-wrap:nowrap;width:100%">
+        ${[
+          {s:'AGUARDANDO_ENCAIXE',l:'Fila de encaixe',c:'var(--c1)',b:'var(--b1)'},
+          {s:'DESCANSAR_TECIDO',l:'Para descansar',c:'var(--c5)',b:'var(--b5)'},
+          {s:'TECIDO_DESCANSADO',l:'Descansado',c:'var(--c3)',b:'var(--b3)'},
+        ].map(q=>`<button onclick="document.querySelector('.col[data-status=\\'${q.s}\\']')?.scrollIntoView({behavior:'smooth',block:'start',inline:'nearest'})"
+          style="flex-shrink:0;padding:5px 13px;border-radius:99px;border:1.5px solid ${q.c};background:${q.b};color:${q.c};font-size:.76rem;font-weight:700;cursor:pointer;white-space:nowrap">
+          ${q.l} <span style="font-family:'DM Mono',monospace;font-size:.68rem">${grouped[q.s]?.length||0}</span>
+        </button>`).join('')}
+      </div>`:'';
+    tb.style.flexWrap='wrap';
+    tb.style.alignItems='center';
+    tb.innerHTML=`
+      <div style="display:flex;gap:6px;flex:1;min-width:0">
+        <input class="srch" id="srch" placeholder="Buscar..." oninput="render()" value="${prevVal}" style="flex:1;min-width:0">
+        <button class="fb${filtro==='todos'?' on':''}" onclick="setF('todos',this)">Todos</button>
+        <button class="fb${filtro==='minha'?' on':''}" onclick="setF('minha',this)">Minha fila</button>
+      </div>
+      ${quickNav}`;
+    if(focused){const s=document.getElementById('srch');if(s){s.focus();s.setSelectionRange(ss,se);}}
   }
 
   document.getElementById('main-content').innerHTML=`<div class="board">${cols.map(col=>{
     const items=grouped[col.s]||[];
-    const cardFn=col.s==='__TODOS__'?cardEdvaldoInfo:corteCardHTML;
+    const cardFn=col.s==='__TODOS__'?cardEdvaldoInfo:
+      (user==='edvaldo'&&(col.s==='DESCANSAR_TECIDO'||col.s==='TECIDO_DESCANSADO'))?cardRosanaReadOnly:
+      corteCardHTML;
     return`<div class="col" data-status="${col.s}">
       <div class="col-top" style="background:${col.c}"></div>
       <div class="col-hd"><span class="col-ti">${col.l}</span><span class="col-cn">${items.length}</span></div>
@@ -2795,11 +2747,9 @@ function cardEdvaldo(c){
       ${user==='taty'?'Salvar e aprovar encaixe ✔':'Enviar para aprovação →'}
     </button>
     <button onclick="event.stopPropagation();marcarImpresso('${c.id}')"
-      style="width:100%;padding:7px;border-radius:7px;font-size:.78rem;font-weight:600;cursor:pointer;margin-top:6px;
-      ${c.impresso==='sim'
-        ? 'background:var(--b3);color:var(--c3);border:none;'
-        : 'background:transparent;color:var(--c2);border:1.5px solid var(--c2);'}">
-      ${c.impresso==='sim'?'✔ Impresso':'🖨 Marcar como impresso'}
+      style="width:100%;margin-top:6px;padding:8px;border-radius:var(--r8);border:1.5px solid var(--bd);font-size:.78rem;font-weight:600;cursor:pointer;
+      background:${c.impresso==='sim'?'var(--b3)':'transparent'};color:${c.impresso==='sim'?'var(--c3)':'var(--mt)'}">
+      ${c.impresso==='sim'?'✔ Impresso':'Marcar como impresso'}
     </button>
   </div>`;
 }
@@ -2875,6 +2825,40 @@ function cardRosanaNC(c){
       <input style="flex:1;background:var(--s2);border:.5px solid var(--bd);border-radius:7px;padding:6px 8px;font-size:14px;color:var(--tx);outline:none;min-width:0" id="nc-${c.id}" placeholder="ex: C-0046" value="${c.numCorte||''}">
       <button style="padding:6px 10px;border-radius:7px;border:none;background:var(--c3);color:#fff;font-size:.75rem;font-weight:600;cursor:pointer;white-space:nowrap;flex-shrink:0" onclick="salvarNumCorte('${c.id}')">✔ Ok</button>
     </div>
+  </div>`;
+}
+
+function cardRosanaReadOnly(c){
+  const checks=c.checksDesc||{};
+  const total=c.cores?.length||0;
+  const done=Object.values(checks).filter(Boolean).length;
+  const pct=total?Math.round(done/total*100):0;
+  const descansado=c.status==='TECIDO_DESCANSADO';
+  return`<div class="card-r">
+    <div style="display:flex;justify-content:space-between;margin-bottom:4px">
+      <div>
+        ${c.ref?`<div style="font-family:'DM Mono',monospace;font-size:.88rem;font-weight:600;color:var(--ac)">${c.ref}</div>`:''}
+        <div style="font-family:'DM Mono',monospace;font-size:.88rem;font-weight:500;color:#555">${c.id}</div>
+      </div>
+      <div style="display:flex;gap:5px;align-items:center">
+        ${c.urg?'<span class="tag tur">⚡</span>':''}
+      </div>
+    </div>
+    <div class="cnome">${c.nome}</div>
+    ${miniInfoCorte(c)}
+    ${(c.cores||[]).map(x=>`
+      <div class="ci ${checks[x.cor]?'done':''}" style="pointer-events:none;cursor:default">
+        <div class="ci-l"><div class="ci-c">${x.cor}</div><div class="ci-q">${x.qtd} rolo(s)</div></div>
+        <div class="ci-b"><svg class="ci-chk" width="10" height="10" viewBox="0 0 10 10" fill="none"><path d="M1.5 5L4 7.5L8.5 2.5" stroke="white" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+      </div>`).join('')}
+    ${total>0?`<div class="pb"><div class="pf" style="width:${pct}%"></div></div>
+    <div class="pl">${done} de ${total} descansados</div>`:''}
+    ${descansado?`<div style="font-size:.75rem;color:var(--c3);font-weight:600;margin-top:6px">✔ Tecidos descansados${c.numCorte?' · OP: '+c.numCorte:''}</div>`:''}
+    <button onclick="event.stopPropagation();marcarImpresso('${c.id}')"
+      style="width:100%;margin-top:8px;padding:8px;border-radius:var(--r8);border:1.5px solid var(--bd);font-size:.78rem;font-weight:600;cursor:pointer;
+      background:${c.impresso==='sim'?'var(--b3)':'transparent'};color:${c.impresso==='sim'?'var(--c3)':'var(--mt)'}">
+      ${c.impresso==='sim'?'✔ Impresso':'Marcar como impresso'}
+    </button>
   </div>`;
 }
 
@@ -3194,8 +3178,17 @@ async function marcarImpresso(id){
   const c=cortes.find(x=>x.id===id);if(!c)return;
   c.impresso=c.impresso==='sim'?'nao':'sim';
   sl();render();
-  toast(c.impresso==='sim'?'✔ Marcado como impresso':'Desmarcado','s');
-  await push(c._row,[['IMPRESSO',c.impresso]]);
+  if(!cfg.url){toast('Configure o URL da planilha para salvar','w');return;}
+  if(!c._row){toast('Erro: item sem referência na planilha','w');return;}
+  toast('Salvando...','i');
+  try{
+    await apip({action:'atualizarCampos',row:c._row,campos:[['IMPRESSO',c.impresso]]});
+    toast(c.impresso==='sim'?'✔ Impresso registrado na planilha':'Desmarcado na planilha','s');
+    setTimeout(()=>{if(cfg.url)syncAll(true);},3000);
+  }catch(e){
+    toast('Erro ao salvar na planilha — verifique conexão','w');
+    console.error('marcarImpresso error:',e);
+  }
 }
 
 async function arquivar(id){
