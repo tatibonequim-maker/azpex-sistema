@@ -1425,12 +1425,6 @@ h1, h2, h3, .heading {
   to   { transform: none; opacity: 1; }
 }
 
-/* iPAD ESTOQUE */
-.ipad-layout {
-  display: grid; grid-template-columns: 1fr 1fr;
-  height: calc(100vh - var(--hdr-h));
-  overflow: hidden;
-}
 .ipad-col {
   display: flex; flex-direction: column; overflow: hidden;
   border-right: 1.5px solid var(--bd);
@@ -1484,72 +1478,6 @@ h1, h2, h3, .heading {
   text-align: center; padding: 32px 16px;
   color: var(--mt); font-size: .84rem;
 }
-  /* MODO PAREDE — iPad horizontal Estoque */
-.wall {
-  height: 100vh; background: var(--bg);
-  display: grid; grid-template-rows: 56px 120px 1fr;
-  overflow: hidden; padding: 14px 18px 18px; gap: 12px;
-}
-.wall-hdr { display: flex; align-items: center; justify-content: space-between; padding: 0 4px; }
-.wall-logo { font-family: 'Syne', sans-serif; font-size: 1.3rem; font-weight: 800; color: var(--ac); letter-spacing: -.02em; }
-.wall-meta { display: flex; align-items: center; gap: 18px; font-size: .85rem; color: var(--mt); }
-.wall-clock { font-family: 'DM Mono', monospace; font-size: 1rem; font-weight: 500; color: var(--tx); }
-.wall-online { display: inline-flex; align-items: center; gap: 6px; font-size: .78rem; }
-.wall-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--c3); animation: wpulse 2.4s ease-in-out infinite; }
-@keyframes wpulse { 0%,100%{opacity:1;transform:scale(1);} 50%{opacity:.4;transform:scale(.8);} }
-.wall-exit { background: none; border: 1.5px solid var(--bd); border-radius: var(--r8); padding: 6px 14px; color: var(--mt); font-size: .8rem; cursor: pointer; }
-.wall-stats { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 14px; }
-.wall-stat { background: var(--sf); border: 1.5px solid var(--bd); border-radius: var(--r16); padding: 16px 22px; display: flex; flex-direction: column; justify-content: center; box-shadow: var(--sh1); }
-.wall-stat.amb { background: linear-gradient(180deg,#FEF3C7 0%,#FDE68A 100%); border-color: #F59E0B; }
-.wall-stat.blu { background: linear-gradient(180deg,#DBEAFE 0%,#BFDBFE 100%); border-color: #3B82F6; }
-.wall-stat.grn { background: linear-gradient(180deg,#D1FAE5 0%,#A7F3D0 100%); border-color: #10B981; }
-.wall-stat-l { font-size: .68rem; text-transform: uppercase; letter-spacing: 1.2px; font-weight: 700; margin-bottom: 6px; }
-.wall-stat.amb .wall-stat-l { color: #92400E; }
-.wall-stat.blu .wall-stat-l { color: #1E3A8A; }
-.wall-stat.grn .wall-stat-l { color: #065F46; }
-.wall-stat-v { font-family: 'DM Mono', monospace; font-size: 3.4rem; font-weight: 600; line-height: 1; letter-spacing: -.02em; }
-.wall-stat.amb .wall-stat-v { color: #78350F; }
-.wall-stat.blu .wall-stat-v { color: #1E3A8A; }
-.wall-stat.grn .wall-stat-v { color: #064E3B; }
-.wall-stat-sub { font-size: .72rem; color: var(--mt); margin-top: 4px; }
-.wall-main { display: grid; grid-template-columns: 1fr 380px; gap: 14px; min-height: 0; }
-.wall-list { background: var(--sf); border: 1.5px solid var(--bd); border-radius: var(--r16); display: flex; flex-direction: column; overflow: hidden; box-shadow: var(--sh1); }
-.wall-list-hd { padding: 14px 20px; border-bottom: 1.5px solid var(--bd); display: flex; justify-content: space-between; align-items: center; background: var(--s2); }
-.wall-list-ti { font-family: 'Syne', sans-serif; font-size: .82rem; font-weight: 800; text-transform: uppercase; letter-spacing: 1px; color: var(--tx); }
-.wall-list-bd { flex: 1; overflow-y: auto; padding: 10px; display: flex; flex-direction: column; gap: 8px; }
-.wrow { display: grid; grid-template-columns: 88px 1fr 110px 88px; align-items: center; gap: 14px; padding: 14px 16px; border-radius: var(--r12); background: var(--s2); border: 1px solid var(--bd); }
-.wrow.warn { background: #FEF3C7; border-color: #F59E0B; border-left: 5px solid #D97706; }
-.wrow.danger { background: #FEE2E2; border-color: #EF4444; border-left: 5px solid #DC2626; animation: wpulseRow 2s ease-in-out infinite; }
-@keyframes wpulseRow { 0%,100%{box-shadow:0 0 0 0 rgba(220,38,38,.4);} 50%{box-shadow:0 0 0 6px rgba(220,38,38,0);} }
-.wrow-op { font-family: 'DM Mono', monospace; font-size: 1.15rem; font-weight: 700; color: var(--ac); }
-.wrow.warn .wrow-op { color: #78350F; }
-.wrow.danger .wrow-op { color: #7F1D1D; }
-.wrow-info { min-width: 0; }
-.wrow-nome { font-size: .92rem; font-weight: 600; color: var(--tx); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; margin-bottom: 2px; }
-.wrow-meta { font-size: .72rem; color: var(--mt); display: flex; gap: 8px; flex-wrap: wrap; }
-.wrow-meta-tag { padding: 1px 7px; border-radius: var(--r99); background: rgba(0,0,0,.06); font-weight: 500; }
-.wrow-status { font-size: .68rem; font-weight: 700; text-transform: uppercase; letter-spacing: .5px; padding: 5px 10px; border-radius: var(--r99); text-align: center; background: var(--c1); color: #fff; }
-.wrow-status.novidade { background: var(--c6); }
-.wrow-time { font-family: 'DM Mono', monospace; font-size: .82rem; font-weight: 500; text-align: right; color: var(--mt); }
-.wrow.warn .wrow-time { color: #92400E; font-weight: 700; }
-.wrow.danger .wrow-time { color: #7F1D1D; font-weight: 700; }
-.wall-now { background: var(--sf); border: 1.5px solid var(--bd); border-radius: var(--r16); display: flex; flex-direction: column; overflow: hidden; box-shadow: var(--sh1); }
-.wall-now-hd { padding: 14px 18px; border-bottom: 1.5px solid var(--bd); background: var(--acl); }
-.wall-now-l { font-family: 'Syne', sans-serif; font-size: .68rem; font-weight: 800; text-transform: uppercase; letter-spacing: 1.2px; color: var(--ac); margin-bottom: 4px; }
-.wall-now-op { font-family: 'DM Mono', monospace; font-size: 1.5rem; font-weight: 700; color: var(--ac); }
-.wall-now-bd { flex: 1; overflow-y: auto; padding: 16px 18px; }
-.wall-now-nome { font-size: 1rem; font-weight: 600; margin-bottom: 4px; }
-.wall-now-tags { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 14px; }
-.wall-now-tag { font-size: .72rem; padding: 3px 10px; border-radius: var(--r99); background: var(--s2); color: var(--mt); font-weight: 500; }
-.wall-tab { width: 100%; border-collapse: collapse; font-size: .8rem; }
-.wall-tab th { padding: 6px 8px; text-align: center; font-size: .62rem; font-weight: 700; text-transform: uppercase; letter-spacing: .5px; color: var(--mt); border-bottom: 1.5px solid var(--bd); }
-.wall-tab th:first-child { text-align: left; }
-.wall-tab td { padding: 8px 6px; text-align: center; border-bottom: 1px solid var(--s3); font-family: 'DM Mono', monospace; }
-.wall-tab td:first-child { text-align: left; font-family: 'DM Sans', sans-serif; font-weight: 500; }
-.wall-cor-dot { display: inline-block; width: 9px; height: 9px; border-radius: 50%; margin-right: 6px; vertical-align: middle; border: 1px solid rgba(0,0,0,.12); }
-.wall-empty { text-align: center; padding: 60px 20px; color: var(--mt); font-size: 1rem; }
-.wall-empty-i { font-size: 3rem; opacity: .3; margin-bottom: 10px; }
-.wall-now-empty { text-align: center; padding: 40px 20px; color: var(--mt); font-size: .85rem; }
 </style>
 </head>
 <body>
@@ -2067,11 +1995,6 @@ function initApp(){
   } else {
     btnNovo.style.display='none';
   }
-// Estoque: ativa modo parede automaticamente em iPad horizontal
-  if(user==='estoque'){
-    setTimeout(()=>checkWallMode(),100);
-  }
-
   // Abas
   const stabsEl=document.getElementById('stabs');
   const showBothTabs=isTaty||user==='gerente'||user==='estoque'||user==='daimartha'||isCarol;
@@ -2080,7 +2003,7 @@ function initApp(){
   if(user==='gerente') cortesLabel='Reposições';
   if(user==='estoque') cortesLabel='Embalar';
 
-  const defaultSection=isTaty||user==='estoque'?'dashboard':isVend?'pedidos':'cortes';
+  const defaultSection=isTaty?'dashboard':isVend?'pedidos':'cortes';
   stabsEl.style.display='flex';
   if(isTaty){
     stabsEl.innerHTML=`
@@ -2089,8 +2012,7 @@ function initApp(){
       <button class="stab" onclick="setSection('pedidos',this)">Pedidos</button>`;
   } else if(user==='estoque'){
     stabsEl.innerHTML=`
-      <button class="stab on" onclick="setSection('dashboard',this)">Fila do dia</button>
-      <button class="stab" onclick="setSection('cortes',this)">Peças da oficina</button>
+      <button class="stab on" onclick="setSection('cortes',this)">Embalar</button>
       <button class="stab" onclick="setSection('pedidos',this)">Pedidos da loja</button>`;
   } else if(isVend){
     stabsEl.innerHTML=`<button class="stab on" onclick="setSection('pedidos',this)">Pedidos</button>`;
@@ -2894,7 +2816,7 @@ function cardCarol(c){
 
 function cardEstoque(c){
   const total=calcTotalPecas(c);
-  return`<div class="card-arr" id="ces-${c.id}">
+  return`<div class="card-arr" id="ces-${c.id}" onclick="openDet('${c.id}')" style="cursor:pointer">
     <div style="display:flex;justify-content:space-between;margin-bottom:4px">
       <div>${c.ref?`<div class="cref">${c.ref}</div>`:''}<div class="cid">${c.id}</div></div>
       ${c.numCorte?`<span class="tag" style="background:var(--b3);color:var(--c3)">${c.numCorte}</span>`:''}
@@ -2906,150 +2828,11 @@ function cardEstoque(c){
       ${total?`<span class="tag" style="background:var(--al);color:var(--ac)">~${total} pç</span>`:''}
       ${c.tipo?`<span class="tag" style="background:${c.tipo==='novidade'?'var(--b6)':'var(--b2)'};color:${c.tipo==='novidade'?'var(--c6)':'var(--c2)'}">${c.tipo}</span>`:''}
     </div>
-    <button class="dbtn" style="background:var(--c7);color:#fff;margin-top:8px" onclick="estoqueSeparou('${c.id}')">✔ Separado e pronto para retirada</button>
+    <button class="dbtn" style="background:var(--c7);color:#fff;margin-top:8px" onclick="event.stopPropagation();estoqueSeparou('${c.id}')">✔ Separado e pronto para retirada</button>
   </div>`;
 }
 
 // ── STATS CORTES ──
-function renderEstoqueIPad(){
-  // Hide normal toolbar and stats
-  document.getElementById('stats').style.display='none';
-  const tb=document.querySelector('.tb');if(tb)tb.style.display='none';
-
-  const pedPendentes=pedidos.filter(p=>p.status==='PENDENTE'||p.status==='SEPARANDO');
-  const cortesEmbalar=cortes.filter(c=>c.status==='EMBALAR');
-
-  document.getElementById('main-content').innerHTML=`
-    <div class="ipad-layout">
-      <!-- PEDIDOS -->
-      <div class="ipad-col">
-        <div class="ipad-col-hd">
-          <div style="display:flex;align-items:center">
-            <div class="ipad-col-ti" style="color:var(--c1)">📋 Pedidos</div>
-            ${pedPendentes.length>0?`<span class="ipad-badge">${pedPendentes.length}</span>`:''}
-          </div>
-          <div class="ipad-col-ct" style="color:var(--c1)">${pedPendentes.length} pendente${pedPendentes.length!==1?'s':''}</div>
-        </div>
-        <div class="ipad-col-bd">
-          ${pedPendentes.length?pedPendentes.map(p=>`
-            <div class="ipad-card${p.status==='PENDENTE'?' urgent':''}" onclick="abrirPedidoEstoque('${p.id}')">
-              <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:4px">
-                <div class="ipad-cod">${p.cod}</div>
-                <span style="font-size:.72rem;padding:3px 8px;border-radius:20px;font-weight:600;background:${p.status==='PENDENTE'?'var(--b1)':'var(--b2)'};color:${p.status==='PENDENTE'?'var(--c1)':'var(--c2)'}">${p.status==='PENDENTE'?'Novo':'Separando'}</span>
-              </div>
-              <div class="ipad-nome">${p.nome}</div>
-              <div style="font-size:.8rem;color:var(--mt);margin-bottom:8px">Pedido por: ${UNAMES[p.autor]||p.autor}</div>
-              <div class="ipad-cores">
-                ${(p.cores||[]).map(x=>`<span class="ipad-cor">${x.cor} — ${Object.entries(x.qtds||{}).map(([t,q])=>t+':'+q).join(' ')}</span>`).join('')}
-              </div>
-              ${p.status==='PENDENTE'?`
-                <button class="ipad-btn" style="background:var(--c1);color:#fff" onclick="event.stopPropagation();abrirResponderEstoque('${p.id}')">
-                  📋 Verificar estoque
-                </button>`:`
-                <button class="ipad-btn" style="background:var(--c3);color:#fff" onclick="event.stopPropagation();marcarPronto('${p.id}').then(()=>render())">
-                  ✔ Separado — avisar loja
-                </button>`}
-            </div>`).join(''):`<div class="empty" style="font-size:1rem;padding:40px 20px">✔ Nenhum pedido pendente</div>`}
-        </div>
-      </div>
-
-      <!-- CORTES EMBALAR -->
-      <div class="ipad-col">
-        <div class="ipad-col-hd">
-          <div style="display:flex;align-items:center">
-            <div class="ipad-col-ti" style="color:var(--c7)">📦 Embalar</div>
-            ${cortesEmbalar.length>0?`<span class="ipad-badge" style="background:var(--c7)">${cortesEmbalar.length}</span>`:''}
-          </div>
-          <div class="ipad-col-ct" style="color:var(--c7)">${cortesEmbalar.length} para embalar</div>
-        </div>
-        <div class="ipad-col-bd">
-          ${cortesEmbalar.length?cortesEmbalar.map(c=>`
-            <div class="ipad-card${c.urg?' urgent':''}">
-              <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:4px">
-                <div class="ipad-cod">${c.ref||c.id}</div>
-                <div style="font-family:'DM Mono',monospace;font-size:.8rem;color:var(--mt)">${c.id}</div>
-              </div>
-              <div class="ipad-nome">${c.nome}</div>
-              <div class="ipad-cores">
-                <span class="ipad-cor" style="background:var(--al);color:var(--ac)">${c.grade||'—'}</span>
-                ${c.tec?`<span class="ipad-cor">${c.tec}</span>`:''}
-                ${c.numCorte?`<span class="ipad-cor" style="background:var(--b3);color:var(--c3)">OP: ${c.numCorte}</span>`:''}
-                ${c.tipo?`<span class="ipad-cor" style="background:${c.tipo==='novidade'?'var(--b6)':'var(--b2)'};color:${c.tipo==='novidade'?'var(--c6)':'var(--c2)'}">${c.tipo}</span>`:''}
-              </div>
-              ${(c.cores||[]).length?`<div class="ipad-cores">${(c.cores||[]).map(x=>`<span class="ipad-cor">${x.cor} · ${x.qtd}x</span>`).join('')}</div>`:''}
-              ${c.giObs?`<div style="font-size:.82rem;color:var(--c8);background:var(--b8);border-radius:8px;padding:8px 10px;margin-bottom:8px">📝 ${c.giObs}</div>`:''}
-              <button class="ipad-btn" style="background:var(--c7);color:#fff" onclick="estoqueSeparou('${c.id}')">
-                ✔ Embalado — pronto para retirada
-              </button>
-            </div>`).join(''):`<div class="empty" style="font-size:1rem;padding:40px 20px">✔ Nada para embalar</div>`}
-        </div>
-      </div>
-    </div>
-
-    <!-- MODAL PEDIDO ESTOQUE -->
-    <div id="ov-ped-estoque" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:300;align-items:center;justify-content:center;padding:20px">
-      <div style="background:var(--sf);border-radius:20px;padding:24px;width:100%;max-width:680px;max-height:90vh;overflow-y:auto">
-        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px">
-          <div style="font-family:'Syne',sans-serif;font-size:1.2rem;font-weight:800" id="ped-est-ti">Pedido</div>
-          <button onclick="fecharPedidoEstoque()" style="background:none;border:none;font-size:1.5rem;color:var(--mt);cursor:pointer">×</button>
-        </div>
-        <div id="ped-est-body"></div>
-      </div>
-    </div>`;
-}
-
-function abrirPedidoEstoque(id){
-  const p=pedidos.find(x=>x.id===id);if(!p)return;
-  document.getElementById('ped-est-ti').textContent=p.cod+' — '+p.nome;
-  document.getElementById('ped-est-body').innerHTML=`
-    <div style="font-size:.9rem;color:var(--mt);margin-bottom:12px">Pedido de: <strong>${UNAMES[p.autor]||p.autor}</strong> · ${p.dataStr}</div>
-    ${(p.cores||[]).map(x=>`<div style="background:var(--s2);border-radius:10px;padding:12px;margin-bottom:8px">
-      <div style="font-weight:700;font-size:1rem;margin-bottom:6px">${x.cor}</div>
-      ${Object.entries(x.qtds||{}).map(([t,q])=>`<div style="display:flex;justify-content:space-between;padding:4px 0;font-size:.9rem;border-bottom:.5px solid var(--bd)"><span>Tam. ${t}</span><strong>${q} pç pedidas</strong></div>`).join('')}
-    </div>`).join('')}
-    ${p.obs?`<div style="background:#FFF3CD;border-radius:8px;padding:10px;margin-bottom:12px;font-size:.85rem">⚠ ${p.obs}</div>`:''}
-    <div style="display:flex;gap:10px;margin-top:16px">
-      <button onclick="fecharPedidoEstoque();abrirResponderEstoque('${p.id}')" style="flex:1;padding:14px;border-radius:10px;border:none;background:var(--c1);color:#fff;font-size:1rem;font-weight:700;cursor:pointer">📋 Responder pedido</button>
-    </div>`;
-  document.getElementById('ov-ped-estoque').style.display='flex';
-}
-
-function fecharPedidoEstoque(){
-  document.getElementById('ov-ped-estoque').style.display='none';
-}
-
-function abrirResponderEstoque(id){
-  fecharPedidoEstoque();
-  respId=id;
-  const p=pedidos.find(x=>x.id===id);if(!p)return;
-  document.getElementById('resp-ti').textContent=p.cod+' — '+p.nome;
-  document.getElementById('resp-info').textContent='Pedido de: '+(UNAMES[p.autor]||p.autor);
-  document.getElementById('resp-obs').value='';
-  const sizes2=(p.grade||'').split(' ').filter(Boolean);
-  document.getElementById('resp-grades').innerHTML=`
-    <div style="overflow-x:auto;margin-bottom:12px">
-      <table style="width:100%;border-collapse:collapse">
-        <thead><tr>
-          <th style="padding:8px;text-align:left;font-size:.75rem;text-transform:uppercase;color:var(--mt);font-weight:500">Cor</th>
-          ${sizes2.map(s=>`<th style="padding:8px;text-align:center;font-family:'DM Mono',monospace;font-size:.8rem;color:var(--mt)">${s}<br><span style="font-size:.65rem">ped/enc</span></th>`).join('')}
-        </tr></thead>
-        <tbody>${(p.cores||[]).map(x=>`<tr>
-          <td style="padding:8px;font-weight:600;font-size:.95rem">${x.cor}</td>
-          ${sizes2.map(s=>`<td style="padding:8px;text-align:center">
-            <div style="font-size:.75rem;color:var(--mt);margin-bottom:4px">${x.qtds?.[s]||'—'}</div>
-            <input style="width:56px;background:var(--s2);border:.5px solid var(--bd);border-radius:7px;padding:6px;font-size:18px;text-align:center;outline:none" id="rq-${x.cor}-${s}" type="number" min="0" step="1" value="${x.qtds?.[s]||0}">
-          </td>`).join('')}
-        </tr>`).join('')}</tbody>
-      </table>
-    </div>
-    <div style="display:flex;flex-direction:column;gap:8px;margin-top:16px">
-      <button onclick="responderPedido('aprovado')" style="padding:16px;border-radius:12px;border:none;background:var(--c3);color:#fff;font-size:1rem;font-weight:700;cursor:pointer">✔ Temos tudo — separando</button>
-      <button onclick="responderPedido('parcial')" style="padding:16px;border-radius:12px;border:none;background:var(--c1);color:#fff;font-size:1rem;font-weight:700;cursor:pointer">⚡ Temos parcialmente</button>
-      <button onclick="responderPedido('recusado')" style="padding:16px;border-radius:12px;border:none;background:var(--c4);color:#fff;font-size:1rem;font-weight:700;cursor:pointer">✕ Não temos no estoque</button>
-    </div>`;
-  op('ov-resp');
-}
-
 function renderStats(){
   if(section==='pedidos'){renderStatsPedidos();return;}
   const sts=[
@@ -3290,6 +3073,7 @@ function openDet(id){
         <button class="abtn" style="background:var(--b6);color:var(--c6)" onclick="cl('ov-det');marcarChegada('${c.id}','novidade')">✨ Novidade</button>`:''}
       ${(['gerente','taty','carol'].includes(user))&&c.status==='AGUARDANDO_GI'?`<div style="display:flex;flex-direction:column;gap:7px"><button class="abtn" style="background:var(--b3);color:var(--c3)" onclick="cl('ov-det');aprovarEnvio('${c.id}')">✔ Enviar para loja</button><button class="abtn abtn-danger" onclick="cl('ov-det');giArquivar('${c.id}')">✕ Não precisamos</button></div>`:''}
       ${user==='daimartha'&&c.status==='EMBALAR'?`<button class="abtn" style="background:var(--b3);color:var(--c3)" onclick="cl('ov-det');transmissaoMire('${c.id}')">✔ Transmissão Miré feita</button>`:''}
+      ${user==='estoque'&&c.status==='EMBALAR'?`<button class="abtn" style="background:var(--b3);color:var(--c3)" onclick="cl('ov-det');estoqueSeparou('${c.id}')">✔ Embalado — pronto para retirada</button>`:''}
       ${user==='gerente'&&c.status==='PRONTO_RETIRADA'?`<button class="abtn" style="background:var(--b3);color:var(--c3)" onclick="cl('ov-det');arquivar('${c.id}')">✔ Recebido — arquivar</button>`:''}
       ${cfg.wedv&&c.status==='AGUARDANDO_ENCAIXE'?`<a href="https://wa.me/${cfg.wedv}?text=${encodeURIComponent('📐 Azpex\n*'+c.id+' — '+c.nome+'*\nRef: '+c.ref+'\nAguardando encaixe.\nTecido: '+c.tec+' · Grade: '+c.grade+(c.urg?'\n⚡ URGENTE':''))}" target="_blank" style="text-decoration:none"><button class="abtn abtn-wpp">📱 Avisar Edvaldo</button></a>`:''}
       ${cfg.wros&&(c.status==='DESCANSAR_TECIDO'||c.status==='DEFINIR_CORES')?`<a href="https://wa.me/${cfg.wros}?text=${encodeURIComponent('✂️ Azpex\n*'+c.id+' — '+c.nome+'*\nRef: '+c.ref+'\nTecido para descansar.\nCores:\n'+(c.cores||[]).map(x=>'• '+x.cor+' — '+x.qtd+' rolo(s)').join('\n')+(c.urg?'\n⚡ URGENTE':''))}" target="_blank" style="text-decoration:none"><button class="abtn abtn-wpp">📱 Avisar Rosana</button></a>`:''}
@@ -3722,7 +3506,6 @@ function responderPedido(tipo){
   else if(tipo==='parcial')p.status='PARCIAL';
   else p.status='RECUSADO';
   p.respondidoPor=user;sl();cl('ov-resp');
-  if(user==='estoque')fecharPedidoEstoque();
   render();
   toast(tipo==='aprovado'?'✔ Separando!':tipo==='parcial'?'⚡ Parcialmente disponível':'Não disponível','s');
   if(cfg.url&&p._row)push2(p._row,[['STATUS',p.status],['RESP_OBS',p.respObs],['RESP_CORES',JSON.stringify(p.respCores)],['RESPONDIDO_POR',p.respondidoPor]]);
@@ -3775,39 +3558,6 @@ function cl(id){document.getElementById(id)?.classList.remove('open');}
 function toast(msg,type='i'){const c=document.getElementById('toasts');const t=document.createElement('div');t.className=`toast ${type}`;t.textContent=msg;c.appendChild(t);setTimeout(()=>t.remove(),3500);}
 ['ov-novo','ov-det','ov-cores','ov-pedido','ov-resp','ov-cfg','ov-decisao','ov-envio'].forEach(id=>{document.getElementById(id)?.addEventListener('click',e=>{if(e.target===e.currentTarget)cl(id);});});
 
-  // ── MODO PAREDE (iPad horizontal Estoque) ──
-let wallMode=false,wallInterval=null,wallClockInterval=null,wakeLock=null;
-function detectWallMode(){if(user!=='estoque')return false;return window.innerWidth>=900;}
-async function activateWallMode(){
-  if(wallMode)return;wallMode=true;
-  document.querySelector('.hdr').style.display='none';
-  document.getElementById('stabs').style.display='none';
-  document.getElementById('stats').style.display='none';
-  document.querySelector('.tb').style.display='none';
-  document.body.style.overflow='hidden';
-  if('wakeLock' in navigator){try{wakeLock=await navigator.wakeLock.request('screen');}catch(e){}}
-  renderWall();
-  if(wallClockInterval)clearInterval(wallClockInterval);
-  wallClockInterval=setInterval(updateWallClock,1000);
-  if(wallInterval)clearInterval(wallInterval);
-  wallInterval=setInterval(()=>{if(cfg.url)syncAll(true);renderWall();},30000);
-}
-function deactivateWallMode(){
-  if(!wallMode)return;wallMode=false;
-  document.querySelector('.hdr').style.display='';
-  document.getElementById('stabs').style.display='';
-  document.getElementById('stats').style.display='';
-  document.querySelector('.tb').style.display='';
-  document.body.style.overflow='';
-  if(wallInterval){clearInterval(wallInterval);wallInterval=null;}
-  if(wallClockInterval){clearInterval(wallClockInterval);wallClockInterval=null;}
-  if(wakeLock){wakeLock.release();wakeLock=null;}
-  render();
-}
-function updateWallClock(){
-  const el=document.getElementById('wall-clock');if(!el)return;
-  const d=new Date();el.textContent=String(d.getHours()).padStart(2,'0')+':'+String(d.getMinutes()).padStart(2,'0');
-}
 function tempoDesde(c){
   const ref=c.dataDesc||c.data;if(!ref)return{texto:'—',nivel:0};
   let dt;
@@ -3828,92 +3578,6 @@ function corDot(n){
   for(const[k,v]of Object.entries(m))if(c.includes(k))return v;
   return'#cbd5e1';
 }
-function renderWall(){
-  const cortesEmbalar=cortes.filter(c=>c.status==='EMBALAR');
-  const emAndamento=cortesEmbalar[0]||null;
-  const fila=cortesEmbalar.slice(emAndamento?1:0);
-  const prontosHoje=cortes.filter(c=>c.status==='PRONTO_RETIRADA').length;
-  const filaHTML=fila.length?fila.map(c=>{
-    const t=tempoDesde(c);
-    const cls=t.nivel===2?'danger':t.nivel===1?'warn':'';
-    const tipo=c.tipo||'reposição';
-    const tipoCls=tipo==='novidade'?'novidade':'';
-    return`<div class="wrow ${cls}">
-      <div class="wrow-op">${c.numCorte||c.ref||c.id}</div>
-      <div class="wrow-info">
-        <div class="wrow-nome">${c.nome}</div>
-        <div class="wrow-meta">
-          <span class="wrow-meta-tag">${c.grade||'—'}</span>
-          ${c.tec?`<span class="wrow-meta-tag">${c.tec}</span>`:''}
-          ${(c.cores||[]).slice(0,3).map(x=>`<span class="wrow-meta-tag"><span class="wall-cor-dot" style="background:${corDot(x.cor)}"></span>${x.cor}</span>`).join('')}
-        </div>
-      </div>
-      <div class="wrow-status ${tipoCls}">${tipo}</div>
-      <div class="wrow-time">${t.texto}</div>
-    </div>`;
-  }).join(''):`<div class="wall-empty"><div class="wall-empty-i">✓</div>Nada na fila</div>`;
-  let nowHTML=`<div class="wall-now-empty">Nenhum pedido em andamento</div>`;
-  if(emAndamento){
-    const sizes=(emAndamento.grade||'').split(' ').filter(Boolean);
-    const cores=emAndamento.cores||[];
-    const enc=parseFloat(emAndamento.encM)||0;
-    const rolo=parseFloat(emAndamento.rolo)||0;
-    const folhas=enc&&rolo?Math.floor(rolo/enc):0;
-    const total=folhas*sizes.length;
-    const tabHTML=cores.length&&sizes.length?`
-      <table class="wall-tab">
-        <thead><tr><th>Cor</th>${sizes.map(s=>`<th>${s}</th>`).join('')}</tr></thead>
-        <tbody>${cores.map(x=>{
-          const r=parseFloat(x.qtd)||1;
-          const pcs=folhas*r;
-          return`<tr><td><span class="wall-cor-dot" style="background:${corDot(x.cor)}"></span>${x.cor}</td>${sizes.map(()=>`<td>${pcs||'—'}</td>`).join('')}</tr>`;
-        }).join('')}</tbody>
-      </table>`:`<div class="wall-now-empty" style="padding:20px 0">Cores não definidas</div>`;
-    nowHTML=`<div class="wall-now-bd">
-      <div class="wall-now-nome">${emAndamento.nome}</div>
-      <div class="wall-now-tags">
-        ${emAndamento.grade?`<span class="wall-now-tag">${emAndamento.grade}</span>`:''}
-        ${emAndamento.tec?`<span class="wall-now-tag">${emAndamento.tec}</span>`:''}
-        ${emAndamento.tipo?`<span class="wall-now-tag" style="background:${emAndamento.tipo==='novidade'?'var(--b6)':'var(--b2)'};color:${emAndamento.tipo==='novidade'?'var(--c6)':'var(--c2)'}">${emAndamento.tipo}</span>`:''}
-        ${total?`<span class="wall-now-tag" style="background:var(--acl);color:var(--ac)">~${total} pç</span>`:''}
-      </div>
-      ${tabHTML}
-      ${emAndamento.giObs?`<div class="obs-box" style="margin-top:14px;font-size:.78rem">📝 ${emAndamento.giObs}</div>`:''}
-    </div>`;
-  }
-  const nowHd=emAndamento?`<div class="wall-now-hd"><div class="wall-now-l">Embalando agora</div><div class="wall-now-op">${emAndamento.numCorte||emAndamento.ref||emAndamento.id}</div></div>`:`<div class="wall-now-hd"><div class="wall-now-l">Embalando agora</div><div class="wall-now-op" style="color:var(--mt);font-size:.95rem">—</div></div>`;
-  document.getElementById('main-content').innerHTML=`<div class="wall">
-    <div class="wall-hdr">
-      <div class="wall-logo">Azpex · Estoque</div>
-      <div class="wall-meta">
-        <span class="wall-clock" id="wall-clock">--:--</span>
-        <span class="wall-online"><span class="wall-dot"></span>Online</span>
-        <button class="wall-exit" onclick="deactivateWallMode()">Sair</button>
-      </div>
-    </div>
-    <div class="wall-stats">
-      <div class="wall-stat amb"><div class="wall-stat-l">A embalar</div><div class="wall-stat-v">${cortesEmbalar.length}</div><div class="wall-stat-sub">na fila</div></div>
-      <div class="wall-stat blu"><div class="wall-stat-l">Em andamento</div><div class="wall-stat-v">${emAndamento?1:0}</div><div class="wall-stat-sub">${emAndamento?(emAndamento.numCorte||emAndamento.ref||emAndamento.id):'aguardando'}</div></div>
-      <div class="wall-stat grn"><div class="wall-stat-l">Prontos hoje</div><div class="wall-stat-v">${prontosHoje}</div><div class="wall-stat-sub">aguardando retirada</div></div>
-    </div>
-    <div class="wall-main">
-      <div class="wall-list">
-        <div class="wall-list-hd"><div class="wall-list-ti">Fila de embalagem</div><div style="font-size:.72rem;color:var(--mt)">${fila.length} pedido${fila.length===1?'':'s'}</div></div>
-        <div class="wall-list-bd">${filaHTML}</div>
-      </div>
-      <div class="wall-now">${nowHd}${nowHTML}</div>
-    </div>
-  </div>`;
-  updateWallClock();
-}
-function checkWallMode(){
-  if(user!=='estoque')return;
-  if(detectWallMode()){if(!wallMode)activateWallMode();else renderWall();}
-  else{if(wallMode)deactivateWallMode();}
-}
-window.addEventListener('resize',()=>{if(user==='estoque')checkWallMode();});
-window.addEventListener('orientationchange',()=>{setTimeout(()=>{if(user==='estoque')checkWallMode();},300);});
-
 // ═══ FASE 1 · TEMPO DECORRIDO + NOTIFICAÇÕES ═══
 
 const PRAZOS_STATUS={
