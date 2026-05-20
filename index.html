@@ -1473,6 +1473,37 @@ h1, h2, h3, .heading {
   width: 26px; height: 26px; font-size: .82rem; font-weight: 800;
 }
 
+/* ESTOQUE UNIFICADO */
+.estq-sec { padding: 18px 14px 4px; }
+.estq-sec-ti {
+  font-size: .6rem; text-transform: uppercase; letter-spacing: .9px;
+  font-weight: 700; color: var(--mt);
+  display: flex; align-items: center; gap: 8px;
+}
+.estq-sec-ti::after { content: ''; flex: 1; height: 1px; background: var(--bd); }
+.estq-cnt {
+  font-family: 'DM Mono', monospace; font-size: .68rem;
+  background: var(--s2); padding: 1px 7px; border-radius: 99px; color: var(--mt);
+}
+.estq-list { display: flex; flex-direction: column; gap: 7px; padding: 6px 14px; }
+.estq-card {
+  background: var(--sf); border: 1.5px solid var(--bd); border-radius: var(--r12);
+  padding: 11px 12px; display: flex; align-items: center; gap: 10px;
+  cursor: pointer; transition: border-color .13s, box-shadow .13s;
+}
+.estq-card:hover { border-color: var(--bd2); box-shadow: var(--sh1); }
+.estq-card.urgente { border-left: 3px solid var(--c4); }
+.estq-badge {
+  font-size: .64rem; font-weight: 700; padding: 3px 8px;
+  border-radius: 99px; white-space: nowrap; flex-shrink: 0; letter-spacing: .2px;
+}
+.estq-info { flex: 1; min-width: 0; }
+.estq-nome {
+  font-weight: 700; font-size: .9rem; color: var(--tx);
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.estq-meta { font-size: .71rem; color: var(--mt); margin-top: 2px; }
+
 /* MISC */
 .empty {
   text-align: center; padding: 32px 16px;
@@ -2003,17 +2034,14 @@ function initApp(){
   if(user==='gerente') cortesLabel='Reposições';
   if(user==='estoque') cortesLabel='Embalar';
 
-  const defaultSection=isTaty?'dashboard':isVend?'pedidos':'cortes';
+  const defaultSection=isVend?'pedidos':'cortes';
   stabsEl.style.display='flex';
   if(isTaty){
     stabsEl.innerHTML=`
-      <button class="stab on" onclick="setSection('dashboard',this)">Visão do dia</button>
-      <button class="stab" onclick="setSection('cortes',this)">Cortes</button>
+      <button class="stab on" onclick="setSection('cortes',this)">Cortes</button>
       <button class="stab" onclick="setSection('pedidos',this)">Pedidos</button>`;
   } else if(user==='estoque'){
-    stabsEl.innerHTML=`
-      <button class="stab on" onclick="setSection('cortes',this)">Embalar</button>
-      <button class="stab" onclick="setSection('pedidos',this)">Pedidos da loja</button>`;
+    stabsEl.style.display='none';
   } else if(isVend){
     stabsEl.innerHTML=`<button class="stab on" onclick="setSection('pedidos',this)">Pedidos</button>`;
   } else if(['edvaldo','rosana','daimartha','carol','estoque'].includes(user)){
@@ -2051,8 +2079,10 @@ function setSection(s,el){
     document.querySelectorAll('.stab').forEach(b=>b.classList.remove('on'));
     el.classList.add('on');
   }
-  const stabs=document.getElementById('stabs');if(stabs)stabs.style.display='flex';
-  const stats=document.getElementById('stats');if(stats)stats.style.display='';
+  if(user!=='estoque'){
+    const stabs=document.getElementById('stabs');if(stabs)stabs.style.display='flex';
+    const stats=document.getElementById('stats');if(stats)stats.style.display='';
+  }
   const tb=document.querySelector('.tb');if(tb)tb.style.display='';
   if(s==='dashboard'){
     const canNovo=user==='taty'||user==='carol';
@@ -2571,8 +2601,69 @@ function groupedRosanaHTML(items,cardFn){
   `).join('');
 }
 
+function renderEstoque(){
+  const stats=document.getElementById('stats');if(stats)stats.style.display='none';
+  const stabs=document.getElementById('stabs');if(stabs)stabs.style.display='none';
+  const tb=document.querySelector('.tb');
+  if(tb){
+    const q=document.getElementById('srch')?.value||'';
+    tb.style.display='';
+    tb.innerHTML=`<input class="srch" id="srch" placeholder="Buscar pedido ou peça..." oninput="render()" value="${q}" style="font-size:16px">`;
+  }
+  const q=(document.getElementById('srch')?.value||'').toLowerCase();
+
+  let pedFila=pedidos.filter(p=>['PENDENTE','SEPARANDO'].includes(p.status));
+  if(q)pedFila=pedFila.filter(p=>(p.cod+p.nome+(p.autor||'')).toLowerCase().includes(q));
+  pedFila.sort((a,b)=>(a.status==='PENDENTE'?0:1)-(b.status==='PENDENTE'?0:1)||b.ts-a.ts);
+
+  let embFila=cortes.filter(c=>c.status==='EMBALAR');
+  if(q)embFila=embFila.filter(c=>(c.id+c.nome+(c.tec||'')+(c.ref||'')).toLowerCase().includes(q));
+
+  const pedCard=p=>{
+    const isPend=p.status==='PENDENTE';
+    const badge=isPend
+      ?`<span class="estq-badge" style="background:var(--b4);color:var(--c4)">🔴 Novo pedido</span>`
+      :`<span class="estq-badge" style="background:var(--b1);color:var(--c1)">🟡 Separando</span>`;
+    const btn=isPend
+      ?`<button class="btn-dark-sm" onclick="event.stopPropagation();openResp('${p.id}')">📋 Verificar</button>`
+      :`<button class="btn-dark-sm" style="background:var(--c3);color:#fff" onclick="event.stopPropagation();marcarPronto('${p.id}')">✔ Separado</button>`;
+    const meta=(p.cores||[]).map(x=>x.cor+' '+Object.entries(x.qtds||{}).map(([t,q])=>t+':'+q).join(' ')).join(' · ');
+    return`<div class="estq-card" onclick="openDetPedido('${p.id}')">
+      ${badge}
+      <div class="estq-info">
+        <div class="estq-nome">${p.nome}</div>
+        <div class="estq-meta">${p.cod} · ${UNAMES[p.autor]||p.autor}${meta?' · '+meta:''}</div>
+      </div>
+      ${btn}
+    </div>`;
+  };
+
+  const embCard=c=>{
+    const t=tempoDecorrido(c);
+    const badge=`<span class="estq-badge" style="background:var(--b7);color:var(--c7)">📦 Embalar</span>`;
+    const meta=[c.grade,c.tec,(c.cores||[]).map(x=>x.cor+':'+x.qtd).join(' · ')].filter(Boolean).join(' · ');
+    return`<div class="estq-card${c.urg?' urgente':''}" onclick="openDet('${c.id}')">
+      ${badge}
+      <div class="estq-info">
+        <div class="estq-nome">${c.nome}</div>
+        <div class="estq-meta">${c.ref||c.id}${c.numCorte?' · OP:'+c.numCorte:''}${meta?' · '+meta:''}${t.texto&&t.texto!=='agora'?' · '+t.texto:''}</div>
+      </div>
+      <button class="btn-dark-sm" style="background:var(--c7);color:#fff" onclick="event.stopPropagation();estoqueSeparou('${c.id}')">✔ Embalado</button>
+    </div>`;
+  };
+
+  const total=pedFila.length+embFila.length;
+  document.getElementById('main-content').innerHTML=total===0
+    ?`<div style="text-align:center;padding:80px 20px;color:var(--mt)"><div style="font-size:2.5rem;opacity:.25;margin-bottom:12px">✓</div>Tudo separado!</div>`
+    :`<div style="padding-bottom:48px">
+      ${pedFila.length?`<div class="estq-sec"><div class="estq-sec-ti">Pedidos da loja <span class="estq-cnt">${pedFila.length}</span></div></div><div class="estq-list">${pedFila.map(pedCard).join('')}</div>`:''}
+      ${embFila.length?`<div class="estq-sec"><div class="estq-sec-ti">Peças da oficina <span class="estq-cnt">${embFila.length}</span></div></div><div class="estq-list">${embFila.map(embCard).join('')}</div>`:''}
+    </div>`;
+}
+
 function renderCortes(){
   if(user==='taty'||user==='carol'){renderCortesTaty();return;}
+  if(user==='estoque'){renderEstoque();return;}
   const cols=getColsCortes();const vis=getVisCortes();
   const grouped={};cols.forEach(c=>{grouped[c.s]=[];});
   vis.forEach(c=>{if(grouped[c.status]!==undefined)grouped[c.status].push(c);});
