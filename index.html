@@ -3569,6 +3569,55 @@ function renderPedidos(){
     list=list.filter(p=>['PENDENTE','SEPARANDO'].includes(p.status));
   if(user==='gerente'&&filtro==='minha')
     list=list.filter(p=>p.status!=='ARQUIVADO');
+  if(isVend){
+    const cats=[
+      {label:'✓ Prontos para retirar', statuses:['PRONTO','TRANSFERIDO'], color:'#27ae60', border:'#27ae60'},
+      {label:'Em preparo',              statuses:['SEPARANDO'],            color:'#2980b9', border:'#2980b9'},
+      {label:'Aguardando resposta',     statuses:['PENDENTE','PARCIAL'],   color:'#e67e22', border:'#e67e22'},
+      {label:'Não disponível',          statuses:['RECUSADO'],             color:'#e74c3c', border:'#e74c3c'},
+      {label:'Recebidos',               statuses:['RECEBIDO','ARQUIVADO'], color:'var(--mt)',border:'var(--sl)'},
+    ];
+    const sections=cats.map(cat=>{
+      const items=list.filter(p=>cat.statuses.includes(p.status));
+      if(!items.length)return'';
+      return`<div style="margin-bottom:22px">
+        <div style="font-size:.72rem;font-weight:700;color:${cat.color};letter-spacing:.05em;text-transform:uppercase;margin-bottom:9px;display:flex;align-items:center;gap:6px">
+          <span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:${cat.color}"></span>
+          ${cat.label} <span style="font-weight:400;opacity:.7">(${items.length})</span>
+        </div>
+        ${items.map(p=>{
+          const info=psi(p.status);
+          const totalPcs=(p.cores||[]).reduce((s,x)=>s+Object.values(x.qtds||{}).reduce((a,v)=>a+Number(v||0),0),0);
+          return`<div style="background:var(--sr);border-radius:12px;padding:13px 14px;margin-bottom:9px;border-left:3px solid ${cat.border}" onclick="openDetPedido('${p.id}')">
+            <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:4px">
+              <div>
+                <span style="font-weight:700;font-size:.97rem">${p.cod}</span>
+                <span style="font-size:.8rem;color:var(--mt);margin-left:7px">${p.nome}</span>
+              </div>
+              <span class="sbadge" style="background:${info.b};color:${info.c};flex-shrink:0;margin-left:8px">${info.l}</span>
+            </div>
+            <div style="font-size:.7rem;color:var(--mt);margin-bottom:8px">Pedido em ${p.dataStr}${totalPcs?' · '+totalPcs+' peças':''}</div>
+            <div style="font-size:.8rem;line-height:1.6;margin-bottom:6px">
+              ${(p.cores||[]).map(x=>{
+                const qtdStr=Object.entries(x.qtds||{}).map(([t,q])=>`${t}:${q}`).join(' · ');
+                const respStr=p.respCores?.[x.cor]?Object.entries(p.respCores[x.cor]).map(([t,q])=>`${t}:${q}`).join(' · '):'';
+                return`<div style="display:flex;flex-wrap:wrap;align-items:baseline;gap:4px;margin-bottom:2px">
+                  <span style="font-weight:600;color:var(--tx)">${x.cor}</span>
+                  <span style="color:var(--mt);font-size:.75rem">${qtdStr}</span>
+                  ${respStr?`<span style="color:#27ae60;font-size:.72rem">↳ confirmado: ${respStr}</span>`:''}
+                </div>`;
+              }).join('')}
+            </div>
+            ${p.obs?`<div style="font-size:.73rem;color:#8B4513;background:#FFF3CD;border-radius:5px;padding:3px 8px;margin-bottom:4px">⚠ ${p.obs}</div>`:''}
+            ${p.respObs?`<div style="font-size:.73rem;color:var(--c2);background:var(--b2);border-radius:5px;padding:3px 8px">💬 ${p.respObs}</div>`:''}
+          </div>`;
+        }).join('')}
+      </div>`;
+    }).join('');
+    document.getElementById('main-content').innerHTML=`<div style="padding:12px 16px 28px">${sections||'<div class="empty">Nenhum pedido ainda</div>'}</div>`;
+    renderStatsPedidos();
+    return;
+  }
   const canResp=['estoque','daimartha'].includes(user);
   const canTransf=user==='daimartha';
   const canRec=user==='gerente';
