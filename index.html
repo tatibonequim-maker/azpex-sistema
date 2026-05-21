@@ -2209,7 +2209,7 @@ async function syncAll(silent){
         cores:parseCores(str(r.CORES)),
         checksDesc:parseChecks(str(r.CHECKS_DESC)),
         numCorte:str(r.NUM_CORTE),dataDesc:str(r.DATA_DESCANSO),impresso:str(r.IMPRESSO)||'',
-        tipo:str(r.TIPO_CHEGADA),carolObs:str(r.CAROL_OBS),giObs:str(r.GI_OBS),
+        tipo:str(r.TIPO_CHEGADA),carolObs:str(r.CAROL_OBS),giObs:str(r.GI_OBS),giQtd:safeJSON(str(r.GI_QTD),{}),
         status:mapStatus(str(r.STATUS)),_row:r._row,
         fotoLocal:fotoMap[str(r.ID)]||'',
       }));
@@ -2708,7 +2708,7 @@ function cardBase(c){
     ${(c.obs||c.encObs)?`<div style="font-size:.73rem;color:#8B4513;background:#FFF3CD;border-radius:5px;padding:3px 7px;margin-bottom:5px;line-height:1.3">⚠ ${[c.obs,c.encObs].filter(Boolean).join(' · ')}</div>`:''}
     <div class="ctags">
       ${c.tec?`<span class="tag tg">${c.tec}</span>`:''}
-      ${c.tin?`<span style="font-size:.72rem;padding:2px 7px;border-radius:20px;background:#F1EFE8;color:#5F5E5A">${c.tin}</span>`:''}
+      ${c.tin&&c.status!=='AGUARDANDO_GI'?`<span style="font-size:.72rem;padding:2px 7px;border-radius:20px;background:#F1EFE8;color:#5F5E5A">${c.tin}</span>`:''}
       ${c.grade?`<span style="font-size:.78rem;padding:3px 9px;border-radius:20px;font-family:'DM Mono',monospace;background:#E1F5EE;color:#085041;font-weight:600">${c.grade}</span>`:''}
       ${c.numCorte?`<span style="font-size:.78rem;padding:3px 9px;border-radius:20px;font-family:'DM Mono',monospace;background:var(--b3);color:var(--c3);font-weight:600">OP: ${c.numCorte}</span>`:''}
       ${total?`<span class="tag" style="background:var(--al);color:var(--ac)">~${total} pç</span>`:''}
@@ -3227,6 +3227,18 @@ async function giArquivar(id){
   await push(c._row,[['STATUS','ARQUIVADO']]);
 }
 
+async function salvarDecisaoGI(id){
+  const c=cortes.find(x=>x.id===id);if(!c)return;
+  const sizes=(c.grade||'').split(' ').filter(Boolean);
+  const qtd={};
+  sizes.forEach(s=>{const v=document.getElementById('gi-q-'+s)?.value||'';if(v)qtd[s]=v;});
+  const obs=document.getElementById('gi-obs')?.value.trim()||'';
+  c.giQtd=qtd;c.giObs=obs;c.status='EMBALAR';
+  sl();cl('ov-det');render();
+  toast('✔ Aprovado para embalar!','s');
+  await push(c._row,[['GI_QTD',JSON.stringify(qtd)],['GI_OBS',obs],['STATUS','EMBALAR']]);
+}
+
 async function estoqueSeparou(id){
   const c=cortes.find(x=>x.id===id);if(!c)return;
   c.status='PRONTO_RETIRADA';
@@ -3257,6 +3269,61 @@ async function reprovar(id){
 function openDet(id){
   const c=cortes.find(x=>x.id===id);if(!c)return;
   const info=csi(c.status);
+
+  // Visão simplificada para decisão de envio
+  if(c.status==='AGUARDANDO_GI'&&['gerente','taty','carol'].includes(user)){
+    const sizes=(c.grade||'').split(' ').filter(Boolean);
+    const enc=parseFloat(c.encM)||0;
+    const folhas=enc&&c.rolo?Math.floor(parseFloat(c.rolo)/enc):0;
+    document.getElementById('det-c').innerHTML=`
+      <div class="mhd">
+        <div class="mti">${c.id}${c.ref?' · '+c.ref:''}</div>
+        <button class="xb" onclick="cl('ov-det')">×</button>
+      </div>
+      <div style="margin-bottom:11px">
+        <div style="font-size:.98rem;font-weight:600;margin-bottom:4px">${c.nome}</div>
+        <span style="background:${info.b};color:${info.c};font-size:.7rem;padding:3px 8px;border-radius:20px;font-weight:500">${info.l}</span>
+        ${c.urg?'<span class="tag tur" style="margin-left:5px">⚡</span>':''}
+        ${c.tipo?`<span style="background:${c.tipo==='novidade'?'var(--b6)':'var(--b2)'};color:${c.tipo==='novidade'?'var(--c6)':'var(--c2)'};font-size:.7rem;padding:3px 8px;border-radius:20px;font-weight:500;margin-left:5px">${c.tipo}</span>`:''}
+      </div>
+      ${c.obs?`<div class="obs-box">Obs: ${c.obs}</div>`:''}
+      ${c.encObs?`<div class="obs-box obs-bl">Obs. Edvaldo: ${c.encObs}</div>`:''}
+      ${c.cores?.length?`
+        <div style="margin:10px 0 6px">
+          <div class="sl">Cores</div>
+          ${c.cores.map(x=>`<div class="df"><span class="dk">${x.cor}</span><span class="dv">${x.qtd} rolo(s)</span></div>`).join('')}
+        </div>`:''}
+      ${sizes.length&&folhas?`
+        <div style="margin-bottom:10px">
+          <div class="sl">Estimativa por grade</div>
+          ${sizes.map(s=>`<div class="df"><span class="dk">${s}</span><span class="dv">~${folhas} pç</span></div>`).join('')}
+        </div>`:''}
+      <div style="margin-bottom:12px">
+        <div class="sl">Peças a separar por grade</div>
+        <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(64px,1fr));gap:6px;margin-top:8px">
+          ${sizes.length?sizes.map(s=>`
+            <div style="text-align:center">
+              <div style="font-size:.7rem;color:var(--mt);margin-bottom:3px;font-weight:700;text-transform:uppercase">${s}</div>
+              <input id="gi-q-${s}" type="number" min="0" placeholder="0"
+                style="width:100%;background:var(--s2);border:.5px solid var(--bd);border-radius:8px;padding:7px 4px;font-size:16px;text-align:center;color:var(--tx);outline:none"
+                value="${c.giQtd?.[s]||''}">
+            </div>`).join(''):`<div style="font-size:.8rem;color:var(--mt)">Grade não definida</div>`}
+        </div>
+      </div>
+      <div class="fg full" style="margin-bottom:14px">
+        <label class="fl">Obs. de envio (opcional)</label>
+        <input class="fi" id="gi-obs" placeholder="Instruções para embalar..." value="${c.giObs||''}">
+      </div>
+      <div class="agroup">
+        <div style="display:flex;flex-direction:column;gap:7px">
+          <button class="abtn" style="background:var(--b3);color:var(--c3)" onclick="salvarDecisaoGI('${c.id}')">✔ Enviar para loja</button>
+          <button class="abtn abtn-danger" onclick="cl('ov-det');giArquivar('${c.id}')">✕ Não precisamos</button>
+        </div>
+      </div>`;
+    op('ov-det');
+    return;
+  }
+
   const steps=['AGUARDANDO_ENCAIXE','AGUARDANDO_APROVACAO','DEFINIR_CORES','DESCANSAR_TECIDO','TECIDO_DESCANSADO','NO_CORTE','AG_FOTO','SEPARAR_ENVIO','EMBALAR','PRONTO_RETIRADA'];
   const iStep=steps.indexOf(c.status);
   document.getElementById('det-c').innerHTML=`
@@ -3293,6 +3360,7 @@ function openDet(id){
         return`<div class="df"><span class="dk">${x.cor} · ${x.qtd} rolo(s)</span><span class="dv">${pecas?'~'+pecas+' pç':''}</span></div>`;
       }).join('');
     })()}</div>`:''}
+    ${c.giQtd&&Object.keys(c.giQtd).length?`<div style="margin-top:8px"><div class="sl">Separar por grade</div>${Object.entries(c.giQtd).filter(([,v])=>v).map(([s,v])=>`<div class="df"><span class="dk">${s}</span><span class="dv">${v} pç</span></div>`).join('')}</div>`:''}
     ${c.obs?`<div class="obs-box">Obs: ${c.obs}</div>`:''}
     ${c.encObs?`<div class="obs-box obs-bl">Obs. Edvaldo: ${c.encObs}</div>`:''}
     ${c.carolObs?`<div class="obs-box" style="background:var(--b6);color:var(--c6)">Obs. Carol: ${c.carolObs}</div>`:''}
@@ -3307,7 +3375,6 @@ function openDet(id){
       ${(user==='taty'||user==='daimartha')&&c.status==='NO_CORTE'?`
         <button class="abtn" style="background:var(--b2);color:var(--c2)" onclick="cl('ov-det');marcarChegada('${c.id}','reposicao')">📦 Reposição</button>
         <button class="abtn" style="background:var(--b6);color:var(--c6)" onclick="cl('ov-det');marcarChegada('${c.id}','novidade')">✨ Novidade</button>`:''}
-      ${(['gerente','taty','carol'].includes(user))&&c.status==='AGUARDANDO_GI'?`<div style="display:flex;flex-direction:column;gap:7px"><button class="abtn" style="background:var(--b3);color:var(--c3)" onclick="cl('ov-det');aprovarEnvio('${c.id}')">✔ Enviar para loja</button><button class="abtn abtn-danger" onclick="cl('ov-det');giArquivar('${c.id}')">✕ Não precisamos</button></div>`:''}
       ${user==='daimartha'&&c.status==='EMBALAR'?`<button class="abtn" style="background:var(--b3);color:var(--c3)" onclick="cl('ov-det');transmissaoMire('${c.id}')">✔ Transmissão Miré feita</button>`:''}
       ${user==='gerente'&&c.status==='PRONTO_RETIRADA'?`<button class="abtn" style="background:var(--b3);color:var(--c3)" onclick="cl('ov-det');arquivar('${c.id}')">✔ Recebido — arquivar</button>`:''}
       ${cfg.wedv&&c.status==='AGUARDANDO_ENCAIXE'?`<a href="https://wa.me/${cfg.wedv}?text=${encodeURIComponent('📐 Azpex\n*'+c.id+' — '+c.nome+'*\nRef: '+c.ref+'\nAguardando encaixe.\nTecido: '+c.tec+' · Grade: '+c.grade+(c.urg?'\n⚡ URGENTE':''))}" target="_blank" style="text-decoration:none"><button class="abtn abtn-wpp">📱 Avisar Edvaldo</button></a>`:''}
