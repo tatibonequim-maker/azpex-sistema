@@ -2820,7 +2820,8 @@ function cardRosana(c){
       </div>
     </div>
     <div class="cnome">${c.nome}</div>
-    ${(c.obs||c.encObs)?`<div style="font-size:.73rem;color:#8B4513;background:#FFF3CD;border-radius:5px;padding:3px 7px;margin-bottom:5px">⚠ ${[c.obs,c.encObs].filter(Boolean).join(' · ')}</div>`:''}
+    ${c.obs?`<div style="font-size:.73rem;color:#8B4513;background:#FFF3CD;border-radius:5px;padding:3px 7px;margin-bottom:4px">⚠ ${c.obs}</div>`:''}
+    ${c.encObs?`<div style="font-size:.73rem;color:#5B3A8E;background:#F0EBFF;border-radius:5px;padding:3px 7px;margin-bottom:5px">📐 Obs. encaixe: ${c.encObs}</div>`:''}
     <div style="margin:4px 0 6px">${tempoChipHTML(c)}</div>
     <div class="ctags">${c.grade?`<span style="font-size:.78rem;padding:3px 9px;border-radius:20px;font-family:'DM Mono',monospace;background:#E1F5EE;color:#085041;font-weight:600">${c.grade}</span>`:''}</div>
     ${miniInfoCorte(c)}
@@ -2849,7 +2850,8 @@ function cardRosanaNC(c){
       <button onclick="openDet('${c.id}')" style="background:none;border:.5px solid var(--bd);border-radius:6px;padding:3px 7px;font-size:.68rem;color:var(--mt);cursor:pointer">Ver detalhes</button>
     </div>
     <div class="cnome">${c.nome}</div>
-    ${(c.obs||c.encObs)?`<div style="font-size:.73rem;color:#8B4513;background:#FFF3CD;border-radius:5px;padding:3px 7px;margin-bottom:5px">⚠ ${[c.obs,c.encObs].filter(Boolean).join(' · ')}</div>`:''}
+    ${c.obs?`<div style="font-size:.73rem;color:#8B4513;background:#FFF3CD;border-radius:5px;padding:3px 7px;margin-bottom:4px">⚠ ${c.obs}</div>`:''}
+    ${c.encObs?`<div style="font-size:.73rem;color:#5B3A8E;background:#F0EBFF;border-radius:5px;padding:3px 7px;margin-bottom:5px">📐 Obs. encaixe: ${c.encObs}</div>`:''}
     <div style="margin:4px 0 6px">${tempoChipHTML(c)}</div>
     ${miniInfoCorte(c)}
     <div style="font-size:.75rem;color:var(--c3);font-weight:500;margin-bottom:6px">✔ Tecidos descansados</div>
