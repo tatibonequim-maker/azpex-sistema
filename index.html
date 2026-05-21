@@ -2490,62 +2490,13 @@ function renderCortesTaty(){
     </div>`;
   }).join('')}</div>`;
 
-  // sidebar — alertas
-  const nApr=cnt('AGUARDANDO_APROVACAO');
-  const nCores=cnt('DEFINIR_CORES');
-  const nUrgOf=cortes.filter(c=>c.urg&&c.status==='NO_CORTE').length;
-  const nParados=cortes.filter(c=>!['ARQUIVADO','PRONTO_RETIRADA'].includes(c.status)&&tempoDecorrido(c).nivel>=2).length;
-  const alertas=[
-    nApr&&{cor:'#EF4444',txt:`${nApr} ${nApr===1?'item aguarda':'itens aguardam'} aprovação`,s:'AGUARDANDO_APROVACAO'},
-    nCores&&{cor:'#8B5CF6',txt:`${nCores} cortes sem cor definida`,s:'DEFINIR_CORES'},
-    nUrgOf&&{cor:'#F59E0B',txt:`${nUrgOf} ${nUrgOf===1?'peça urgente':'peças urgentes'} na oficina`,s:'NO_CORTE'},
-    nParados&&{cor:'#F97316',txt:`${nParados} ${nParados===1?'item parado':'itens parados'} há 2+ dias`,s:''},
-  ].filter(Boolean);
-  const alertasHTML=alertas.length?alertas.map(a=>`
-    <div class="sb-alert" onclick="${a.s?`setFiltroStatus('${a.s}')`:``}">
-      <div class="sb-alert-dot" style="background:${a.cor}"></div>
-      <div class="sb-alert-text">${a.txt}</div>
-    </div>`).join(''):'<div style="font-size:.8rem;color:var(--mt);padding:4px 0">Nenhum alerta no momento ✨</div>';
-
-  // sidebar — prioridades
-  const pris=[...cortes.filter(c=>!['ARQUIVADO','PRONTO_RETIRADA'].includes(c.status))]
-    .sort((a,b)=>{
-      const ua=a.urg?2:0,ub=b.urg?2:0;
-      const ta=tempoDecorrido(a).nivel,tb=tempoDecorrido(b).nivel;
-      return(ub+tb)-(ua+ta);
-    }).slice(0,6);
-  const priColors={0:'#6B7280',1:'#F59E0B',2:'#EF4444'};
-  const priLabels={0:'Baixa',1:'Média',2:'Alta'};
-  const prisHTML=pris.length?pris.map(c=>{
-    const t=tempoDecorrido(c);const nivel=c.urg?2:t.nivel;
-    return`<div class="sb-pri" onclick="openDet('${c.id}')">
-      <div class="sb-pri-id">${c.ref||c.id}</div>
-      <div class="sb-pri-info">
-        <div class="sb-pri-name">${c.nome}</div>
-        <div class="sb-pri-meta">${csi(c.status).l}${t.texto?' · '+t.texto:''}</div>
-      </div>
-      <span class="sb-pri-badge" style="background:${priColors[nivel]}22;color:${priColors[nivel]}">${priLabels[nivel]}</span>
-    </div>`;}).join(''):'<div style="font-size:.8rem;color:var(--mt)">Nenhuma prioridade</div>';
-
-  // sidebar — resumo operacional
   const emProd=cortes.filter(c=>!['ARQUIVADO','PRONTO_RETIRADA'].includes(c.status)).length;
   const repos=cortes.filter(c=>!['ARQUIVADO','PRONTO_RETIRADA'].includes(c.status)&&(c.tipo||'reposicao')==='reposicao').length;
   const novidades=cortes.filter(c=>!['ARQUIVADO','PRONTO_RETIRADA'].includes(c.status)&&c.tipo==='novidade').length;
-  const emPrep=cnt('DESCANSAR_TECIDO')+cnt('TECIDO_DESCANSADO')+cnt('AGUARDANDO_ENCAIXE');
-  const prontos=cnt('PRONTO_RETIRADA');
   const atrasados=cortes.filter(c=>!['ARQUIVADO','PRONTO_RETIRADA'].includes(c.status)&&tempoDecorrido(c).nivel>=2).length;
-  const pedPend=pedidos.filter(p=>['PENDENTE','SEPARANDO'].includes(p.status)).length;
   const allCols=fases.flatMap(f=>f.cols);
   const totalBoard=allCols.reduce((sum,col)=>sum+cnt(col.s),0);
   const statusBtns=allCols.map(col=>`<button class="taty-chip${statusFilter===col.s?' on':''}" onclick="setFiltroStatus('${col.s}')">${col.l} <span class="fm">${cnt(col.s)}</span></button>`).join('');
-
-  // sidebar — atividade recente
-  const recentHTML=activityLog.length?activityLog.slice(0,6).map(a=>`
-    <div class="sb-act-item">
-      <div class="sb-act-dot" style="background:${a.color}"></div>
-      <div class="sb-act-text">${a.text}</div>
-      <div class="sb-act-time">${_agoText(a.ts)}</div>
-    </div>`).join(''):'<div style="font-size:.8rem;color:var(--mt)">Nenhuma atividade registrada</div>';
 
   document.getElementById('main-content').innerHTML=`
     <div class="taty-overview">
@@ -2560,45 +2511,7 @@ function renderCortesTaty(){
       <button class="taty-chip${tipoFilter==='novidade'?' on':''}" onclick="setTipoFilter('novidade')">Novidade <span class="fm">${novidades}</span></button>
       ${statusBtns}
     </div>
-    <div class="taty-layout">
-      <div class="taty-board">${boardHTML}</div>
-      <div class="taty-sidebar">
-        <div class="sb-card">
-          <div class="sb-title">🔔 Alertas do dia</div>
-          ${alertasHTML}
-        </div>
-        <div class="sb-card">
-          <div class="sb-title">⭐ Prioridades</div>
-          ${prisHTML}
-          <div style="margin-top:8px"><button class="sb-act-btn" style="width:100%" onclick="setFiltroStatus('')">Ver todas prioridades →</button></div>
-        </div>
-        <div class="sb-card">
-          <div class="sb-title">📊 Resumo operacional</div>
-          <div class="sb-metrics">
-            <div class="sb-metric"><div class="sb-metric-v">${emProd}</div><div class="sb-metric-l">Em produção</div></div>
-            <div class="sb-metric"><div class="sb-metric-v">${emPrep}</div><div class="sb-metric-l">Em preparação</div></div>
-            <div class="sb-metric"><div class="sb-metric-v">${prontos}</div><div class="sb-metric-l">Prontos hoje</div></div>
-            <div class="sb-metric${atrasados>0?' danger':''}"><div class="sb-metric-v">${atrasados}</div><div class="sb-metric-l">Atrasados</div></div>
-          </div>
-          ${pedPend?`<div style="margin-top:8px;padding:8px;background:var(--b1);border-radius:var(--r8);font-size:.78rem;color:var(--c1);font-weight:600;cursor:pointer" onclick="setSection('pedidos')">🛒 ${pedPend} ${pedPend===1?'pedido pendente':'pedidos pendentes'} na loja</div>`:''}
-        </div>
-        <div class="sb-card">
-          <div class="sb-title">⚡ Ações rápidas</div>
-          <div class="sb-actions">
-            ${user==='taty'?`<button class="sb-act-btn" onclick="openNovo()">+ Novo corte</button>`:''}
-            <button class="sb-act-btn" onclick="setFiltroUrgentes()">⚡ Urgentes</button>
-            <button class="sb-act-btn" onclick="setFiltroStatus('DEFINIR_CORES')">Sem cor</button>
-            ${user==='taty'?`<button class="sb-act-btn" onclick="setSection('pedidos')">Pedidos da loja</button>`:''}
-            ${user==='carol'?`<button class="sb-act-btn" onclick="openNovo()">+ Novo corte</button>`:''}
-          </div>
-        </div>
-        <div class="sb-card">
-          <div class="sb-title">🕐 Atividade recente</div>
-          <div class="sb-activity">${recentHTML}</div>
-          ${activityLog.length?`<div style="margin-top:8px"><button class="sb-act-btn" style="width:100%" onclick="activityLog=[];localStorage.removeItem('az_activity');render()">Limpar histórico</button></div>`:''}
-        </div>
-      </div>
-    </div>`;
+    <div class="taty-board">${boardHTML}</div>`;
   renderStats();
 }
 
