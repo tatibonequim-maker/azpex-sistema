@@ -2080,12 +2080,11 @@ function initApp(){
   if(user==='gerente') cortesLabel='Reposições';
   if(user==='estoque') cortesLabel='Embalar';
 
-  const defaultSection=isTaty||user==='estoque'?'dashboard':isVend?'pedidos':'cortes';
+  const defaultSection=isTaty?'cortes':user==='estoque'?'dashboard':isVend?'pedidos':'cortes';
   stabsEl.style.display='flex';
   if(isTaty){
     stabsEl.innerHTML=`
-      <button class="stab on" onclick="setSection('dashboard',this)">Visão do dia</button>
-      <button class="stab" onclick="setSection('cortes',this)">Cortes</button>
+      <button class="stab on" onclick="setSection('cortes',this)">Cortes</button>
       <button class="stab" onclick="setSection('pedidos',this)">Pedidos</button>`;
   } else if(user==='estoque'){
     stabsEl.innerHTML=`
