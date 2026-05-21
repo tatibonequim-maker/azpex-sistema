@@ -2680,7 +2680,8 @@ function renderCortes(){
 }
 
 function corteCardHTML(c){
-  if(user==='edvaldo')return cardEdvaldo(c);
+  if(user==='edvaldo'&&(c.status==='AGUARDANDO_ENCAIXE'||c.status==='ENCAIXE_REPROVADO'))return cardEdvaldo(c);
+  if(user==='edvaldo')return cardEdvaldoInfo(c);
   if(user==='taty'&&(c.status==='AGUARDANDO_ENCAIXE'||c.status==='ENCAIXE_REPROVADO'))return cardEdvaldo(c);
   if((user==='rosana'||user==='taty')&&c.status==='DESCANSAR_TECIDO')return cardRosana(c);
   if((user==='rosana'||user==='taty')&&c.status==='TECIDO_DESCANSADO'&&!c.numCorte)return cardRosanaNC(c);
