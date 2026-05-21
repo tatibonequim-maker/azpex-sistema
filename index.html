@@ -2352,7 +2352,7 @@ function getVisCortes(){
   if(filtro==='minha'){
     if(user==='edvaldo')list=list.filter(c=>c.status==='AGUARDANDO_ENCAIXE'||c.status==='ENCAIXE_REPROVADO');
     if(user==='rosana')list=list.filter(c=>c.status==='DESCANSAR_TECIDO'||c.status==='TECIDO_DESCANSADO');
-    if(user==='daimartha')list=list.filter(c=>['NO_CORTE','AGUARDANDO_GI','EMBALAR','PRONTO_RETIRADA'].includes(c.status));
+    if(user==='daimartha')list=list.filter(c=>['NO_CORTE','AGUARDANDO_GI','PRONTO_RETIRADA'].includes(c.status));
     if(user==='carol')list=list.filter(c=>c.status==='AG_FOTO'||c.status==='FOTO_OK');
     if(user==='estoque')list=list.filter(c=>c.status==='EMBALAR');
   }
@@ -2392,7 +2392,6 @@ function getColsCortes(){
     {s:'NO_CORTE',l:'Corte / Oficina',c:'var(--c3)'},
     {s:'AG_FOTO',l:'Ag. foto Carol',c:'var(--c6)'},
     {s:'AGUARDANDO_GI',l:'Ag. decisão de envio',c:'var(--c8)'},
-    {s:'EMBALAR',l:'Embalar / Separar',c:'var(--c7)'},
     {s:'PRONTO_RETIRADA',l:'Pronto p/ retirada',c:'var(--c3)'},
   ];
   if(user==='carol')return[
@@ -2695,7 +2694,7 @@ function cardBase(c){
   const canCores=(user==='taty'||user==='carol')&&c.status==='DEFINIR_CORES';
   const total=(user==='taty'||user==='carol')&&calcTotalPecas(c);
   const canGi=['gerente','taty','carol'].includes(user)&&c.status==='AGUARDANDO_GI';
-  const canDM=user==='daimartha'&&c.status==='EMBALAR';
+  const canDM=false;
   return`<div class="card" onclick="event.stopPropagation();${canCores?`openCores('${c.id}')`:`openDet('${c.id}')`}">
     <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:3px">
       <div>
@@ -3375,7 +3374,7 @@ function openDet(id){
       ${(user==='taty'||user==='daimartha')&&c.status==='NO_CORTE'?`
         <button class="abtn" style="background:var(--b2);color:var(--c2)" onclick="cl('ov-det');marcarChegada('${c.id}','reposicao')">📦 Reposição</button>
         <button class="abtn" style="background:var(--b6);color:var(--c6)" onclick="cl('ov-det');marcarChegada('${c.id}','novidade')">✨ Novidade</button>`:''}
-      ${user==='daimartha'&&c.status==='EMBALAR'?`<button class="abtn" style="background:var(--b3);color:var(--c3)" onclick="cl('ov-det');transmissaoMire('${c.id}')">✔ Transmissão Miré feita</button>`:''}
+      ${user==='estoque'&&c.status==='EMBALAR'?`<button class="abtn" style="background:var(--b3);color:var(--c3)" onclick="cl('ov-det');estoqueSeparou('${c.id}')">✔ Separado e pronto para retirada</button>`:''}
       ${user==='gerente'&&c.status==='PRONTO_RETIRADA'?`<button class="abtn" style="background:var(--b3);color:var(--c3)" onclick="cl('ov-det');arquivar('${c.id}')">✔ Recebido — arquivar</button>`:''}
       ${cfg.wedv&&c.status==='AGUARDANDO_ENCAIXE'?`<a href="https://wa.me/${cfg.wedv}?text=${encodeURIComponent('📐 Azpex\n*'+c.id+' — '+c.nome+'*\nRef: '+c.ref+'\nAguardando encaixe.\nTecido: '+c.tec+' · Grade: '+c.grade+(c.urg?'\n⚡ URGENTE':''))}" target="_blank" style="text-decoration:none"><button class="abtn abtn-wpp">📱 Avisar Edvaldo</button></a>`:''}
       ${cfg.wros&&(c.status==='DESCANSAR_TECIDO'||c.status==='DEFINIR_CORES')?`<a href="https://wa.me/${cfg.wros}?text=${encodeURIComponent('✂️ Azpex\n*'+c.id+' — '+c.nome+'*\nRef: '+c.ref+'\nTecido para descansar.\nCores:\n'+(c.cores||[]).map(x=>'• '+x.cor+' — '+x.qtd+' rolo(s)').join('\n')+(c.urg?'\n⚡ URGENTE':''))}" target="_blank" style="text-decoration:none"><button class="abtn abtn-wpp">📱 Avisar Rosana</button></a>`:''}
