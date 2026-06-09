@@ -1696,22 +1696,22 @@ h1, h2, h3, .heading {
     </div>
     <div class="fg2">
       <div class="fg"><label class="fl">ID</label><input class="fi" id="f-id" placeholder="Auto"></div>
-      <div class="fg"><label class="fl">Referência</label><input class="fi" id="f-ref" placeholder="ex: 2838"></div>
-      <div class="fg full"><label class="fl">Nome da peça *</label><input class="fi" id="f-nome" placeholder="ex: Calça Dakota Canela"></div>
-      <div class="fg full"><label class="fl">Data entrada</label>
+      <div class="fg"><label class="fl">Referência</label><input class="fi" id="f-ref" placeholder="ex: 2838" oninput="autoFillRef()"></div>
+      <div class="fg full"><label class="fl">Nome da peça *</label><input class="fi" id="f-nome" placeholder="ex: Calça Dakota Canela" oninput="this.dataset.auto='0'"></div>
+      <div class="fg full" id="fg-data"><label class="fl">Data entrada</label>
         <div class="drow">
           <input class="fi" id="f-data" type="date" style="flex:1">
           <button class="hoje-b" onclick="setHoje()">Hoje</button>
         </div>
       </div>
       <div class="fg full"><label class="fl">Tecido</label>
-        <select class="fsl" id="f-tec" onchange="autoFillRolo()"><option value="">Selecionar...</option></select>
+        <select class="fsl" id="f-tec" onchange="autoFillRolo();lookupEnc()"><option value="">Selecionar...</option></select>
       </div>
       <div class="fg"><label class="fl">Fornecedor</label>
         <select class="fsl" id="f-tin"><option value="">Selecionar...</option></select>
       </div>
       <div class="fg"><label class="fl">Grade</label>
-        <select class="fsl" id="f-grade"><option value="">Selecionar...</option></select>
+        <select class="fsl" id="f-grade" onchange="lookupEnc();calcPreview()"><option value="">Selecionar...</option></select>
       </div>
       <div class="fg full"><label class="fl">Retalho</label><input class="fi" id="f-ret" placeholder="ex: GG"></div>
       <div class="fg full"><label class="fl">Comprimento do rolo (m)</label>
@@ -1722,6 +1722,7 @@ h1, h2, h3, .heading {
         <select class="fsl" id="f-urg"><option value="nao">Não</option><option value="sim">⚡ Sim</option></select>
       </div>
     </div>
+    <div id="enc-preview"></div>
     <div id="calc-preview"></div>
     <div class="fact">
       <button class="bc" onclick="cl('ov-novo')">Cancelar</button>
@@ -3215,19 +3216,80 @@ function autoFillRolo(){
   calcPreview();
 }
 
+// ── AUTO-PREENCHIMENTO PELO HISTÓRICO (referência + grade + tecido) ──
+let autoEnc=null;
+function normRef(s){return (s||'').toString().trim().toLowerCase().replace(/^0+/,'');}
+function normGrade(s){return (s||'').toString().trim().toUpperCase().replace(/\s+/g,' ');}
+function normTec(s){return (s||'').toString().trim().toLowerCase();}
+function numBR(v){const n=parseFloat((v===null||v===undefined?'':v).toString().trim().replace(',','.'));return isNaN(n)?0:n;}
+
+function histByRef(ref){
+  const r=normRef(ref);if(!r)return[];
+  return cortes.filter(c=>normRef(c.ref)===r&&c.id!==editId)
+    .sort((a,b)=>(b._row||0)-(a._row||0));
+}
+
+function autoFillRef(){
+  if(editId)return;
+  const h=histByRef(document.getElementById('f-ref').value);
+  if(!h.length){lookupEnc();return;}
+  const top=h[0];
+  const nomeEl=document.getElementById('f-nome');
+  if(!nomeEl.value.trim()||nomeEl.dataset.auto==='1'){nomeEl.value=top.nome||'';nomeEl.dataset.auto='1';}
+  setSelIfEmpty('f-tec',top.tec);
+  setSelIfEmpty('f-tin',top.tin);
+  setSelIfEmpty('f-grade',top.grade);
+  autoFillRolo();lookupEnc();
+}
+
+function setSelIfEmpty(id,val){
+  const sel=document.getElementById(id);if(!sel||!val||sel.value)return;
+  for(let i=0;i<sel.options.length;i++){if(sel.options[i].value===val){sel.selectedIndex=i;return;}}
+  const opt=document.createElement('option');opt.value=val;opt.text=val;sel.appendChild(opt);sel.value=val;
+}
+
+function lookupEnc(){
+  autoEnc=null;
+  const prev=document.getElementById('enc-preview');
+  if(prev)prev.innerHTML='';
+  if(editId)return;
+  const ref=document.getElementById('f-ref')?.value||'';
+  const grade=document.getElementById('f-grade')?.value||'';
+  const tec=document.getElementById('f-tec')?.value||'';
+  if(!normRef(ref)||!grade||!tec)return;
+  const h=histByRef(ref).filter(c=>normGrade(c.grade)===normGrade(grade)&&normTec(c.tec)===normTec(tec)&&numBR(c.encM)>0);
+  if(!h.length){
+    if(prev)prev.innerHTML='<div style="font-size:.76rem;color:var(--mt);background:var(--s2);border-radius:7px;padding:8px;margin-top:8px">Sem encaixe no histórico para esta referência + grade + tecido — vai para a fila de encaixe normalmente.</div>';
+    return;
+  }
+  const top=h[0];
+  autoEnc={m:numBR(top.encM),pct:numBR(top.encPct)||'',src:top.id};
+  if(prev)prev.innerHTML=`<div class="calc-box" style="margin-top:10px;border:1px solid #0A7A52">
+    <div class="calc-ti" style="color:#0A7A52">✓ Encaixe do histórico (${top.id})</div>
+    <div class="calc-row"><span class="calc-k">Comprimento</span><span class="calc-v">${autoEnc.m}m</span></div>
+    <div class="calc-row"><span class="calc-k">Aproveitamento</span><span class="calc-v">${autoEnc.pct||'—'}%</span></div>
+    <div style="font-size:.72rem;color:var(--mt);margin-top:4px">Ao salvar, pula encaixe/aprovação e vai direto para <b>Definir cores</b>. <a href="#" onclick="autoEnc=null;document.getElementById('enc-preview').innerHTML='';return false" style="color:var(--mt)">não usar</a></div>
+  </div>`;
+}
+
 function openNovo(){
-  editId=null;
+  editId=null;autoEnc=null;
   document.getElementById('form-ti').textContent='Novo corte';
   ['f-id','f-ref','f-nome','f-ret','f-obs','f-rolo'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});
   ['f-tec','f-tin','f-grade'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});
   document.getElementById('f-urg').value='nao';
   document.getElementById('f-data').value=new Date().toISOString().split('T')[0];
+  document.getElementById('f-nome').dataset.auto='';
+  const fgData=document.getElementById('fg-data');if(fgData)fgData.style.display='none';
+  const encPrev=document.getElementById('enc-preview');if(encPrev)encPrev.innerHTML='';
   document.getElementById('calc-preview').innerHTML='';
   op('ov-novo');
 }
 
 function openEditar(id){
-  cl('ov-det');const c=cortes.find(x=>x.id===id);editId=id;
+  cl('ov-det');const c=cortes.find(x=>x.id===id);editId=id;autoEnc=null;
+  const fgDataE=document.getElementById('fg-data');if(fgDataE)fgDataE.style.display='';
+  const encPrevE=document.getElementById('enc-preview');if(encPrevE)encPrevE.innerHTML='';
   document.getElementById('form-ti').textContent='Editar corte';
   document.getElementById('f-id').value=c.id;
   document.getElementById('f-ref').value=c.ref||'';
@@ -3270,6 +3332,13 @@ async function salvarCorte(){
     encM:'',encPct:'',encObs:'',cores:[],checksDesc:{},numCorte:'',dataDesc:'',
     tipo:'',carolObs:'',giObs:'',fotoLocal:'',impresso:'',status:'AGUARDANDO_ENCAIXE',
   };
+  const aEnc=(!editId&&autoEnc&&autoEnc.m)?Object.assign({},autoEnc):null;
+  if(aEnc){
+    obj.encM=String(aEnc.m);
+    obj.encPct=String(aEnc.pct||'');
+    obj.encObs='Encaixe automático (histórico '+aEnc.src+')';
+    obj.status='DEFINIR_CORES';
+  }
   if(editId){
     const idx=cortes.findIndex(x=>x.id===editId);
     if(idx>-1){
@@ -3282,11 +3351,24 @@ async function salvarCorte(){
   } else {
     cl('ov-novo');toast('Salvando...','i');
     try{
-      const r=await pushNew({REF:obj.ref,NOME:obj.nome,DATA_ENTRADA:dout(obj.data).replace(/—/,''),TECIDO:obj.tec,TINTURARIA:obj.tin,GRADE:obj.grade,RETALHO:obj.ret,OBS:obj.obs,ROLO:obj.rolo,URGENTE:obj.urg?'sim':'nao'});
+      const dados={REF:obj.ref,NOME:obj.nome,DATA_ENTRADA:dout(obj.data).replace(/—/,''),TECIDO:obj.tec,TINTURARIA:obj.tin,GRADE:obj.grade,RETALHO:obj.ret,OBS:obj.obs,ROLO:obj.rolo,URGENTE:obj.urg?'sim':'nao'};
+      if(aEnc){dados.ENCAIXE_M=aEnc.m;dados.RENDIMENTO=aEnc.pct;dados.OBS_CAD=obj.encObs;dados.STATUS='DEFINIR_CORES';}
+      const r=await pushNew(dados);
       if(r?.ok&&r.id){
         obj.id=r.id;cortes.unshift(obj);sl();render();
-        toast('✅ Criado! '+r.id,'s');
-        setTimeout(()=>syncAll(true),1000);
+        toast(aEnc?'✅ Criado! '+r.id+' — direto p/ Definir cores':'✅ Criado! '+r.id,'s');
+        setTimeout(async()=>{
+          await syncAll(true);
+          if(aEnc){
+            const cc=cortes.find(x=>x.id===r.id);
+            if(cc&&cc._row&&(cc.status!=='DEFINIR_CORES'||!numBR(cc.encM))){
+              try{
+                await apip({action:'atualizarCampos',row:cc._row,campos:[['ENCAIXE_M',aEnc.m],['RENDIMENTO',aEnc.pct],['OBS_CAD','Encaixe automático (histórico '+aEnc.src+')'],['STATUS','DEFINIR_CORES']]});
+                setTimeout(()=>syncAll(true),1500);
+              }catch(e){console.error('auto-encaixe push:',e);}
+            }
+          }
+        },1200);
       } else {toast('Erro ao criar — tente novamente','w');console.error(r);}
     }catch(e){toast('Erro de conexão','w');console.error(e);}
   }
