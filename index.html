@@ -1869,7 +1869,6 @@ h1, h2, h3, .heading {
       <button class="bc" onclick="cl('ov-cores')">Cancelar</button>
       <button class="bs" id="cores-bt" style="background:#0A7A52" onclick="salvarCores()">Salvar cores</button>
     </div>
-    <div id="cores-wpp-btns" style="margin-top:10px;display:flex;flex-direction:column;gap:6px"></div>
   </div>
 </div>
 
@@ -1967,15 +1966,6 @@ h1, h2, h3, .heading {
       <div class="cfg-row"><span class="cfg-name">Vendedora C</span><input class="cfg-i" id="cfg-pvc" maxlength="4" type="password" placeholder="4 dígitos"></div>
       <div class="cfg-row"><span class="cfg-name">Gerente (Gi)</span><input class="cfg-i" id="cfg-pge" maxlength="4" type="password" placeholder="4 dígitos"></div>
       <button class="cfg-sv" onclick="savePins()">Salvar PINs</button>
-    </div>
-    <div class="cfg-sec">
-      <div class="cfg-l">WhatsApp — Números de contato</div>
-      <div class="cfg-row"><span class="cfg-name">Carol</span><input class="cfg-i" id="cfg-wcarol" placeholder="5511999999999"></div>
-      <div class="cfg-row"><span class="cfg-name">Dai/Martha</span><input class="cfg-i" id="cfg-wdm" placeholder="5511999999999"></div>
-      <div class="cfg-row"><span class="cfg-name">Gi/Bonequim</span><input class="cfg-i" id="cfg-wgi" placeholder="5511999999999"></div>
-      <div class="cfg-row"><span class="cfg-name">Edvaldo</span><input class="cfg-i" id="cfg-wedv" placeholder="5511999999999"></div>
-      <div class="cfg-row"><span class="cfg-name">Rosana</span><input class="cfg-i" id="cfg-wros" placeholder="5511999999999"></div>
-      <button class="cfg-sv" onclick="saveCfgWpp()">Salvar números</button>
     </div>
     <div class="cfg-sec">
       <div class="cfg-l">Grades personalizadas</div>
@@ -2886,6 +2876,8 @@ function cardTopo(c){
 function cardTaty(c){
   const apr=c.status==='AGUARDANDO_APROVACAO';
   const cor=c.status==='DEFINIR_CORES';
+  // A Taty tambem pode fazer o encaixe em vez de esperar o Edvaldo.
+  const enc=c.status==='AGUARDANDO_ENCAIXE'||c.status==='ENCAIXE_REPROVADO';
   return `<div class="card com-lapis${c.urg?' urg':''}">
     <button class="edit-mini" title="Editar este corte" aria-label="Editar corte ${esc(c.id)}"
       onclick="event.stopPropagation();openEditar(${jsq(c.id)})">✏️</button>
@@ -2899,7 +2891,8 @@ function cardTaty(c){
       ${apr?`<button class="act ok" onclick="event.stopPropagation();aprovar(${jsq(c.id)})">✔ Aprovar</button>
              <button class="act nao" title="Reprovar encaixe" onclick="event.stopPropagation();reprovar(${jsq(c.id)})">✕</button>`:''}
       ${cor?`<button class="act go" onclick="event.stopPropagation();openCores(${jsq(c.id)})">Definir cores</button>`:''}
-      ${(!apr&&!cor)?`<button class="act sec" style="flex:1" onclick="event.stopPropagation();openDet(${jsq(c.id)})">Ver detalhes</button>`:''}
+      ${enc?`<button class="act go" onclick="event.stopPropagation();openEditar(${jsq(c.id)})">Preencher encaixe</button>`:''}
+      ${(!apr&&!cor&&!enc)?`<button class="act sec" style="flex:1" onclick="event.stopPropagation();openDet(${jsq(c.id)})">Ver detalhes</button>`:''}
       <button class="act sec espera-b" title="Colocar em espera" onclick="event.stopPropagation();porEmEspera(${jsq(c.id)})">espera</button>
     </div>
   </div>`;
@@ -3585,12 +3578,8 @@ async function marcarChegada(id,tipo){
     await push(c._row,[['TIPO_CHEGADA','reposicao'],['STATUS','AGUARDANDO_GI']],c.id);
   }else{
     c.status='AG_FOTO';
-    toast('Novidade → avisando Carol para foto','s');
+    toast('Marcado como novidade','s');
     await push(c._row,[['TIPO_CHEGADA','novidade'],['STATUS','AG_FOTO']],c.id);
-    if(cfg.wcarol){
-      const msg=`📸 Azpex\nNovidade para foto!\n*${esc(c.id)} — ${esc(c.nome)}*\nGrade: ${esc(c.grade)}${c.numCorte?'\nCorte: '+c.numCorte:''}`;
-      window.open(`https://wa.me/${cfg.wcarol}?text=${encodeURIComponent(msg)}`,'_blank');
-    }
   }
   sl();render();
 }
@@ -3646,10 +3635,6 @@ async function carolAprovar(id){
   c.carolObs=obs;c.status='EMBALAR';
   sl();render();toast('Foto aprovada! Indo para embalar.','s');
   await push(c._row,[['CAROL_OBS',obs],['STATUS','EMBALAR']],c.id);
-  if(cfg.wdm){
-    const msg=`✨ Azpex\nNovidade liberada para embalar!\n*${esc(c.id)} — ${esc(c.nome)}*\nGrade: ${esc(c.grade)}`;
-    window.open(`https://wa.me/${cfg.wdm}?text=${encodeURIComponent(msg)}`,'_blank');
-  }
 }
 
 async function aprovarEnvio(id){
@@ -3682,10 +3667,6 @@ async function transmissaoMire(id){
   c.status='PRONTO_RETIRADA';
   sl();render();toast('Transmissão Miré feita! Pronto para retirada.','s');
   await push(c._row,[['STATUS','PRONTO_RETIRADA']],c.id);
-  if(cfg.wgi){
-    const msg=`✅ Azpex\nTransferência feita!\n*${esc(c.id)} — ${esc(c.nome)}*\nPronto para retirada na fábrica.`;
-    window.open(`https://wa.me/${cfg.wgi}?text=${encodeURIComponent(msg)}`,'_blank');
-  }
 }
 
 async function aprovar(id){
@@ -3767,9 +3748,8 @@ function openDet(id){
       ${user==='daimartha'&&c.status==='EMBALAR'?`<button class="abtn" style="background:var(--b3);color:var(--c3)" onclick="cl('ov-det');transmissaoMire(${jsq(c.id)})">✔ Transmissão Miré feita</button>`:''}
       ${user==='estoque'&&c.status==='EMBALAR'?`<button class="abtn" style="background:var(--b3);color:var(--c3)" onclick="cl('ov-det');estoqueSeparou(${jsq(c.id)})">✔ Embalado — pronto para retirada</button>`:''}
       ${user==='gerente'&&c.status==='PRONTO_RETIRADA'?`<button class="abtn" style="background:var(--b3);color:var(--c3)" onclick="cl('ov-det');arquivar(${jsq(c.id)})">✔ Recebido — arquivar</button>`:''}
-      ${cfg.wedv&&c.status==='AGUARDANDO_ENCAIXE'?`<a href="https://wa.me/${cfg.wedv}?text=${encodeURIComponent('📐 Azpex\n*'+c.id+' — '+c.nome+'*\nRef: '+c.ref+'\nAguardando encaixe.\nTecido: '+c.tec+' · Grade: '+c.grade+(c.urg?'\n⚡ URGENTE':''))}" target="_blank" style="text-decoration:none"><button class="abtn abtn-wpp">📱 Avisar Edvaldo</button></a>`:''}
-      ${cfg.wros&&(c.status==='DESCANSAR_TECIDO'||c.status==='DEFINIR_CORES')?`<a href="https://wa.me/${cfg.wros}?text=${encodeURIComponent('✂️ Azpex\n*'+c.id+' — '+c.nome+'*\nRef: '+c.ref+'\nTecido para descansar.\nCores:\n'+(c.cores||[]).map(x=>'• '+x.cor+' — '+x.qtd+' rolo(s)').join('\n')+(c.urg?'\n⚡ URGENTE':''))}" target="_blank" style="text-decoration:none"><button class="abtn abtn-wpp">📱 Avisar Rosana</button></a>`:''}
-      ${cfg.wcarol&&c.status==='AG_FOTO'?`<a href="https://wa.me/${cfg.wcarol}?text=${encodeURIComponent('📸 Azpex\n*'+c.id+' — '+c.nome+'*\nRef: '+c.ref+'\nNovidade aguardando foto!\nGrade: '+c.grade+(c.numCorte?' · OP: '+c.numCorte:'')+(c.urg?'\n⚡ URGENTE':''))}" target="_blank" style="text-decoration:none"><button class="abtn abtn-wpp">📱 Avisar Carol</button></a>`:''}
+      <!-- Os botoes de aviso por WhatsApp sairam a pedido da Taty: quem tem
+           que ver a peca ja a ve na propria tela. -->
     </div>`;
   op('ov-det');
 }
@@ -3964,8 +3944,16 @@ async function salvarCorte(){
       ['status','encM','encPct','encObs','cores','checksDesc','numCorte','dataDesc','tipo','carolObs','giObs','fotoLocal','impresso','_row'].forEach(k=>{obj[k]=o[k];});
       obj.encM=(document.getElementById('f-encm')?.value||'').trim();
       obj.encPct=(document.getElementById('f-encp')?.value||'').trim();
+      // A Taty e a Cinthia tambem fazem encaixe. Se o comprimento esta
+      // preenchido e a peca ainda esta na fila do Edvaldo (ou voltou para
+      // refazer), ela nao precisa esperar por ele nem ser aprovada por quem
+      // acabou de fazer: vai direto para Definir cores.
+      const naFilaEnc=obj.status==='AGUARDANDO_ENCAIXE'||obj.status==='ENCAIXE_REPROVADO';
+      const pulou=naFilaEnc&&numBR(obj.encM)>0;
+      if(pulou){obj.status='DEFINIR_CORES';obj.encObs='';}
       cortes[idx]=obj;
-      sl();cl('ov-novo');render();toast('✏️ Atualizado!','s');
+      sl();cl('ov-novo');render();
+      toast(pulou?'✔ Encaixe preenchido — foi direto para Definir cores':'✏️ Atualizado!','s');
       // NOME, REF e DATA_ENTRADA sao editaveis no formulario mas NAO eram
       // enviados: corrigir um nome funcionava por 30s e depois o sync trazia
       // o texto antigo de volta. Nao havia como consertar um nome errado.
@@ -3973,7 +3961,8 @@ async function salvarCorte(){
         ['REF',obj.ref],['NOME',obj.nome],['DATA_ENTRADA',dout(obj.data).replace(/—/,'')],
         ['TECIDO',obj.tec],['TINTURARIA',obj.tin],['GRADE',obj.grade],
         ['RETALHO',obj.ret],['OBS',obj.obs],['ROLO',obj.rolo],['URGENTE',obj.urg?'sim':'nao'],
-        ['ENCAIXE_M',obj.encM],['RENDIMENTO',obj.encPct]
+        ['ENCAIXE_M',obj.encM],['RENDIMENTO',obj.encPct],
+        ...(pulou?[['STATUS','DEFINIR_CORES'],['OBS_CAD','']]:[])
       ],obj.id);
     } else {
       toast('Este corte foi removido por outro usuario.','w');
@@ -4059,11 +4048,6 @@ function openCores(id){
   const btEl=document.getElementById('cores-bt');
   if(btEl)btEl.textContent=jaTem?'Salvar alterações':'Salvar cores';
   if(jaTem)c.cores.forEach(x=>addCor(x.cor,x.qtd));else addCor();
-  const wppDiv=document.getElementById('cores-wpp-btns');
-  if(wppDiv&&cfg.wros){
-    const msg=encodeURIComponent('✂️ Azpex\n*'+c.nome+'*\nGrade: '+c.grade+'\nCores para descansar.');
-    wppDiv.innerHTML=`<a href="https://wa.me/${cfg.wros}?text=${msg}" target="_blank" style="text-decoration:none"><button class="abtn abtn-wpp" style="width:100%;padding:8px">📱 Avisar Rosana</button></a>`;
-  }
   op('ov-cores');
 }
 
@@ -4451,15 +4435,10 @@ function receberPedido(id){
 function openCfg(){
   document.getElementById('cfg-pins-sec').style.display=user==='taty'?'':'none';
   if(cfg.url)document.getElementById('cfg-url').value=cfg.url;
-  ['wcarol','wdm','wgi','wedv','wros'].forEach(k=>{const el=document.getElementById('cfg-'+k);if(el&&cfg[k])el.value=cfg[k];});
   if(cfg.customGrades)document.getElementById('cfg-grades').value=cfg.customGrades;
   op('ov-cfg');
 }
 function saveCfgUrl(){cfg.url=document.getElementById('cfg-url').value.trim();localStorage.setItem('az_cfg',JSON.stringify(cfg));toast('Conectado!','i');cl('ov-cfg');setTimeout(syncAll,400);}
-function saveCfgWpp(){
-  ['wcarol','wdm','wgi','wedv','wros'].forEach(k=>{const v=document.getElementById('cfg-'+k)?.value.trim();if(v)cfg[k]=v;});
-  localStorage.setItem('az_cfg',JSON.stringify(cfg));toast('Números salvos!','s');
-}
 function saveGrades(){cfg.customGrades=document.getElementById('cfg-grades').value.trim();localStorage.setItem('az_cfg',JSON.stringify(cfg));populateSels();toast('Grades atualizadas!','s');}
 
   
