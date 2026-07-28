@@ -1494,15 +1494,40 @@ h1, h2, h3, .heading {
 .obs.obs-rep{background:var(--b4);color:var(--c4)}
 
 /* amostras de tecido */
-.pontos{display:flex;align-items:center;gap:4px;margin:0 0 9px;flex-wrap:wrap}
-.ponto{width:14px;height:14px;border-radius:50%;flex-shrink:0;
-  border:1px solid rgba(0,0,0,.2)}
-.pontos-n{font-size:.68rem;color:var(--mts);margin-left:3px}
 .amostra{width:20px;height:20px;border-radius:6px;flex-shrink:0;
   border:1px solid rgba(0,0,0,.2);box-shadow:inset 0 1px 2px rgba(255,255,255,.25)}
+.amostra.sm{width:14px;height:14px;border-radius:4px}
+
+/* lista de cores escrita (visao da Taty) */
+.cores-min{display:block;width:100%;text-align:left;background:var(--bg);
+  border:1px solid var(--bd);border-radius:var(--r8);padding:7px 8px;margin:0 0 9px}
+.cores-min.ed{cursor:pointer;transition:border-color .13s}
+.cores-min.ed:hover{border-color:var(--ac)}
+.cores-min-hd{display:flex;justify-content:space-between;align-items:center;
+  gap:6px;margin-bottom:5px}
+.cores-min-hd>.cores-l,.cores-min-hd>.cores-n{white-space:nowrap;overflow:hidden;
+  text-overflow:ellipsis}
+.cores-min-hd>.cores-n{font-size:.68rem;padding:2px 8px}
+.cores-ed{font-size:.66rem;font-weight:700;color:var(--ac);white-space:nowrap;
+  flex-shrink:0}
+.cor-li{display:flex;align-items:center;gap:7px;padding:2px 0;min-width:0}
+.cor-li .cor-n{font-size:.78rem}
+.cor-li .cor-q{font-size:.7rem}
+.cor-li.ok .cor-n{color:var(--c3)}
+.cor-ck{width:13px;flex-shrink:0;text-align:center;font-size:.74rem;
+  font-weight:800;color:var(--mts)}
+.cor-li.ok .cor-ck{color:var(--c3)}
+.cor-mais{font-size:.68rem;color:var(--mts);margin-top:3px}
 
 /* botões do card */
-.acts{display:flex;gap:7px;margin-top:2px}
+.acts{display:flex;flex-wrap:wrap;gap:7px;margin-top:2px}
+/* lapis de edicao: fica no canto do card para nao roubar espaco dos botoes */
+.com-lapis .c-l1{padding-right:32px}
+.edit-mini{position:absolute;top:7px;right:7px;width:30px;height:30px;padding:0;
+  z-index:2;display:flex;align-items:center;justify-content:center;font-size:.78rem;
+  line-height:1;border-radius:8px;border:1px solid var(--bd);background:var(--sf);
+  cursor:pointer;opacity:.75;transition:opacity .13s,border-color .13s,background .13s}
+.edit-mini:hover,.edit-mini:focus-visible{opacity:1;border-color:var(--ac);background:var(--acl)}
 .act{flex:1;min-height:var(--tap);border-radius:var(--r8);border:none;
   font-size:.82rem;font-weight:700;background:var(--tx);color:#fff;padding:0 10px;
   transition:filter .13s}
@@ -1808,6 +1833,10 @@ h1, h2, h3, .heading {
       <div class="fg full"><label class="fl">Comprimento do rolo (m)</label>
         <input class="fi" id="f-rolo" type="text" inputmode="decimal" placeholder="ex: 30" oninput="calcPreview()">
       </div>
+      <div class="fg" id="fg-encm" style="display:none"><label class="fl">Encaixe (m)</label>
+        <input class="fi" id="f-encm" type="text" inputmode="decimal" placeholder="ex: 2,94"></div>
+      <div class="fg" id="fg-encp" style="display:none"><label class="fl">Aproveitamento (%)</label>
+        <input class="fi" id="f-encp" type="text" inputmode="decimal" placeholder="ex: 78,8"></div>
       <div class="fg full"><label class="fl">Observação</label><input class="fi" id="f-obs" placeholder="Observações gerais..."></div>
       <div class="fg"><label class="fl">Urgente?</label>
         <select class="fsl" id="f-urg"><option value="nao">Não</option><option value="sim">⚡ Sim</option></select>
@@ -1829,7 +1858,7 @@ h1, h2, h3, .heading {
 <div class="ov" id="ov-cores">
   <div class="modal">
     <div class="mhd">
-      <div class="mti">Definir cores</div>
+      <div class="mti" id="cores-ti">Definir cores</div>
       <button class="xb" onclick="cl('ov-cores')">×</button>
     </div>
     <div id="cores-info" style="font-size:.84rem;color:var(--mt);margin-bottom:14px"></div>
@@ -1838,7 +1867,7 @@ h1, h2, h3, .heading {
     <button class="add-cor" onclick="addCor()">+ Adicionar cor</button>
     <div class="fact">
       <button class="bc" onclick="cl('ov-cores')">Cancelar</button>
-      <button class="bs" style="background:#0A7A52" onclick="salvarCores()">Salvar cores</button>
+      <button class="bs" id="cores-bt" style="background:#0A7A52" onclick="salvarCores()">Salvar cores</button>
     </div>
     <div id="cores-wpp-btns" style="margin-top:10px;display:flex;flex-direction:column;gap:6px"></div>
   </div>
@@ -2050,13 +2079,31 @@ function corDoTecido(nome){
   let h=0; for(let i=0;i<n.length;i++) h=(h*31+n.charCodeAt(i))|0;
   return `hsl(${Math.abs(h)%360} 22% 58%)`;
 }
-function amostrasHTML(c,max){
+// Cores escritas, em forma de checklist. Antes eram so bolinhas coloridas:
+// dava para ver QUANTAS cores, nunca QUAIS. Em "Descansar e cortar" o ✓ e o
+// que a Rosana ja marcou, entao a Taty acompanha sem abrir nada.
+function coresListaHTML(c,max){
   const cs=(c.cores||[]).filter(x=>x.cor);
   if(!cs.length) return '';
-  const lim=max||6, mostra=cs.slice(0,lim);
-  return `<div class="pontos">${mostra.map(x=>
-    `<span class="ponto" style="background:${corDoTecido(x.cor)}" title="${esc(x.cor)} — ${esc(x.qtd)} rolo(s)"></span>`).join('')}
-    <span class="pontos-n">${cs.length>lim?('+'+(cs.length-lim)+' · '):''}${cs.length} ${cs.length===1?'cor':'cores'}</span></div>`;
+  const f=c.checksDesc||{}, desc=c.status==='DESCANSAR_TECIDO';
+  const n=cs.filter(x=>f[x.cor]).length, tudo=cs.length&&n===cs.length;
+  const lim=max||8, mostra=cs.slice(0,lim), resto=cs.length-mostra.length;
+  const ed=(user==='taty');
+  return `<div class="cores-min${ed?' ed':''}"${ed?` role="button" tabindex="0" title="Editar as cores desta peça"
+      onclick="event.stopPropagation();openCores(${jsq(c.id)})"`:''}>
+    <div class="cores-min-hd">
+      ${desc?`<span class="cores-n${tudo?' full':''}">${n} de ${cs.length} descansando</span>`
+            :`<span class="cores-l">${cs.length} ${cs.length===1?'cor':'cores'}</span>`}
+      ${ed?`<span class="cores-ed">✏️${desc?'':' editar'}</span>`:''}
+    </div>
+    ${mostra.map(x=>`<div class="cor-li${desc&&f[x.cor]?' ok':''}">
+      ${desc?`<span class="cor-ck">${f[x.cor]?'✓':'○'}</span>`:''}
+      <span class="amostra sm" style="background:${corDoTecido(x.cor)}"></span>
+      <span class="cor-n">${esc(x.cor)}</span>
+      <span class="cor-q fm">${esc(x.qtd)} ${String(x.qtd)==='1'?'rolo':'rolos'}</span>
+    </div>`).join('')}
+    ${resto>0?`<div class="cor-mais">+${resto} ${resto===1?'cor':'cores'}</div>`:''}
+  </div>`;
 }
 
 // Pedidos status
@@ -2409,7 +2456,10 @@ async function syncAll(silent,force){
         grade:str(r.GRADE),ret:str(r.RETALHO),obs:str(r.OBS),
         urg:str(r.URGENTE).toLowerCase()==='sim',
         rolo:parseFloat(r.ROLO)||0,
-        encM:strNum(r.ENCAIXE_M),encPct:strNum(r.RENDIMENTO)||strNum(r['RENDIMENTO_%']),encObs:str(r.OBS_CAD),
+        encM:strNum(r.ENCAIXE_M),encPct:strNum(r.RENDIMENTO)||strNum(r['RENDIMENTO_%']),
+        // Linhas antigas ja gravaram "Encaixe automatico (historico ID-xxxx)" no
+        // OBS_CAD. Nao apaga da planilha, so nao mostra mais no card.
+        encObs:str(r.OBS_CAD).replace(/^\s*Encaixe autom[áa]tico[^\n]*$/i,'').trim(),
         cores:parseCores(str(r.CORES)),
         checksDesc:parseChecks(str(r.CHECKS_DESC)),
         numCorte:str(r.NUM_CORTE),dataDesc:str(r.DATA_DESCANSO),impresso:str(r.IMPRESSO)||'',
@@ -2796,9 +2846,11 @@ function renderListaLateral(){
         <span class="lista-n">${l.length}</span>
       </div>
       <div class="lista-grid">${l.length?l.map(c=>`
-        <div class="card${c.urg?' urg':''}">
+        <div class="card${user==='taty'?' com-lapis':''}${c.urg?' urg':''}">
+          ${user==='taty'?`<button class="edit-mini" title="Editar este corte" aria-label="Editar corte ${esc(c.id)}"
+            onclick="event.stopPropagation();openEditar(${jsq(c.id)})">✏️</button>`:''}
           ${cardTopo(c)}
-          ${amostrasHTML(c)}
+          ${coresListaHTML(c)}
           <div class="acts">
             <button class="act sec" style="flex:1" onclick="openDet(${jsq(c.id)})">Ver detalhes</button>
             ${vendo==='espera'?`<button class="act go" onclick="voltarDaEspera(${jsq(c.id)})">↩ Voltar para a fila</button>`:''}
@@ -2834,9 +2886,11 @@ function cardTopo(c){
 function cardTaty(c){
   const apr=c.status==='AGUARDANDO_APROVACAO';
   const cor=c.status==='DEFINIR_CORES';
-  return `<div class="card${c.urg?' urg':''}">
+  return `<div class="card com-lapis${c.urg?' urg':''}">
+    <button class="edit-mini" title="Editar este corte" aria-label="Editar corte ${esc(c.id)}"
+      onclick="event.stopPropagation();openEditar(${jsq(c.id)})">✏️</button>
     ${cardTopo(c)}
-    ${amostrasHTML(c)}
+    ${coresListaHTML(c)}
     ${apr?`<div class="enc-2">
       <div class="d"><div class="dk">Comprimento</div><div class="dv fm">${esc(c.encM)||'—'} m</div></div>
       <div class="d"><div class="dk">Aproveitamento</div><div class="dv fm">${esc(c.encPct)||'—'}%</div></div>
@@ -3809,13 +3863,13 @@ function lookupEnc(){
   if(!normRef(ref)||!grade||!tec)return;
   const h=histByRef(ref).filter(c=>normGrade(c.grade)===normGrade(grade)&&normTec(c.tec)===normTec(tec)&&numBR(c.encM)>0);
   if(!h.length){
-    if(prev)prev.innerHTML='<div style="font-size:.76rem;color:var(--mt);background:var(--s2);border-radius:7px;padding:8px;margin-top:8px">Sem encaixe no histórico para esta referência + grade + tecido — vai para a fila de encaixe normalmente.</div>';
+    if(prev)prev.innerHTML='<div style="font-size:.76rem;color:var(--mt);background:var(--s2);border-radius:7px;padding:8px;margin-top:8px">Ainda não temos o encaixe desta referência + grade + tecido — vai para a fila de encaixe normalmente.</div>';
     return;
   }
   const top=h[0];
   autoEnc={m:numBR(top.encM),pct:numBR(top.encPct)||'',src:top.id};
   if(prev)prev.innerHTML=`<div class="calc-box" style="margin-top:10px;border:1px solid #0A7A52">
-    <div class="calc-ti" style="color:#0A7A52">✓ Encaixe do histórico (${top.id})</div>
+    <div class="calc-ti" style="color:#0A7A52">✓ Encaixe já conhecido desta peça</div>
     <div class="calc-row"><span class="calc-k">Comprimento</span><span class="calc-v">${autoEnc.m}m</span></div>
     <div class="calc-row"><span class="calc-k">Aproveitamento</span><span class="calc-v">${autoEnc.pct||'—'}%</span></div>
     <div style="font-size:.72rem;color:var(--mt);margin-top:4px">Ao salvar, pula encaixe/aprovação e vai direto para <b>Definir cores</b>. <a href="#" onclick="autoEnc=null;document.getElementById('enc-preview').innerHTML='';return false" style="color:var(--mt)">não usar</a></div>
@@ -3830,6 +3884,9 @@ function openNovo(){
   document.getElementById('f-urg').value='nao';
   document.getElementById('f-data').value=new Date().toISOString().split('T')[0];
   document.getElementById('f-nome').dataset.auto='';
+  // Encaixe so aparece na edicao: em corte novo quem preenche e o Edvaldo.
+  ['fg-encm','fg-encp'].forEach(i=>{const e=document.getElementById(i);if(e)e.style.display='none';});
+  ['f-encm','f-encp'].forEach(i=>{const e=document.getElementById(i);if(e)e.value='';});
   const fgData=document.getElementById('fg-data');if(fgData)fgData.style.display='none';
   const encPrev=document.getElementById('enc-preview');if(encPrev)encPrev.innerHTML='';
   document.getElementById('calc-preview').innerHTML='';
@@ -3852,6 +3909,11 @@ function openEditar(id){
   document.getElementById('f-ret').value=c.ret||'';
   document.getElementById('f-obs').value=c.obs||'';
   document.getElementById('f-urg').value=c.urg?'sim':'nao';
+  // A Taty pediu para corrigir tudo pelo app. Encaixe e aproveitamento eram
+  // os unicos campos que so davam para arrumar direto na planilha.
+  ['fg-encm','fg-encp'].forEach(i=>{const e=document.getElementById(i);if(e)e.style.display='';});
+  const eM=document.getElementById('f-encm');if(eM)eM.value=c.encM||'';
+  const eP=document.getElementById('f-encp');if(eP)eP.value=c.encPct||'';
   document.getElementById('calc-preview').innerHTML='';
   ['f-grade','f-tec','f-tin'].forEach(selId=>{
     const sel=document.getElementById(selId);if(!sel)return;
@@ -3891,7 +3953,8 @@ async function salvarCorte(){
   if(aEnc){
     obj.encM=String(aEnc.m);
     obj.encPct=String(aEnc.pct||'');
-    obj.encObs='Encaixe automático (histórico '+aEnc.src+')';
+    // Nao marca de onde veio: a Taty nao quer o aviso de "histórico" no card.
+    obj.encObs='';
     obj.status='DEFINIR_CORES';
   }
   if(editId){
@@ -3899,6 +3962,8 @@ async function salvarCorte(){
     if(idx>-1){
       const o=cortes[idx];
       ['status','encM','encPct','encObs','cores','checksDesc','numCorte','dataDesc','tipo','carolObs','giObs','fotoLocal','impresso','_row'].forEach(k=>{obj[k]=o[k];});
+      obj.encM=(document.getElementById('f-encm')?.value||'').trim();
+      obj.encPct=(document.getElementById('f-encp')?.value||'').trim();
       cortes[idx]=obj;
       sl();cl('ov-novo');render();toast('✏️ Atualizado!','s');
       // NOME, REF e DATA_ENTRADA sao editaveis no formulario mas NAO eram
@@ -3907,7 +3972,8 @@ async function salvarCorte(){
       await push(obj._row,[
         ['REF',obj.ref],['NOME',obj.nome],['DATA_ENTRADA',dout(obj.data).replace(/—/,'')],
         ['TECIDO',obj.tec],['TINTURARIA',obj.tin],['GRADE',obj.grade],
-        ['RETALHO',obj.ret],['OBS',obj.obs],['ROLO',obj.rolo],['URGENTE',obj.urg?'sim':'nao']
+        ['RETALHO',obj.ret],['OBS',obj.obs],['ROLO',obj.rolo],['URGENTE',obj.urg?'sim':'nao'],
+        ['ENCAIXE_M',obj.encM],['RENDIMENTO',obj.encPct]
       ],obj.id);
     } else {
       toast('Este corte foi removido por outro usuario.','w');
@@ -3937,7 +4003,7 @@ async function salvarCorte(){
     };
     try{
       const dados={REF:obj.ref,NOME:obj.nome,DATA_ENTRADA:dout(obj.data).replace(/—/,''),TECIDO:obj.tec,TINTURARIA:obj.tin,GRADE:obj.grade,RETALHO:obj.ret,OBS:obj.obs,ROLO:obj.rolo,URGENTE:obj.urg?'sim':'nao'};
-      if(aEnc){dados.ENCAIXE_M=aEnc.m;dados.RENDIMENTO=aEnc.pct;dados.OBS_CAD=obj.encObs;dados.STATUS='DEFINIR_CORES';}
+      if(aEnc){dados.ENCAIXE_M=aEnc.m;dados.RENDIMENTO=aEnc.pct;dados.STATUS='DEFINIR_CORES';}
       const r=await pushNew(dados);
       if(r?.ok&&r.id){
         obj.id=r.id;cortes.unshift(obj);sl();
@@ -3952,7 +4018,7 @@ async function salvarCorte(){
           if(!cc||!cc._row){if(tent<4)setTimeout(posCriacao,2500);return;}
           if(aEnc&&(cc.status!=='DEFINIR_CORES'||!numBR(cc.encM))){
             try{
-              await apip({action:'atualizarCampos',row:cc._row,campos:[['ENCAIXE_M',aEnc.m],['RENDIMENTO',aEnc.pct],['OBS_CAD','Encaixe automático (histórico '+aEnc.src+')'],['STATUS','DEFINIR_CORES']]});
+              await apip({action:'atualizarCampos',row:cc._row,campos:[['ENCAIXE_M',aEnc.m],['RENDIMENTO',aEnc.pct],['STATUS','DEFINIR_CORES']]});
               await forceSync();
             }catch(e){console.error('auto-encaixe push:',e);}
           }
@@ -3987,7 +4053,12 @@ function openCores(id){
     ${estimaHTML}
     <div style="font-size:.74rem;color:var(--mt);margin-top:4px">Insira cor e quantos rolos.</div>`;
   const list=document.getElementById('cores-list');list.innerHTML='';
-  if(c.cores?.length)c.cores.forEach(x=>addCor(x.cor,x.qtd));else addCor();
+  const jaTem=!!c.cores?.length;
+  const tiEl=document.getElementById('cores-ti');
+  if(tiEl)tiEl.textContent=jaTem?'Editar cores':'Definir cores';
+  const btEl=document.getElementById('cores-bt');
+  if(btEl)btEl.textContent=jaTem?'Salvar alterações':'Salvar cores';
+  if(jaTem)c.cores.forEach(x=>addCor(x.cor,x.qtd));else addCor();
   const wppDiv=document.getElementById('cores-wpp-btns');
   if(wppDiv&&cfg.wros){
     const msg=encodeURIComponent('✂️ Azpex\n*'+c.nome+'*\nGrade: '+c.grade+'\nCores para descansar.');
@@ -4026,9 +4097,14 @@ async function salvarCores(){
   if(!cores.length){toast('Adicione pelo menos uma cor','w');return;}
   const c=cortes.find(x=>x.id===coresId);
   if(!c){toast('Corte nao encontrado — sincronize novamente','w');cl('ov-cores');return;}
-  c.cores=cores;c.status='DESCANSAR_TECIDO';
-  sl();cl('ov-cores');render();toast('Cores definidas!','s');
-  await push(c._row,[['CORES',coresStr(cores)],['STATUS','DESCANSAR_TECIDO']],c.id);
+  // Definir cores avanca a peca. Mas a Taty tambem edita cores de peca que ja
+  // esta descansando (ou concluida) — ai o status tem que ficar onde estava,
+  // senao editar uma cor puxava a peca de volta para o quadro.
+  const novo = c.status==='DEFINIR_CORES' ? 'DESCANSAR_TECIDO' : c.status;
+  const avancou = novo!==c.status;
+  c.cores=cores;c.status=novo;
+  sl();cl('ov-cores');render();toast(avancou?'Cores definidas!':'Cores atualizadas!','s');
+  await push(c._row,[['CORES',coresStr(cores)],['STATUS',novo]],c.id);
 }
 
 // ── PEDIDOS ──
