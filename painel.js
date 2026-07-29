@@ -88,7 +88,7 @@
     '<div class="h"><b>Painel da Fábrica</b><span class="desc" id="pf-sub">lendo o Miré…</span>' +
     '<span class="g" id="pf-gear">ajustes</span><span class="x" id="pf-x">&times;</span></div>' +
     '<div class="cfg" id="pf-cfg"></div>' +
-    '<div class="b" id="pf-body"><div class="msg">Lendo estoque da fábrica e da loja…<br><span class="desc">leva uns 20 segundos</span></div></div>' +
+    '<div class="b" id="pf-body"><div class="msg">Lendo estoque da fábrica e da loja…<br><span class="desc">leva uns 40 segundos</span></div></div>' +
     '<div class="f"><span class="tot" id="pf-tot"></span>' +
     '<button class="go" id="pf-print" disabled>Gerar folha de separação</button></div></div>';
   document.body.appendChild(root);
@@ -112,7 +112,7 @@
   var DADOS = null;
 
   function rodar() {
-    $('pf-body').innerHTML = '<div class="msg">Lendo estoque da fábrica e da loja…<br><span class="desc">leva uns 20 segundos</span></div>';
+    $('pf-body').innerHTML = '<div class="msg">Lendo estoque da fábrica e da loja…<br><span class="desc">leva uns 40 segundos</span></div>';
     $('pf-print').disabled = true; $('pf-tot').textContent = '';
     var hoje = new Date(), iso = function (d) { return d.toISOString().slice(0, 10); };
     var FIM = iso(hoje), I30 = iso(new Date(hoje - 30 * 864e5)), I180 = iso(new Date(hoje - 180 * 864e5));
@@ -123,18 +123,29 @@
       gj('/produtos/giro-cobertura?inicio=' + I30 + '&fim=' + FIM + '&idloja=3'),
       gj('/produtos/giro-cobertura?inicio=' + I180 + '&fim=' + FIM + '&idloja=3')
     ]).then(function (r) {
-      var fab = arr(r[0]), cols = (r[1] && r[1].colecoes) || [], g30 = arr(r[2]), g180 = arr(r[3]);
-      /* bonequim capa em 5000 -> unir fatias por coleção */
-      return emLotes(cols, 8, function (c) {
-        return gj('/produtos-estoque/relatorio?idloja=3&apenas_com_estoque=true&por_grade=true&idcolecao=' + encodeURIComponent(c))
-          .then(arr).catch(function () { return []; });
-      }).then(function (partes) {
-        return gj('/produtos-estoque/relatorio?idloja=3&apenas_com_estoque=true&por_grade=true').then(function (geral) {
-          var m = new Map();
-          partes.forEach(function (p) { p.forEach(function (x) { m.set(x.id, x); }); });
-          arr(geral).forEach(function (x) { if (!m.has(x.id)) m.set(x.id, x); });
-          return { fab: fab, bon: Array.from(m.values()), g30: g30, g180: g180 };
-        });
+      var fab = arr(r[0]), filtros = r[1] || {}, g30 = arr(r[2]), g180 = arr(r[3]);
+      var cols = filtros.colecoes || [], cats = filtros.categorias || [];
+      /* A loja capa em 5.000 linhas, então tem que vir em fatias.
+         ATENÇÃO: fatiar só por COLEÇÃO deixa peça de fora — tem produto com a
+         coleção vazia (ex.: Dakota Pantalona, 558 pç na loja) que só aparece
+         fatiando por CATEGORIA. Por isso unimos as duas + a chamada geral. */
+      var bonMap = new Map();
+      var junta = function (lista) { lista.forEach(function (p) { p.forEach(function (x) { bonMap.set(x.id, x); }); }); };
+      var puxa = function (param) {
+        return function (v) {
+          return gj('/produtos-estoque/relatorio?idloja=3&apenas_com_estoque=true&por_grade=true&' +
+            param + '=' + encodeURIComponent(v)).then(arr).catch(function () { return []; });
+        };
+      };
+      return emLotes(cats, 8, puxa('idcategoria')).then(function (a) {
+        junta(a);
+        return emLotes(cols, 8, puxa('idcolecao'));
+      }).then(function (b) {
+        junta(b);
+        return gj('/produtos-estoque/relatorio?idloja=3&apenas_com_estoque=true&por_grade=true').catch(function () { return []; });
+      }).then(function (geral) {
+        arr(geral).forEach(function (x) { if (!bonMap.has(x.id)) bonMap.set(x.id, x); });
+        return { fab: fab, bon: Array.from(bonMap.values()), g30: g30, g180: g180 };
       });
     }).then(function (d) { DADOS = d; calcular(d); })
       .catch(function (e) {
