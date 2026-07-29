@@ -197,9 +197,12 @@
           dsem = mw * ((wC[norm(mv[1])] || 1) / (sc || 1)) * ((wT[mv[2]] || 1) / (stt || 1));
         }
       }
+      /* sem demanda relevante => NÃO entra. O piso só vale pra quem já gira,
+         senão o envio vira "encher a loja de tudo que a fábrica tem". */
+      if (dsem < CFG.minDem) return;
       var ch = CHEFE.has(norm(mv[1]));
-      var aV = dsem >= CFG.minDem ? Math.min(ch ? CFG.tetoChefe : CFG.teto,
-        Math.max(3, Math.ceil(dsem * (ch ? CFG.semanasChefe : CFG.semanas)))) : 0;
+      var aV = Math.min(ch ? CFG.tetoChefe : CFG.teto,
+        Math.max(3, Math.ceil(dsem * (ch ? CFG.semanasChefe : CFG.semanas))));
       var e = Math.min(f, Math.max(0, Math.max(CFG.piso, aV) - l));
       if (e <= 0) return;
       var ref = k.slice(0, 7);
@@ -224,7 +227,8 @@
     if (!lista.length) { $('pf-body').innerHTML = '<div class="msg">Nada a mandar hoje — a loja está servida em tudo que a fábrica tem.</div>'; return; }
     var h = '<table><tr><th></th><th>Código</th><th>Peças</th><th>Cobertura</th><th></th></tr>';
     lista.forEach(function (o, i) {
-      var cob = o.cob > 900 ? 'sem venda' : (Math.round(o.cob * 10) / 10).toString().replace('.', ',') + ' sem';
+      var cob = o.cob > 900 ? 'sem venda' : (o.loja <= 0 ? 'loja zerada'
+        : (Math.round(o.cob * 10) / 10).toString().replace('.', ',') + ' sem');
       h += '<tr><td class="pos">' + (i + 1) + 'º</td>' +
         '<td><span class="cod">' + o.ref + '</span><div class="desc">' + o.desc.slice(0, 34) + '</div></td>' +
         '<td class="q">' + o.tot + '</td>' +
