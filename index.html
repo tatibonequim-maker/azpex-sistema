@@ -1492,6 +1492,10 @@ h1, h2, h3, .heading {
 .c-ref{font-family:'DM Mono',monospace;font-size:.8rem;font-weight:600;color:var(--ac)}
 .tag.turg{background:var(--b4);color:var(--c4);font-weight:700;margin-left:auto}
 .tag.pc{background:var(--acl);color:var(--ac);font-weight:600}
+.tag.ret{background:var(--sf);border:1px solid var(--bdi);color:var(--mt);
+  display:inline-flex;align-items:center;gap:4px}
+.tag.ret b{color:var(--tx);font-weight:700;font-size:.78rem}
+.tag.ret.vazio b{color:var(--c4)}
 .tag.apr{background:var(--b3);color:var(--c3);font-weight:600}
 .obs{font-size:.75rem;background:var(--b1);color:var(--c1);border-radius:7px;
   padding:5px 9px;margin-bottom:8px;line-height:1.4}
@@ -2899,8 +2903,12 @@ const VAZIAS=['Fila limpa. Aproveita ☕','Nada aqui agora ✨','Tudo em dia por
 function fraseVazia(){ return VAZIAS[Math.floor(Math.random()*VAZIAS.length)]; }
 
 // ── pedaços de card ──
-function cardTopo(c){
+// mostraRet: quem vai cortar precisa saber qual tamanho e o retalho. Aparece
+// sempre que pedido, inclusive vazio ("—"), porque "nao definiram" tambem e
+// uma resposta — melhor do que o dado simplesmente nao estar na tela.
+function cardTopo(c,mostraRet){
   const t=tempoChipHTML(c), n=calcTotalPecas(c);
+  const ret=String(c.ret||'').trim();
   return `<div class="c-l1">
       <span class="c-id">${esc(c.id)}</span>
       ${c.ref?`<span class="c-ref">ref ${esc(c.ref)}</span>`:''}
@@ -2910,6 +2918,7 @@ function cardTopo(c){
     <div class="ctags">
       ${c.tec?`<span class="tag">${esc(c.tec)}</span>`:''}
       ${c.grade?`<span class="tag fm">${esc(c.grade)}</span>`:''}
+      ${mostraRet?`<span class="tag ret${(ret&&ret!=='-')?'':' vazio'}">retalho <b class="fm">${(ret&&ret!=='-')?esc(ret.toUpperCase()):'—'}</b></span>`:''}
       ${c.rolo?`<span class="tag fm">${esc(c.rolo)}m</span>`:''}
       ${c.encPct?`<span class="tag fm apr">${esc(c.encPct)}%</span>`:''}
       ${n?`<span class="tag pc">~${n} pç</span>`:''}
@@ -2927,7 +2936,7 @@ function cardTaty(c){
   return `<div class="card com-lapis${c.urg?' urg':''}">
     <button class="edit-mini" title="Editar este corte" aria-label="Editar corte ${esc(c.id)}"
       onclick="event.stopPropagation();openEditar(${jsq(c.id)})">✏️</button>
-    ${cardTopo(c)}
+    ${cardTopo(c,c.status==='DESCANSAR_TECIDO')}
     ${coresListaHTML(c)}
     ${(apr||c.status==='DESCANSAR_TECIDO')?`<div class="enc-2">
       <div class="d"><div class="dk">Comprimento</div><div class="dv fm">${esc(c.encM)||'—'} m</div></div>
@@ -2994,7 +3003,7 @@ function cardEdvDescanso(c){
   // Sem a lista de cores: quem separa tecido e a Rosana. Aqui interessa o
   // comprimento do risco e se ja foi impresso.
   return `<div class="card grande so-ver${c.urg?' urg':''}">
-    ${cardTopo(c)}
+    ${cardTopo(c,true)}
     <div class="enc-2">
       <div class="d"><div class="dk">Comprimento</div><div class="dv fm">${esc(c.encM)||'—'} m</div></div>
       <div class="d"><div class="dk">Aproveitamento</div><div class="dv fm">${esc(c.encPct)||'—'}%</div></div>
@@ -3051,7 +3060,7 @@ function cardDescanso(c){
   const f=c.checksDesc||{};
   const n=cs.filter(x=>f[x.cor]).length, tudo=cs.length&&n===cs.length;
   return `<div class="card grande${c.urg?' urg':''}" id="cd-${esc(c.id)}">
-    ${cardTopo(c)}
+    ${cardTopo(c,true)}
     <div class="enc-2">
       <div class="d"><div class="dk">Comprimento</div><div class="dv fm">${esc(c.encM)||'—'} m</div></div>
       <div class="d"><div class="dk">Aproveitamento</div><div class="dv fm">${esc(c.encPct)||'—'}%</div></div>
