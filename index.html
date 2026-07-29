@@ -1484,8 +1484,12 @@ h1, h2, h3, .heading {
 .board5 .card.urg,.fila .card.urg,.lista-grid .card.urg{border-left-color:var(--c4)}
 .card.grande{padding:14px 15px;border-radius:var(--r12);box-shadow:var(--sh1)}
 .c-l1{display:flex;align-items:baseline;gap:8px;flex-wrap:wrap;margin-bottom:2px}
-.c-ref{font-family:'DM Mono',monospace;font-size:.88rem;font-weight:700;color:var(--ac)}
-.c-id{font-family:'DM Mono',monospace;font-size:.72rem;color:var(--mts)}
+/* O ID e o que identifica o card no dia a dia — ele vem primeiro e em
+   destaque; a referencia fica ao lado, legivel mas sem roubar a leitura. */
+.c-id{font-family:'DM Mono',monospace;font-size:.9rem;font-weight:700;
+  color:var(--tx);background:var(--s2);border:1px solid var(--bd);
+  border-radius:6px;padding:1px 7px}
+.c-ref{font-family:'DM Mono',monospace;font-size:.8rem;font-weight:600;color:var(--ac)}
 .tag.turg{background:var(--b4);color:var(--c4);font-weight:700;margin-left:auto}
 .tag.pc{background:var(--acl);color:var(--ac);font-weight:600}
 .tag.apr{background:var(--b3);color:var(--c3);font-weight:600}
@@ -1552,7 +1556,25 @@ h1, h2, h3, .heading {
 .fila-ti,.lista-ti{font-family:'Syne',sans-serif;font-size:1.05rem;font-weight:800}
 .lista-sub{font-size:.78rem;color:var(--mt);margin-top:2px;max-width:60ch;line-height:1.45}
 .fila-n,.lista-n{font-family:'DM Mono',monospace;font-size:.84rem;color:var(--mt);flex-shrink:0}
+/* duas listas do Edvaldo, uma de cada vez */
+.abas{display:flex;gap:6px;background:var(--s2);border:1px solid var(--bd);
+  border-radius:var(--r12);padding:4px;margin-bottom:14px}
+.aba{flex:1;min-height:var(--tap);border:none;background:none;border-radius:9px;
+  font-size:.82rem;font-weight:700;color:var(--mt);cursor:pointer;
+  display:flex;align-items:center;justify-content:center;gap:7px;padding:0 6px;
+  line-height:1.15;text-align:center}
+.aba.on{background:var(--sf);color:var(--tx);box-shadow:var(--sh1)}
+.aba-n{font-family:'DM Mono',monospace;font-size:.72rem;font-weight:600;
+  background:var(--bg);border:1px solid var(--bd);border-radius:var(--r99);
+  padding:1px 7px;flex-shrink:0}
+.aba.on .aba-n{background:var(--acl);border-color:transparent;color:var(--ac)}
+.aba-n.alerta{background:var(--b1);border-color:transparent;color:var(--c1)}
+.fila-hd.sec2{margin-top:26px;padding-top:16px;border-top:1.5px solid var(--bd);
+  align-items:flex-start}
 .fila-grid,.lista-grid{display:grid;gap:10px;grid-template-columns:1fr}
+/* card que o Edvaldo so acompanha: nao levanta no hover, para nao parecer clicavel */
+.card.so-ver{cursor:default}
+.card.so-ver:hover{transform:none;box-shadow:none;border-color:var(--bd)}
 @media (min-width:900px){
   .fila-grid.duas,.lista-grid{grid-template-columns:1fr 1fr}
 }
@@ -2042,9 +2064,14 @@ const ESPERA='EM_ESPERA';
 // Já concluído para o app: saiu do quadro, continua no histórico.
 const CONCLUIDOS=new Set(['TECIDO_DESCANSADO','NO_CORTE','AG_FOTO','FOTO_OK',
   'AGUARDANDO_GI','SEPARAR_ENVIO','EMBALAR','PRONTO_RETIRADA','ARQUIVADO']);
-const noQuadro=c=>ATIVOS.has(c.status);
-const emEspera=c=>c.status===ESPERA;
-const noHistorico=c=>CONCLUIDOS.has(c.status);
+// "Em espera" NAO e mais um STATUS. Gravar STATUS='EM_ESPERA' na planilha nao
+// pegava: a peca reaparecia na fila de aprovacao no sync seguinte (a planilha
+// so conhece a lista antiga de status). Agora a espera vive na coluna
+// GI_ENVIAR, que ninguem mais usa, e o STATUS fica intacto — o que tambem faz
+// a peca voltar para a coluna onde ela estava, e nao para "Aprovar encaixe".
+const noQuadro=c=>ATIVOS.has(c.status)&&!c.espera;
+const emEspera=c=>!!c.espera;
+const noHistorico=c=>CONCLUIDOS.has(c.status)&&!c.espera;
 
 /* Cores dos tecidos que a equipe escreve na planilha, traduzidas para a tela.
    PRETO fica preto, GLACIAL fica aquele azul acinzentado. Na visão da Taty e
@@ -2393,7 +2420,14 @@ async function push(row,campos,id){
     cs=[...campos,['DATA_STATUS',new Date().toISOString().slice(0,10)]];
   }
   try{
-    await apip({action:'atualizarCampos',row:r,campos:cs});
+    const resp=await apip({action:'atualizarCampos',row:r,campos:cs});
+    // Antes, qualquer resposta que fosse JSON valido passava por sucesso —
+    // inclusive um {error:...}. O app dizia "salvo" e o sync desfazia tudo.
+    if(resp&&(resp.error||resp.ok===false)){
+      console.error('planilha recusou:',resp);
+      toast('A planilha recusou a gravação: '+String(resp.error||'').slice(0,60),'w');
+      return false;
+    }
     // force=true: sem isso o próprio limitador de 8s cancelava esta confirmação
     // (ela era agendada para 3s depois do push) e a gravação nunca era conferida.
     setTimeout(()=>{if(cfg.url)syncAll(true,true);},3000);
@@ -2455,6 +2489,10 @@ async function syncAll(silent,force){
         numCorte:str(r.NUM_CORTE),dataDesc:str(r.DATA_DESCANSO),impresso:str(r.IMPRESSO)||'',
         tipo:str(r.TIPO_CHEGADA),carolObs:str(r.CAROL_OBS),giObs:str(r.GI_OBS),
         status:mapStatus(str(r.STATUS)),_row:r._row,
+        // A espera mora na coluna GI_ENVIAR. O STATUS='EM_ESPERA' e lido tambem,
+        // por causa das linhas que ficaram do jeito antigo.
+        espera:str(r.GI_ENVIAR).trim().toUpperCase()==='ESPERA'
+               ||str(r.STATUS).trim().toUpperCase()==='EM_ESPERA',
         dataStatus:str(r.DATA_STATUS),
         fotoLocal:fotoMap[str(r.ID)]||'',
       }));
@@ -2681,15 +2719,23 @@ async function porEmEspera(id){
   const c=cortes.find(x=>x.id===id);
   if(!c){toast('Item nao encontrado — sincronize novamente','w');return;}
   lastPushTime=Date.now();
-  c.status=ESPERA; sl(); render(); toast('Colocado em espera','i');
-  await push(c._row,[['STATUS',ESPERA]],c.id);
+  c.espera=true; sl(); render(); toast('Colocado em espera','i');
+  await push(c._row,[['GI_ENVIAR','ESPERA']],c.id);
 }
 async function voltarDaEspera(id){
   const c=cortes.find(x=>x.id===id);
   if(!c){toast('Item nao encontrado — sincronize novamente','w');return;}
   lastPushTime=Date.now();
-  c.status='AGUARDANDO_APROVACAO'; sl(); render(); toast('↩ Voltou para a fila','s');
-  await push(c._row,[['STATUS','AGUARDANDO_APROVACAO']],c.id);
+  c.espera=false;
+  const campos=[['GI_ENVIAR','']];
+  // Linha antiga, que tinha ido para espera pelo STATUS: devolve para uma etapa
+  // de verdade, senao ela some do quadro e do histórico.
+  if(c.status===ESPERA||!ATIVOS.has(c.status)&&!CONCLUIDOS.has(c.status)){
+    c.status=numBR(c.encM)>0?'AGUARDANDO_APROVACAO':'AGUARDANDO_ENCAIXE';
+    campos.push(['STATUS',c.status]);
+  }
+  sl(); render(); toast('↩ Voltou para a fila','s');
+  await push(c._row,campos,c.id);
 }
 function verQuadro(v){
   vendo=v; statusFilter=''; filtro='todos';
@@ -2843,7 +2889,7 @@ function renderListaLateral(){
           ${coresListaHTML(c)}
           <div class="acts">
             <button class="act sec" style="flex:1" onclick="openDet(${jsq(c.id)})">Ver detalhes</button>
-            ${vendo==='espera'?`<button class="act go" onclick="voltarDaEspera(${jsq(c.id)})">↩ Voltar para a fila</button>`:''}
+            ${vendo==='espera'?`<button class="act go" onclick="voltarDaEspera(${jsq(c.id)})">↩ Voltar para "${esc(csi(c.status).l)}"</button>`:''}
           </div>
         </div>`).join(''):`<div class="empty">${esc(vendo==='espera'?'Nada em espera ✨':'Nada no histórico ainda')}</div>`}</div>
     </div>`;
@@ -2856,8 +2902,8 @@ function fraseVazia(){ return VAZIAS[Math.floor(Math.random()*VAZIAS.length)]; }
 function cardTopo(c){
   const t=tempoChipHTML(c), n=calcTotalPecas(c);
   return `<div class="c-l1">
-      ${c.ref?`<span class="c-ref">${esc(c.ref)}</span>`:''}
       <span class="c-id">${esc(c.id)}</span>
+      ${c.ref?`<span class="c-ref">ref ${esc(c.ref)}</span>`:''}
       ${c.urg?'<span class="tag turg">⚡ urgente</span>':''}
     </div>
     <div class="cnome">${esc(c.nome)}</div>
@@ -2883,7 +2929,7 @@ function cardTaty(c){
       onclick="event.stopPropagation();openEditar(${jsq(c.id)})">✏️</button>
     ${cardTopo(c)}
     ${coresListaHTML(c)}
-    ${apr?`<div class="enc-2">
+    ${(apr||c.status==='DESCANSAR_TECIDO')?`<div class="enc-2">
       <div class="d"><div class="dk">Comprimento</div><div class="dv fm">${esc(c.encM)||'—'} m</div></div>
       <div class="d"><div class="dk">Aproveitamento</div><div class="dv fm">${esc(c.encPct)||'—'}%</div></div>
     </div>`:''}
@@ -2899,18 +2945,63 @@ function cardTaty(c){
 }
 
 // ── FILA DO EDVALDO · celular, sem quadro ──
+// Duas listas, uma de cada vez: no celular, empilhar as duas obrigava a rolar
+// a fila inteira para chegar no que ja foi para o corte.
+let abaEdv='encaixe';
+function setAbaEdv(a){ abaEdv=a; render(); window.scrollTo({top:0}); }
+
 function renderFilaEdvaldo(){
   barraTopo();
   const st=document.getElementById('stats'); if(st)st.style.display='none';
   const l=getVisCortes()
     .filter(c=>c.status==='AGUARDANDO_ENCAIXE'||c.status==='ENCAIXE_REPROVADO')
     .sort((a,b)=>(b.urg-a.urg)||(b.dias-a.dias));
+  // O Edvaldo tambem precisa enxergar o que ja foi para o corte, para saber o
+  // que imprimir. Aqui ele so olha e marca o que imprimiu — nada mais.
+  const d=getVisCortes().filter(c=>c.status==='DESCANSAR_TECIDO'&&!c.espera)
+    .sort((a,b)=>(b.urg-a.urg)||(b.dias-a.dias));
+  const faltaImprimir=d.filter(c=>c.impresso!=='sim').length;
+  const naFila=abaEdv==='encaixe';
   document.getElementById('main-content').innerHTML=`
     <div class="fila">
-      <div class="fila-hd"><span class="fila-ti">Para fazer o encaixe</span>
-        <span class="fila-n">${l.length} ${l.length===1?'peça':'peças'}</span></div>
-      <div class="fila-grid">${l.length?l.map(cardEncaixe).join(''):`<div class="empty">${esc(fraseVazia())}</div>`}</div>
+      <div class="abas" role="tablist">
+        <button class="aba${naFila?' on':''}" role="tab" aria-selected="${naFila}"
+          onclick="setAbaEdv('encaixe')">Fazer o encaixe
+          <span class="aba-n">${l.length}</span></button>
+        <button class="aba${naFila?'':' on'}" role="tab" aria-selected="${!naFila}"
+          onclick="setAbaEdv('corte')">Descansar e cortar
+          <span class="aba-n${faltaImprimir?' alerta':''}">${d.length}</span></button>
+      </div>
+      ${naFila?`
+        <div class="fila-hd"><span class="fila-ti">Para fazer o encaixe</span>
+          <span class="fila-n">${l.length} ${l.length===1?'peça':'peças'}</span></div>
+        <div class="fila-grid">${l.length?l.map(cardEncaixe).join(''):`<div class="empty">${esc(fraseVazia())}</div>`}</div>
+      `:`
+        <div class="fila-hd">
+          <div>
+            <span class="fila-ti">Descansar e cortar</span>
+            <div class="lista-sub">Só para acompanhar. Marque aqui o que você já imprimiu.</div>
+          </div>
+          <span class="fila-n">${faltaImprimir?faltaImprimir+' p/ imprimir':'tudo impresso ✔'}</span>
+        </div>
+        <div class="fila-grid">${d.length?d.map(cardEdvDescanso).join(''):'<div class="empty">Nada no corte agora</div>'}</div>
+      `}
     </div>`;
+}
+
+function cardEdvDescanso(c){
+  const imp=c.impresso==='sim';
+  // Sem a lista de cores: quem separa tecido e a Rosana. Aqui interessa o
+  // comprimento do risco e se ja foi impresso.
+  return `<div class="card grande so-ver${c.urg?' urg':''}">
+    ${cardTopo(c)}
+    <div class="enc-2">
+      <div class="d"><div class="dk">Comprimento</div><div class="dv fm">${esc(c.encM)||'—'} m</div></div>
+      <div class="d"><div class="dk">Aproveitamento</div><div class="dv fm">${esc(c.encPct)||'—'}%</div></div>
+    </div>
+    <button class="impresso${imp?' on':''}" onclick="event.stopPropagation();marcarImpresso(${jsq(c.id)})">
+      ${imp?'✔ Risco impresso':'🖨️ Marcar risco como impresso'}</button>
+  </div>`;
 }
 function cardEncaixe(c){
   const rep=c.status==='ENCAIXE_REPROVADO';
@@ -2961,6 +3052,10 @@ function cardDescanso(c){
   const n=cs.filter(x=>f[x.cor]).length, tudo=cs.length&&n===cs.length;
   return `<div class="card grande${c.urg?' urg':''}" id="cd-${esc(c.id)}">
     ${cardTopo(c)}
+    <div class="enc-2">
+      <div class="d"><div class="dk">Comprimento</div><div class="dv fm">${esc(c.encM)||'—'} m</div></div>
+      <div class="d"><div class="dk">Aproveitamento</div><div class="dv fm">${esc(c.encPct)||'—'}%</div></div>
+    </div>
     ${cs.length?`<div class="cores-box">
       <div class="cores-hd">
         <span class="cores-l">Tecidos para descansar</span>
