@@ -111,8 +111,14 @@
 
   var DADOS = null;
 
+  /* mostra em que passo está, pra espera não parecer travada */
+  function prog(txt) {
+    var el = $('pf-body');
+    if (el) el.innerHTML = '<div class="msg">' + txt + '<br><span class="desc">só um instante…</span></div>';
+  }
+
   function rodar() {
-    $('pf-body').innerHTML = '<div class="msg">Lendo estoque da fábrica e da loja…<br><span class="desc">leva uns 40 segundos</span></div>';
+    prog('Lendo estoque da fábrica e da loja…');
     $('pf-print').disabled = true; $('pf-tot').textContent = '';
     var hoje = new Date(), iso = function (d) { return d.toISOString().slice(0, 10); };
     var FIM = iso(hoje), I30 = iso(new Date(hoje - 30 * 864e5)), I180 = iso(new Date(hoje - 180 * 864e5));
@@ -129,22 +135,26 @@
          ATENÇÃO: fatiar só por COLEÇÃO deixa peça de fora — tem produto com a
          coleção vazia (ex.: Dakota Pantalona, 558 pç na loja) que só aparece
          fatiando por CATEGORIA. Por isso unimos as duas + a chamada geral. */
+      var URLBON = '/produtos-estoque/relatorio?idloja=3&apenas_com_estoque=true&por_grade=true';
       var bonMap = new Map();
       var junta = function (lista) { lista.forEach(function (p) { p.forEach(function (x) { bonMap.set(x.id, x); }); }); };
       var puxa = function (param) {
         return function (v) {
-          return gj('/produtos-estoque/relatorio?idloja=3&apenas_com_estoque=true&por_grade=true&' +
-            param + '=' + encodeURIComponent(v)).then(arr).catch(function () { return []; });
+          return gj(URLBON + '&' + param + '=' + encodeURIComponent(v)).then(arr).catch(function () { return []; });
         };
       };
-      return emLotes(cats, 8, puxa('idcategoria')).then(function (a) {
-        junta(a);
-        return emLotes(cols, 8, puxa('idcolecao'));
-      }).then(function (b) {
-        junta(b);
-        return gj('/produtos-estoque/relatorio?idloja=3&apenas_com_estoque=true&por_grade=true').catch(function () { return []; });
-      }).then(function (geral) {
-        arr(geral).forEach(function (x) { if (!bonMap.has(x.id)) bonMap.set(x.id, x); });
+      /* Primeiro tenta de uma vez só. Se NÃO bater no teto de 5.000, já veio tudo
+         e não precisa fatiar (rápido). Se bater, aí sim fatia. */
+      return gj(URLBON).then(arr).catch(function () { return []; }).then(function (geral) {
+        geral.forEach(function (x) { bonMap.set(x.id, x); });
+        if (geral.length < 5000) return null;
+        prog('lendo a loja por categoria…');
+        return emLotes(cats, 16, puxa('idcategoria')).then(function (a) {
+          junta(a);
+          prog('lendo a loja por coleção…');
+          return emLotes(cols, 16, puxa('idcolecao')).then(junta);
+        });
+      }).then(function () {
         return { fab: fab, bon: Array.from(bonMap.values()), g30: g30, g180: g180 };
       });
     }).then(function (d) { DADOS = d; calcular(d); })
