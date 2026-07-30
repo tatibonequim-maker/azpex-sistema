@@ -2077,6 +2077,25 @@ const noQuadro=c=>ATIVOS.has(c.status)&&!c.espera;
 const emEspera=c=>!!c.espera;
 const noHistorico=c=>CONCLUIDOS.has(c.status)&&!c.espera;
 
+/* O QUE TIRA A PECA DO QUADRO E O Nº DO CORTE (a OP), NAO O DESCANSO.
+   Sintoma: a Rosana marcava as cores como descansadas, o app gravava
+   STATUS='TECIDO_DESCANSADO' e a peca sumia da tela dela e do quadro da Taty
+   NO MESMO INSTANTE — antes de alguem digitar a OP. O corte virava "concluido"
+   sem nunca ter ido para o corte. Foi o que aconteceu com o ID-4919 (e com o
+   4885, 4909, 4917 e 4918): cinco pecas descansadas, nenhuma com OP, todas
+   invisiveis para todo mundo.
+   Correcao: descansado SEM numero do corte volta a ser "Descansar e cortar".
+   A planilha nao e reescrita — a leitura e que corrige, entao linha antiga,
+   app antigo e qualquer gravacao futura ficam todos certos. Quando a OP for
+   registrada, o STATUS vira NO_CORTE e ai sim a peca sai do quadro. */
+function corrigeDescansadoSemOP(list){
+  (list||[]).forEach(c=>{
+    if(c && c.status==='TECIDO_DESCANSADO' && !String(c.numCorte||'').trim())
+      c.status='DESCANSAR_TECIDO';
+  });
+  return list;
+}
+
 /* Cores dos tecidos que a equipe escreve na planilha, traduzidas para a tela.
    PRETO fica preto, GLACIAL fica aquele azul acinzentado. Na visão da Taty e
    da Rosana isso deixa de ser texto e vira cartela de tecido. */
@@ -2148,7 +2167,7 @@ function psi(s){return PSM[s]||{l:s,c:'var(--mt)',b:'var(--s2)'};}
 
 let cfg=(()=>{try{return JSON.parse(localStorage.getItem('az_cfg')||'{}');}catch(e){return {};}})();
 if(!cfg.url)cfg.url=DURL;
-let cortes=(()=>{try{return JSON.parse(localStorage.getItem('az_cortes')||'[]');}catch(e){return [];}})();
+let cortes=(()=>{try{return corrigeDescansadoSemOP(JSON.parse(localStorage.getItem('az_cortes')||'[]'));}catch(e){return [];}})();
 let pedidos=(()=>{try{return JSON.parse(localStorage.getItem('az_pedidos')||'[]');}catch(e){return [];}})();
 let user='',section='cortes',filtro='todos',statusFilter='',tipoFilter='';
 let coresId=null,respId=null,corCount=0,editId=null,decisaoId=null;
@@ -2500,6 +2519,8 @@ async function syncAll(silent,force){
         dataStatus:str(r.DATA_STATUS),
         fotoLocal:fotoMap[str(r.ID)]||'',
       }));
+      // Descansado sem OP continua na fila da Rosana (ver corrigeDescansadoSemOP).
+      corrigeDescansadoSemOP(cortes);
     }
     if(Array.isArray(p)&&p.length>0){
       pedidos=p.map(r=>({
@@ -3640,23 +3661,31 @@ async function toggleDC(id,cor){
   sl();
   const el=document.getElementById('cd-'+id);
   if(el){
+    // Antes isto redesenhava SEMPRE o card antigo (cardRosana), mesmo na tela
+    // nova da Rosana: ao marcar uma cor, o card trocava de cara, o campo do nº
+    // do corte sumia e aparecia no lugar o botao "Confirmar tudo descansado" —
+    // que era justamente o que fazia a peca sumir sem OP. Agora redesenha o
+    // mesmo card que ja estava na tela.
     const tmp=document.createElement('div');
-    tmp.innerHTML=cardRosana(c);
+    tmp.innerHTML=el.classList.contains('card-r')?cardRosana(c):cardDescanso(c);
     const newEl=tmp.firstChild;
     if(newEl)el.replaceWith(newEl);
   }
   await push(c._row,[['CHECKS_DESC',checksStr(c.checksDesc)]],c.id);
 }
+// Confirmar que os tecidos descansaram NAO muda mais o status. Antes mudava
+// para TECIDO_DESCANSADO e a peca sumia na hora — da tela da Rosana e do quadro
+// da Taty — sem que ninguem tivesse registrado a OP. Agora so grava a marcacao
+// e a data; quem tira a peca do quadro e o nº do corte (concluirCorte).
 async function salvarDescanso(id){
   const c=cortes.find(x=>x.id===id);
   if(!c){toast('Item nao encontrado — sincronize novamente','w');return;}
   c.checksDesc=c.checksDesc||{};
-  c.status='TECIDO_DESCANSADO';
-  c.dataDesc=new Date().toLocaleDateString('pt-BR');
+  c.dataDesc=c.dataDesc||new Date().toLocaleDateString('pt-BR');
   sl();
   render();
-  toast('Tecidos descansados! Registre o nº do corte.','s');
-  await push(c._row,[['CHECKS_DESC',checksStr(c.checksDesc)],['DATA_DESCANSO',c.dataDesc],['STATUS','TECIDO_DESCANSADO']],c.id);
+  toast('Tecidos descansados! Falta registrar o nº do corte (OP).','s');
+  await push(c._row,[['CHECKS_DESC',checksStr(c.checksDesc)],['DATA_DESCANSO',c.dataDesc]],c.id);
 }
 async function salvarNumCorte(id){
   const el=document.getElementById('nc-'+id);
@@ -4975,7 +5004,15 @@ function renderDashEdvaldo() {
 function renderDashRosana() {
   const descansando = cortes.filter(c => c.status === 'DESCANSAR_TECIDO');
   const atrasados = descansando.filter(c => tempoDecorrido(c).nivel === 2);
-  const prontos = cortes.filter(c => c.status === 'TECIDO_DESCANSADO').length;
+  // "Prontos" contava STATUS='TECIDO_DESCANSADO', que agora nao existe mais
+  // sozinho — descansado sem OP volta a ser "Descansar e cortar". O numero
+  // ficaria zerado para sempre. Pronto = todas as cores marcadas e faltando
+  // so digitar o nº do corte.
+  const prontos = descansando.filter(c => {
+    const cs = (c.cores || []).filter(x => x.cor);
+    const f = c.checksDesc || {};
+    return cs.length && cs.every(x => f[x.cor]);
+  }).length;
 
   document.getElementById('main-content').innerHTML = `
     <div class="dash">
