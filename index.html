@@ -1197,6 +1197,21 @@ h1, h2, h3, .heading {
 
 }
 
+/* Lembrete das 08:00 e 16:00 da Rosana. Sem × e sem fechar clicando fora:
+   a unica saida e o botao "Vou verificar". */
+.modal.check .check-hora{font-family:'DM Mono',monospace;font-size:.78rem;font-weight:700;
+  color:var(--ac);background:var(--acl);border-radius:var(--r99);padding:4px 12px;
+  display:inline-block;margin-bottom:12px}
+.modal.check .check-ti{font-family:'Syne',sans-serif;font-size:1.15rem;font-weight:800;
+  line-height:1.25;margin-bottom:14px}
+.modal.check .check-li{list-style:none;padding:0;margin:0 0 16px}
+.modal.check .check-li li{display:flex;gap:9px;align-items:flex-start;
+  font-size:.92rem;line-height:1.4;padding:9px 0;border-top:1px solid var(--bd)}
+.modal.check .check-li li:before{content:'☐';font-size:1.05rem;line-height:1.2;color:var(--mt)}
+.modal.check .check-cnt{background:var(--bg);border:1px solid var(--bd);
+  border-radius:var(--r8);padding:11px 12px;font-size:.85rem;line-height:1.5;margin-bottom:16px}
+.modal.check .check-cnt b{font-family:'DM Mono',monospace}
+
 .mhd {
   display: flex; justify-content: space-between; align-items: center;
   margin-bottom: 20px;
@@ -1583,6 +1598,42 @@ h1, h2, h3, .heading {
   .fila-grid.duas,.lista-grid{grid-template-columns:1fr 1fr}
 }
 @media (min-width:1400px){ .lista-grid{grid-template-columns:1fr 1fr 1fr} }
+
+/* ═══════════ TELA DA ROSANA · duas colunas ═══════════
+   Antes era uma lista so. A peca que ja tinha descansado ficava perdida no
+   meio das que ainda estavam descansando, e o campo do numero do corte
+   aparecia em todos os cards — inclusive nos que ela nem podia concluir
+   ainda. Agora a esquerda e so marcar tecido e a direita e so preencher OP. */
+.ros2{display:grid;gap:12px;grid-template-columns:1fr;align-items:start}
+@media (min-width:1000px){ .ros2{grid-template-columns:1fr 1fr} }
+.ros-col{background:var(--sf);border:1px solid var(--bd);border-radius:var(--r12);
+  overflow:hidden;box-shadow:var(--sh0);display:flex;flex-direction:column;min-height:0}
+.ros-col-top{height:4px}
+/* O titulo fica preso no topo: com 20 pecas na coluna ela continua vendo de
+   que lado esta e quantas faltam. */
+.ros-col-hd{position:sticky;top:0;z-index:1;background:var(--sf);
+  padding:11px 14px;display:flex;align-items:flex-start;justify-content:space-between;
+  gap:10px;border-bottom:1px solid var(--bd)}
+.ros-col-ti{font-family:'Syne',sans-serif;font-size:.82rem;font-weight:800;
+  text-transform:uppercase;letter-spacing:.7px;color:var(--tx);display:block}
+.ros-col-sub{font-size:.72rem;color:var(--mt);font-weight:500;display:block;margin-top:3px}
+.ros-col-cn{font-family:'DM Mono',monospace;font-size:.82rem;color:var(--mt);
+  background:var(--s2);border-radius:var(--r99);padding:3px 11px;flex-shrink:0;font-weight:600}
+.ros-col-bd{padding:10px;display:flex;flex-direction:column;gap:10px;
+  overflow-y:auto;overscroll-behavior:contain;-webkit-overflow-scrolling:touch;
+  max-height:calc(100vh - 235px);max-height:calc(100dvh - 235px)}
+.ros-col-bd::-webkit-scrollbar{width:6px}
+.ros-col-bd::-webkit-scrollbar-thumb{background:var(--bd2);border-radius:99px}
+/* No celular as colunas ficam uma embaixo da outra. Rolagem dentro de rolagem
+   no dedo e uma armadilha: a pagina inteira rola, as colunas nao. */
+@media (max-width:999px){ .ros-col-bd{max-height:none;overflow:visible} }
+/* Aviso de que a peca troca de coluna sozinha — a Rosana precisa entender
+   para onde o card foi quando ele some da frente dela. */
+.ros-dica{font-size:.73rem;color:var(--mt);line-height:1.4;padding:2px 2px 0}
+/* Cores ja descansadas: menores. Continuam clicaveis, para desfazer engano. */
+.cor.mini{min-height:36px;margin-bottom:4px}
+.cor.mini .cor-n{font-size:.79rem}
+.cor.mini .cor-b{width:18px;height:18px;font-size:.7rem}
 
 .campos2{display:grid;grid-template-columns:1fr 1fr;gap:9px;margin-bottom:9px}
 .ci{min-height:var(--tap);width:100%;background:var(--s2);
@@ -2001,6 +2052,21 @@ h1, h2, h3, .heading {
   </div>
 </div>
 
+<!-- LEMBRETE DA ROSANA · 08:00 e 16:00 em dia útil -->
+<div class="ov" id="ov-check">
+  <div class="modal check">
+    <div class="check-hora" id="check-hora">08:00</div>
+    <div class="check-ti">Os cortes estão atualizados?</div>
+    <ul class="check-li">
+      <li>Todo tecido que já descansou está marcado na lista?</li>
+      <li>Toda peça que foi para o corte está com o nº do corte (OP) preenchido?</li>
+      <li>Sobrou alguma peça parada na coluna "Falta o nº do corte"?</li>
+    </ul>
+    <div class="check-cnt" id="check-cnt"></div>
+    <button class="act ok" style="width:100%" onclick="fecharCheckRosana()">Vou verificar</button>
+  </div>
+</div>
+
 <!-- TOASTS -->
 <div class="toasts" id="toasts"></div>
 
@@ -2076,25 +2142,6 @@ const CONCLUIDOS=new Set(['TECIDO_DESCANSADO','NO_CORTE','AG_FOTO','FOTO_OK',
 const noQuadro=c=>ATIVOS.has(c.status)&&!c.espera;
 const emEspera=c=>!!c.espera;
 const noHistorico=c=>CONCLUIDOS.has(c.status)&&!c.espera;
-
-/* O QUE TIRA A PECA DO QUADRO E O Nº DO CORTE (a OP), NAO O DESCANSO.
-   Sintoma: a Rosana marcava as cores como descansadas, o app gravava
-   STATUS='TECIDO_DESCANSADO' e a peca sumia da tela dela e do quadro da Taty
-   NO MESMO INSTANTE — antes de alguem digitar a OP. O corte virava "concluido"
-   sem nunca ter ido para o corte. Foi o que aconteceu com o ID-4919 (e com o
-   4885, 4909, 4917 e 4918): cinco pecas descansadas, nenhuma com OP, todas
-   invisiveis para todo mundo.
-   Correcao: descansado SEM numero do corte volta a ser "Descansar e cortar".
-   A planilha nao e reescrita — a leitura e que corrige, entao linha antiga,
-   app antigo e qualquer gravacao futura ficam todos certos. Quando a OP for
-   registrada, o STATUS vira NO_CORTE e ai sim a peca sai do quadro. */
-function corrigeDescansadoSemOP(list){
-  (list||[]).forEach(c=>{
-    if(c && c.status==='TECIDO_DESCANSADO' && !String(c.numCorte||'').trim())
-      c.status='DESCANSAR_TECIDO';
-  });
-  return list;
-}
 
 /* Cores dos tecidos que a equipe escreve na planilha, traduzidas para a tela.
    PRETO fica preto, GLACIAL fica aquele azul acinzentado. Na visão da Taty e
@@ -2176,6 +2223,7 @@ let lastPushTime=0;
 // criava mais um setInterval e ninguém limpava: depois de 5 trocas de turno
 // eram 5 pollers concorrentes brigando pelo mesmo estado.
 let syncTimer=null;
+let checkTimer=null;   // relógio do lembrete das 08:00 / 16:00 da Rosana
 let srchTimer=null;
 let hasDataStatusCol=false;
 let vendo='quadro';          // 'quadro' | 'espera' | 'historico'
@@ -2258,6 +2306,8 @@ function logout(){
   ['az_cortes','az_pedidos','az_activity','az_user_ts'].forEach(k=>localStorage.removeItem(k));
   cortes=[];pedidos=[];activityLog=[];
   if(syncTimer){clearInterval(syncTimer);syncTimer=null;}
+  if(checkTimer){clearInterval(checkTimer);checkTimer=null;}
+  cl('ov-check');
   user='';
   document.getElementById('app').style.display='none';
   document.getElementById('portal').style.display='flex';
@@ -2326,6 +2376,12 @@ function initApp(){
   populateSels();
   setSection('cortes');
   inicializarNotificacoes();
+  // Ao entrar: se o lembrete das 8h ou das 16h ainda nao foi respondido hoje,
+  // ele aparece agora.
+  setTimeout(checarLembreteRosana,900);
+  // Um relogio so, trocado a cada login — nunca dois rodando ao mesmo tempo.
+  if(checkTimer)clearInterval(checkTimer);
+  checkTimer=setInterval(checarLembreteRosana,60000);
 
   if(cfg.url){
     setTimeout(syncAll,600);
@@ -2519,7 +2575,6 @@ async function syncAll(silent,force){
         dataStatus:str(r.DATA_STATUS),
         fotoLocal:fotoMap[str(r.ID)]||'',
       }));
-      // Descansado sem OP continua na fila da Rosana (ver corrigeDescansadoSemOP).
       corrigeDescansadoSemOP(cortes);
     }
     if(Array.isArray(p)&&p.length>0){
@@ -2539,6 +2594,22 @@ async function syncAll(silent,force){
     sl();render();if(!silent){toast('Sincronizado ✔','s');logActivity('Sincronização concluída com sucesso','#10B981');}
         checarNovosNaFila();
   }catch(e){console.error(e);if(!silent)toast('Erro ao sincronizar','w');}
+}
+
+// O que tira a peça do quadro é a OP, não o descanso.
+// `TECIDO_DESCANSADO` está na lista CONCLUIDOS: a peça vira histórico e some
+// da tela da Rosana, da coluna da Taty e da aba do Edvaldo de uma vez só. Se
+// isso acontece antes de alguém digitar o nº do corte, a peça fica invisível
+// para todo mundo — foi assim que ID-4885, 4909, 4917, 4918 e 4919 sumiram.
+// Na LEITURA, toda peça descansada sem OP volta a ser "descansar e cortar".
+// A planilha não é reescrita: linha antiga, app antigo e gravação nova
+// continuam todos certos sem ninguém precisar mexer nos dados.
+function corrigeDescansadoSemOP(lista){
+  (lista||[]).forEach(c=>{
+    if(c&&c.status==='TECIDO_DESCANSADO'&&!String(c.numCorte||'').trim())
+      c.status='DESCANSAR_TECIDO';
+  });
+  return lista;
 }
 
 function safeJSON(s,def){try{return s?JSON.parse(s):def;}catch(e){return def;}}
@@ -2707,12 +2778,30 @@ function atualizarCabecalho(){
 }
 
 // ── RENDER ──
+// A Rosana digita o nº do corte e só depois clica em concluir. Todo render()
+// recria os campos e apaga o que ela tinha digitado — inclusive o sync que
+// roda sozinho de 30 em 30 segundos. Guardamos e devolvemos o que estava lá.
+function guardaOPs(){
+  const o={};
+  document.querySelectorAll('.op-row input.ci').forEach(i=>{
+    if(i.id&&i.value.trim())o[i.id]=i.value;
+  });
+  return o;
+}
+function devolveOPs(o){
+  Object.entries(o||{}).forEach(([k,v])=>{
+    const i=document.getElementById(k);
+    if(i&&!i.value)i.value=v;   // o que veio da planilha manda mais
+  });
+}
 function render(){
   if(!user)return;
+  const ops=guardaOPs();
   atualizarCabecalho();
-  if(section==='dashboard'){renderDashboard();return;}
+  if(section==='dashboard'){renderDashboard();devolveOPs(ops);return;}
   if(section==='cortes')renderCortes();
   else renderPedidos();
+  devolveOPs(ops);
 }
 
 // ── CORTES ──
@@ -2826,6 +2915,46 @@ async function concluirCorte(id){
   logActivity(`<strong>${esc(c.ref||c.id)}</strong> foi para o corte (OP ${esc(num)})`,'#0A6E4A');
   await push(c._row,[['CHECKS_DESC',checksStr(c.checksDesc||{})],
     ['DATA_DESCANSO',c.dataDesc],['NUM_CORTE',num],['STATUS','NO_CORTE']],c.id);
+}
+
+// ══════ LEMBRETE DA ROSANA · 08:00 e 16:00, dia útil ══════
+// Duas vezes por dia o app para a tela e pergunta se está tudo em dia. Só sai
+// pelo botão "Vou verificar": não tem × e clicar fora não fecha.
+// Se ela só abrir o app às 10h, o lembrete das 8h aparece assim que ela entra.
+// Se abrir às 17h, aparece só o das 16h — o das 8h já passou o dia.
+const CHECK_HORAS=[8,16];
+let checkSlot=null;
+function slotCheckRosana(d){
+  const dia=d.getDay();
+  if(dia===0||dia===6)return null;              // sábado e domingo, não
+  let hora=null;
+  CHECK_HORAS.forEach(h=>{ if(d.getHours()>=h)hora=h; });
+  if(hora===null)return null;                   // antes das 8h ainda não
+  const p=n=>String(n).padStart(2,'0');
+  return `${d.getFullYear()}-${p(d.getMonth()+1)}-${p(d.getDate())}-${p(hora)}`;
+}
+function checarLembreteRosana(){
+  if(user!=='rosana')return;
+  if(document.getElementById('ov-check')?.classList.contains('open'))return;
+  const slot=slotCheckRosana(new Date());
+  if(!slot)return;
+  if(localStorage.getItem('az_check_rosana')===slot)return;   // já respondeu
+  checkSlot=slot;
+  const l=cortes.filter(c=>c.status==='DESCANSAR_TECIDO');
+  const prontas=l.filter(rosanaPronta).length;
+  const faltando=l.length-prontas;
+  const hEl=document.getElementById('check-hora');
+  if(hEl)hEl.textContent='Conferência das '+slot.slice(-2)+':00';
+  const cEl=document.getElementById('check-cnt');
+  if(cEl)cEl.innerHTML=
+    `Agora na sua tela: <b>${prontas}</b> ${prontas===1?'peça esperando':'peças esperando'} o nº do corte · `+
+    `<b>${faltando}</b> ainda ${faltando===1?'descansando':'descansando'}.`;
+  op('ov-check');
+}
+function fecharCheckRosana(){
+  if(checkSlot)localStorage.setItem('az_check_rosana',checkSlot);
+  cl('ov-check');
+  if(cfg.url)syncAll(true,true);   // conferir com a planilha, não com a memória
 }
 
 function logActivity(text,color){
@@ -3063,34 +3192,64 @@ function cardEncaixe(c){
   </div>`;
 }
 
-// ── FILA DA ROSANA · cores com amostra + nº do corte ──
+// ── FILA DA ROSANA · duas colunas ──
+// Esquerda: tecido ainda descansando (falta marcar cor).
+// Direita: tecido descansado, só falta o nº do corte.
+// Quem decide o lado é o checklist de cores, NÃO o STATUS. Nada sai da tela
+// dela antes de a OP existir — foi assim que cinco peças ficaram invisíveis.
+function rosanaPronta(c){
+  const cs=(c.cores||[]).filter(x=>x.cor);
+  // Peça sem cores na planilha não tem tecido para marcar. Vai direto para o
+  // lado da OP; se ficasse à esquerda seria um beco sem saída (nenhum botão).
+  if(!cs.length)return true;
+  const f=c.checksDesc||{};
+  return cs.every(x=>f[x.cor]);
+}
+function rosanaColuna(titulo,sub,cor,fundo,items,cardFn,vazio){
+  return`<div class="ros-col">
+    <div class="ros-col-top" style="background:${cor}"></div>
+    <div class="ros-col-hd">
+      <div><span class="ros-col-ti">${titulo}</span><span class="ros-col-sub">${sub}</span></div>
+      <span class="ros-col-cn"${items.length?` style="background:${fundo};color:${cor}"`:''}>${items.length}</span>
+    </div>
+    <div class="ros-col-bd">${items.length?items.map(cardFn).join(''):`<div class="empty">${esc(vazio)}</div>`}</div>
+  </div>`;
+}
 function renderFilaRosana(){
   barraTopo();
   const st=document.getElementById('stats'); if(st)st.style.display='none';
   const l=getVisCortes().filter(c=>c.status==='DESCANSAR_TECIDO')
     .sort((a,b)=>(b.urg-a.urg)||(b.dias-a.dias));
+  const prontas=l.filter(rosanaPronta);
+  const descansando=l.filter(c=>!rosanaPronta(c));
   document.getElementById('main-content').innerHTML=`
     <div class="fila">
-      <div class="fila-hd"><span class="fila-ti">Para descansar e cortar</span>
-        <span class="fila-n">${l.length} ${l.length===1?'peça':'peças'}</span></div>
-      <div class="fila-grid duas">${l.length?l.map(cardDescanso).join(''):`<div class="empty">${esc(fraseVazia())}</div>`}</div>
+      <div class="ros2">
+        ${rosanaColuna('Para descansar','Marque cada tecido quando ele descansar',
+          'var(--c5)','var(--b5)',descansando,cardDescansando,fraseVazia())}
+        ${rosanaColuna('Falta o nº do corte','Tecido descansado — pegue a OP no Miré Data',
+          'var(--c3)','var(--b3)',prontas,cardComOP,'Nenhuma peça esperando o nº do corte.')}
+      </div>
     </div>`;
 }
-function cardDescanso(c){
+// Card da ESQUERDA: só o checklist. Sem campo de OP e sem botão de concluir —
+// era isso que a fazia digitar o número numa peça que ainda nem descansou.
+function cardDescansando(c){
   const cs=(c.cores||[]).filter(x=>x.cor);
   const f=c.checksDesc||{};
-  const n=cs.filter(x=>f[x.cor]).length, tudo=cs.length&&n===cs.length;
-  return `<div class="card grande${c.urg?' urg':''}" id="cd-${esc(c.id)}">
+  const n=cs.filter(x=>f[x.cor]).length;
+  const falta=cs.length-n;
+  return `<div class="card grande${c.urg?' urg':''}" id="cd-${esc(c.id)}" data-lado="descansando">
     ${cardTopo(c,true)}
     <div class="enc-2">
       <div class="d"><div class="dk">Comprimento</div><div class="dv fm">${esc(c.encM)||'—'} m</div></div>
       <div class="d"><div class="dk">Aproveitamento</div><div class="dv fm">${esc(c.encPct)||'—'}%</div></div>
     </div>
-    ${cs.length?`<div class="cores-box">
+    <div class="cores-box">
       <div class="cores-hd">
         <span class="cores-l">Tecidos para descansar</span>
-        ${tudo?'':`<button class="todas" onclick="event.stopPropagation();marcarTodasCores(${jsq(c.id)})">Marcar todas</button>`}
-        <span class="cores-n${tudo?' full':''}">${n} de ${cs.length}</span>
+        <button class="todas" onclick="event.stopPropagation();marcarTodasCores(${jsq(c.id)})">Marcar todas</button>
+        <span class="cores-n">${n} de ${cs.length}</span>
       </div>
       ${cs.map(x=>`<button class="cor${f[x.cor]?' ok':''}" onclick="event.stopPropagation();toggleDC(${jsq(c.id)},${jsq(x.cor)})">
         <span class="cor-b">${f[x.cor]?'✓':''}</span>
@@ -3098,7 +3257,32 @@ function cardDescanso(c){
         <span class="cor-n">${esc(x.cor)}</span>
         <span class="cor-q fm">${esc(x.qtd)} ${String(x.qtd)==='1'?'rolo':'rolos'}</span>
       </button>`).join('')}
-    </div>`:'<div class="obs">Esta peça ainda não tem cores definidas.</div>'}
+    </div>
+    <div class="ros-dica">Falta ${falta} ${falta===1?'tecido':'tecidos'}. Ao marcar o último,
+      a peça passa para <strong>Falta o nº do corte</strong>.</div>
+  </div>`;
+}
+// Card da DIREITA: tudo descansado, só falta a OP.
+function cardComOP(c){
+  const cs=(c.cores||[]).filter(x=>x.cor);
+  return `<div class="card grande${c.urg?' urg':''}" id="cd-${esc(c.id)}" data-lado="pronta">
+    ${cardTopo(c,true)}
+    <div class="enc-2">
+      <div class="d"><div class="dk">Comprimento</div><div class="dv fm">${esc(c.encM)||'—'} m</div></div>
+      <div class="d"><div class="dk">Aproveitamento</div><div class="dv fm">${esc(c.encPct)||'—'}%</div></div>
+    </div>
+    ${cs.length?`<div class="cores-box">
+      <div class="cores-hd">
+        <span class="cores-l">Tecidos descansados</span>
+        <span class="cores-n full">${cs.length} de ${cs.length} ✔</span>
+      </div>
+      ${cs.map(x=>`<button class="cor ok mini" onclick="event.stopPropagation();toggleDC(${jsq(c.id)},${jsq(x.cor)})">
+        <span class="cor-b">✓</span>
+        <span class="amostra" style="background:${corDoTecido(x.cor)}"></span>
+        <span class="cor-n">${esc(x.cor)}</span>
+        <span class="cor-q fm">${esc(x.qtd)} ${String(x.qtd)==='1'?'rolo':'rolos'}</span>
+      </button>`).join('')}
+    </div>`:'<div class="obs">Esta peça não tem cores na planilha — não há tecido para marcar.</div>'}
     <div class="fg op-fg">
       <label class="fl">Nº do corte · OP no Miré Data</label>
       <div class="op-row">
@@ -3107,9 +3291,7 @@ function cardDescanso(c){
       </div>
     </div>
     <div class="acts">
-      <button class="act ok" onclick="event.stopPropagation();concluirCorte(${jsq(c.id)})">${
-        tudo||!cs.length ? 'Concluir — foi para o corte'
-        : `Concluir (falta ${cs.length-n} ${cs.length-n===1?'cor':'cores'})`}</button>
+      <button class="act ok" onclick="event.stopPropagation();concluirCorte(${jsq(c.id)})">Concluir — foi para o corte</button>
     </div>
   </div>`;
 }
@@ -3656,35 +3838,40 @@ async function salvarEncaixe(id){
 async function toggleDC(id,cor){
   const c=cortes.find(x=>x.id===id);
   if(!c){toast('Item nao encontrado — sincronize novamente','w');return;}
+  const antes=rosanaPronta(c);
   if(!c.checksDesc)c.checksDesc={};
   c.checksDesc[cor]=!c.checksDesc[cor];
   sl();
   const el=document.getElementById('cd-'+id);
-  if(el){
-    // Antes isto redesenhava SEMPRE o card antigo (cardRosana), mesmo na tela
-    // nova da Rosana: ao marcar uma cor, o card trocava de cara, o campo do nº
-    // do corte sumia e aparecia no lugar o botao "Confirmar tudo descansado" —
-    // que era justamente o que fazia a peca sumir sem OP. Agora redesenha o
-    // mesmo card que ja estava na tela.
+  // Na tela da Rosana marcar a ÚLTIMA cor muda a peça de coluna (e desmarcar
+  // devolve). Aí não adianta trocar o card no lugar: tem que redesenhar.
+  if(user==='rosana'&&rosanaPronta(c)!==antes){
+    render();
+    const novo=document.getElementById('cd-'+id);
+    if(novo)novo.scrollIntoView({behavior:'smooth',block:'nearest'});
+    if(!antes)toast('Tudo descansado — agora só o nº do corte','s');
+  }else if(el){
     const tmp=document.createElement('div');
-    tmp.innerHTML=el.classList.contains('card-r')?cardRosana(c):cardDescanso(c);
+    // Antes isto usava sempre o card da Taty: na tela da Rosana o cartão
+    // trocava de cara sozinha ao marcar uma cor.
+    tmp.innerHTML=user==='rosana'
+      ? (rosanaPronta(c)?cardComOP(c):cardDescansando(c))
+      : cardRosana(c);
     const newEl=tmp.firstChild;
     if(newEl)el.replaceWith(newEl);
   }
   await push(c._row,[['CHECKS_DESC',checksStr(c.checksDesc)]],c.id);
 }
-// Confirmar que os tecidos descansaram NAO muda mais o status. Antes mudava
-// para TECIDO_DESCANSADO e a peca sumia na hora — da tela da Rosana e do quadro
-// da Taty — sem que ninguem tivesse registrado a OP. Agora so grava a marcacao
-// e a data; quem tira a peca do quadro e o nº do corte (concluirCorte).
 async function salvarDescanso(id){
   const c=cortes.find(x=>x.id===id);
   if(!c){toast('Item nao encontrado — sincronize novamente','w');return;}
   c.checksDesc=c.checksDesc||{};
-  c.dataDesc=c.dataDesc||new Date().toLocaleDateString('pt-BR');
+  // NÃO mexe mais no STATUS. Este botão só registra que o tecido descansou.
+  // Quem muda o status é concluirCorte(), e só com a OP preenchida.
+  c.dataDesc=new Date().toLocaleDateString('pt-BR');
   sl();
   render();
-  toast('Tecidos descansados! Falta registrar o nº do corte (OP).','s');
+  toast('Descanso registrado! Falta o nº do corte.','s');
   await push(c._row,[['CHECKS_DESC',checksStr(c.checksDesc)],['DATA_DESCANSO',c.dataDesc]],c.id);
 }
 async function salvarNumCorte(id){
@@ -5004,15 +5191,7 @@ function renderDashEdvaldo() {
 function renderDashRosana() {
   const descansando = cortes.filter(c => c.status === 'DESCANSAR_TECIDO');
   const atrasados = descansando.filter(c => tempoDecorrido(c).nivel === 2);
-  // "Prontos" contava STATUS='TECIDO_DESCANSADO', que agora nao existe mais
-  // sozinho — descansado sem OP volta a ser "Descansar e cortar". O numero
-  // ficaria zerado para sempre. Pronto = todas as cores marcadas e faltando
-  // so digitar o nº do corte.
-  const prontos = descansando.filter(c => {
-    const cs = (c.cores || []).filter(x => x.cor);
-    const f = c.checksDesc || {};
-    return cs.length && cs.every(x => f[x.cor]);
-  }).length;
+  const prontos = cortes.filter(c => c.status === 'TECIDO_DESCANSADO').length;
 
   document.getElementById('main-content').innerHTML = `
     <div class="dash">
@@ -5420,6 +5599,7 @@ window.addEventListener('DOMContentLoaded',()=>{
 // aba esta oculta, entao sem isto o usuario veria dados velhos por ate 30s.
 document.addEventListener('visibilitychange',()=>{
   if(!document.hidden&&user&&cfg.url)syncAll(true,true);
+  if(!document.hidden)checarLembreteRosana();
 });</script>
 </body>
 </html>
