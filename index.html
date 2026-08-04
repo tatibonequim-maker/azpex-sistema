@@ -1690,6 +1690,39 @@ h1, h2, h3, .heading {
 .fb.on .fb-c{opacity:.95}
 .tb-sep{width:1px;align-self:stretch;background:var(--bd2);margin:4px 3px;flex-shrink:0}
 
+/* ═══════════ MARTHA & DAI · chegada da oficina + controle de qualidade ═══ */
+.cq-aviso{background:var(--b1);border:1.5px solid var(--c1);border-radius:var(--r12);
+  padding:12px 14px;margin-bottom:12px;font-size:.82rem;color:var(--c1);line-height:1.5}
+.cq-aviso-cols{font-family:'DM Mono',monospace;font-size:.74rem;background:rgba(255,255,255,.65);
+  border-radius:7px;padding:7px 9px;margin:7px 0;word-break:break-word;color:#6E5A12}
+.cq-pergunta{font-size:.85rem;font-weight:700;margin:2px 0 7px}
+.cq-btns{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.cq-escolha{padding:12px 8px;min-height:var(--tap);border-radius:var(--r8);
+  border:1.5px solid var(--bdi);background:var(--sf);color:var(--mt);
+  font-size:.82rem;font-weight:700;cursor:pointer;text-align:center;
+  transition:background-color .13s,color .13s,border-color .13s}
+.cq-escolha.on{border-color:var(--tx);background:var(--tx);color:#fff}
+.cq-sec{background:var(--bg);border:1px solid var(--bd);border-radius:var(--r8);
+  padding:10px;margin-bottom:8px}
+.cq-hd{display:flex;justify-content:space-between;align-items:center;gap:8px;margin-bottom:8px}
+.cq-ti{font-size:.66rem;text-transform:uppercase;letter-spacing:.6px;color:var(--mt);font-weight:700}
+.cq-chip{font-size:.68rem;font-weight:700;padding:2px 9px;border-radius:var(--r99);white-space:nowrap}
+.cq-chip.ok{background:var(--b3);color:var(--c3)}
+.cq-chip.bad{background:var(--b4);color:var(--c4)}
+.cq-chip.pend{background:var(--s2);color:var(--mt)}
+.cq-linha-ok{font-size:.78rem;color:var(--c3);font-weight:600;padding:2px 0 4px}
+.piloto-alerta{font-size:.78rem;font-weight:700;background:var(--b4);color:var(--c4);
+  border:1px solid #FCA5A5;border-radius:7px;padding:7px 9px;margin-bottom:6px;line-height:1.4}
+.cq-dest{display:flex;align-items:center;gap:8px;background:var(--sf);
+  border:1px solid var(--bd);border-radius:7px;padding:7px 9px;margin-bottom:5px}
+.cq-dest-tx{flex:1;min-width:0;font-size:.78rem;line-height:1.35}
+.cq-dest-tx b{display:block;font-size:.6rem;text-transform:uppercase;letter-spacing:.5px;color:var(--mt)}
+.cq-resolve{flex-shrink:0;min-height:38px;padding:0 11px;border-radius:7px;
+  border:1.5px solid var(--bdi);background:transparent;color:var(--mt);
+  font-size:.72rem;font-weight:700;cursor:pointer;white-space:nowrap}
+.cq-resolve.on{background:var(--b3);border-color:var(--c3);color:var(--c3)}
+.cq-100{font-size:.76rem;background:var(--b4);color:var(--c4);border-radius:7px;
+  padding:7px 9px;margin-bottom:6px;line-height:1.45}
 /* ═══════════ COMEMORAÇÃO ═══════════ */
 .festa{position:fixed;inset:0;pointer-events:none;z-index:800;overflow:hidden}
 .festa i{position:absolute;top:-18px;width:9px;height:13px;border-radius:2px;
@@ -2052,6 +2085,96 @@ h1, h2, h3, .heading {
   </div>
 </div>
 
+<!-- Chegada da oficina (Martha & Dai) -->
+<div class="ov" id="ov-chegada">
+  <div class="modal">
+    <div class="mhd">
+      <div class="mti">📦 Chegou da oficina</div>
+      <button class="xb" onclick="cl('ov-chegada')">×</button>
+    </div>
+    <div id="cheg-info" style="font-size:.84rem;color:var(--mt);margin-bottom:14px"></div>
+    <div class="fg" style="margin-bottom:12px"><label class="fl">Data da chegada</label>
+      <div class="drow">
+        <input class="fi" id="cheg-data" type="date" style="flex:1">
+        <button class="hoje-b" onclick="document.getElementById('cheg-data').value=new Date().toISOString().split('T')[0]">Hoje</button>
+      </div>
+    </div>
+    <div class="fg" style="margin-bottom:12px"><label class="fl">O que chegou?</label>
+      <div class="cq-btns">
+        <button class="cq-escolha" id="cheg-tipo-reposicao" onclick="setChegTipo('reposicao')">📦 Reposição</button>
+        <button class="cq-escolha" id="cheg-tipo-novidade" onclick="setChegTipo('novidade')">✨ Novidade</button>
+      </div>
+    </div>
+    <div class="fg"><label class="fl">A peça piloto voltou?</label>
+      <div class="cq-btns">
+        <button class="cq-escolha" id="cheg-pil-sim" onclick="setChegPiloto('sim')">✔ Sim, voltou</button>
+        <button class="cq-escolha" id="cheg-pil-nao" onclick="setChegPiloto('nao')">🚨 Não voltou</button>
+      </div>
+      <div id="cheg-pil-aviso" style="display:none;font-size:.76rem;color:var(--c4);margin-top:6px;font-weight:600">O card vai mostrar o alerta "há X dias sem a piloto" até alguém marcar que ela voltou.</div>
+    </div>
+    <div class="fact">
+      <button class="bc" onclick="cl('ov-chegada')">Cancelar</button>
+      <button class="bs" style="background:#0A7A52" onclick="confirmarChegada()">Confirmar chegada ✔</button>
+    </div>
+  </div>
+</div>
+<!-- CQ Martha — com defeito -->
+<div class="ov" id="ov-cqm">
+  <div class="modal">
+    <div class="mhd">
+      <div class="mti">✖ CQ Martha — com defeito</div>
+      <button class="xb" onclick="cl('ov-cqm')">×</button>
+    </div>
+    <div id="cqm-info" style="font-size:.84rem;color:var(--mt);margin-bottom:12px"></div>
+    <div class="fg" style="margin-bottom:12px"><label class="fl">Motivo do defeito *</label>
+      <textarea class="fi" id="cqm-motivo" rows="2" placeholder="ex: costura torta na manga, gola desfiando..."></textarea>
+    </div>
+    <div class="divr"></div>
+    <span class="sl">Destinação — preencha só o que existir</span>
+    <div class="fg" style="margin-bottom:10px"><label class="fl">🔧 Conserto interno (qtd + o que fazer)</label>
+      <input class="fi" id="cqm-int" placeholder="ex: 4 pç — refazer barra aqui">
+    </div>
+    <div class="fg" style="margin-bottom:10px"><label class="fl">🏭 Conserto externo (qtd + o que fazer)</label>
+      <input class="fi" id="cqm-ext" placeholder="ex: 2 pç — voltar para a oficina">
+    </div>
+    <div class="divr"></div>
+    <span class="sl">Defeitos incorrigíveis — viraram 100% defeito</span>
+    <div style="font-size:.74rem;color:var(--mt);margin-bottom:8px">Cor e quantidade de peças perdidas (sem conserto). Deixe vazio se não houver.</div>
+    <div id="cqm-defs"></div>
+    <button class="add-cor" onclick="addDef100()">+ Adicionar cor com 100% defeito</button>
+    <datalist id="cqm-cores-dl"></datalist>
+    <div class="fact">
+      <button class="bc" onclick="cl('ov-cqm')">Cancelar</button>
+      <button class="bs" style="background:#A32D2D" onclick="salvarCQMartha()">Salvar apontamento</button>
+    </div>
+  </div>
+</div>
+<!-- CQ Denise — não OK -->
+<div class="ov" id="ov-cqd">
+  <div class="modal">
+    <div class="mhd">
+      <div class="mti">✖ CQ Denise — não OK</div>
+      <button class="xb" onclick="cl('ov-cqd')">×</button>
+    </div>
+    <div id="cqd-info" style="font-size:.84rem;color:var(--mt);margin-bottom:12px"></div>
+    <div class="fg" style="margin-bottom:10px"><label class="fl">Justificativa *</label>
+      <textarea class="fi" id="cqd-just" rows="2" placeholder="ex: encontrei 3 peças com mancha que passaram"></textarea>
+    </div>
+    <div class="fg" style="margin-bottom:12px"><label class="fl">Ação que foi tomada *</label>
+      <input class="fi" id="cqd-acao" placeholder="ex: separei as peças e avisei a Martha">
+    </div>
+    <button class="cq-escolha" id="cqd-oficina" style="width:100%;margin-bottom:10px" onclick="setCqdOficina()">↩ Voltou para a oficina?</button>
+    <div class="fg" id="cqd-conc-wrap" style="display:none;margin-bottom:4px">
+      <label class="fl">Conclusão (quando voltar da oficina)</label>
+      <input class="fi" id="cqd-conc" placeholder="pode deixar vazio e registrar depois">
+      <div style="font-size:.72rem;color:var(--mt);margin-top:4px">Sem a conclusão o card não arquiva — fica te lembrando.</div>
+    </div>
+    <div class="fact">
+      <button class="bc" onclick="cl('ov-cqd')">Cancelar</button>
+      <button class="bs" style="background:#A32D2D" onclick="salvarCQDenise()">Salvar</button>
+    </div>
+  </div>
+</div>
 <!-- LEMBRETE DA ROSANA · 08:00 e 16:00 em dia útil -->
 <div class="ov" id="ov-check">
   <div class="modal check">
@@ -2093,8 +2216,10 @@ const UNAMES={taty:'Cinthia / Taty',edvaldo:'Edvaldo',rosana:'Rosana',daimartha:
 
 /* Com as etapas de depois do corte fora do quadro, sete perfis ficaram sem
    nada para fazer. Eles NÃO foram apagados — só saem da tela de login.
-   Para trazer alguém de volta, é só devolver o nome a esta lista. */
-const PERFIS_ATIVOS=['taty','edvaldo','rosana'];
+   Para trazer alguém de volta, é só devolver o nome a esta lista.
+   daimartha VOLTOU: agora é quem confirma a chegada da oficina e faz o
+   controle de qualidade (Martha + Denise, no mesmo login). */
+const PERFIS_ATIVOS=['taty','edvaldo','rosana','daimartha'];
 
 // Cortes status
 const CSM={
@@ -2106,6 +2231,7 @@ const CSM={
   EM_ESPERA:{l:'Em espera',c:'var(--mt)',b:'var(--s2)'},
   TECIDO_DESCANSADO:{l:'Tecido descansado',c:'var(--c3)',b:'var(--b3)'},
   NO_CORTE:{l:'Corte / Oficina',c:'var(--c3)',b:'var(--b3)'},
+  CONTROLE_QUALIDADE:{l:'Controle de qualidade',c:'var(--c5)',b:'var(--b5)'},
   AG_FOTO:{l:'Ag. foto Carol',c:'var(--c6)',b:'var(--b6)'},
   FOTO_OK:{l:'Foto aprovada',c:'var(--c3)',b:'var(--b3)'},
   AGUARDANDO_GI:{l:'Ag. decisão de envio',c:'var(--c8)',b:'var(--b8)'},
@@ -2132,16 +2258,21 @@ const FLUXO=[
 const ATIVOS=new Set(FLUXO.map(e=>e.s));
 const ESPERA='EM_ESPERA';
 // Já concluído para o app: saiu do quadro, continua no histórico.
-const CONCLUIDOS=new Set(['TECIDO_DESCANSADO','NO_CORTE','AG_FOTO','FOTO_OK',
+// CONTROLE_QUALIDADE entra aqui de propósito: para a Taty e o resto da equipe
+// a peça já saiu do fluxo de produção — só a Martha & Dai a veem no quadro.
+const CONCLUIDOS=new Set(['TECIDO_DESCANSADO','NO_CORTE','CONTROLE_QUALIDADE','AG_FOTO','FOTO_OK',
   'AGUARDANDO_GI','SEPARAR_ENVIO','EMBALAR','PRONTO_RETIRADA','ARQUIVADO']);
+// O quadro da Martha & Dai são estas duas etapas — que para os demais perfis
+// contam como "já concluído". Por isso noQuadro/noHistorico olham quem logou.
+const DAI_QUADRO=new Set(['NO_CORTE','CONTROLE_QUALIDADE']);
 // "Em espera" NAO e mais um STATUS. Gravar STATUS='EM_ESPERA' na planilha nao
 // pegava: a peca reaparecia na fila de aprovacao no sync seguinte (a planilha
 // so conhece a lista antiga de status). Agora a espera vive na coluna
 // GI_ENVIAR, que ninguem mais usa, e o STATUS fica intacto — o que tambem faz
 // a peca voltar para a coluna onde ela estava, e nao para "Aprovar encaixe".
-const noQuadro=c=>ATIVOS.has(c.status)&&!c.espera;
+const noQuadro=c=>(user==='daimartha'?DAI_QUADRO.has(c.status):ATIVOS.has(c.status))&&!c.espera;
 const emEspera=c=>!!c.espera;
-const noHistorico=c=>CONCLUIDOS.has(c.status)&&!c.espera;
+const noHistorico=c=>CONCLUIDOS.has(c.status)&&!c.espera&&!(user==='daimartha'&&DAI_QUADRO.has(c.status));
 
 /* Cores dos tecidos que a equipe escreve na planilha, traduzidas para a tela.
    PRETO fica preto, GLACIAL fica aquele azul acinzentado. Na visão da Taty e
@@ -2218,6 +2349,8 @@ let cortes=(()=>{try{return corrigeDescansadoSemOP(JSON.parse(localStorage.getIt
 let pedidos=(()=>{try{return JSON.parse(localStorage.getItem('az_pedidos')||'[]');}catch(e){return [];}})();
 let user='',section='cortes',filtro='todos',statusFilter='',tipoFilter='';
 let coresId=null,respId=null,corCount=0,editId=null,decisaoId=null;
+// Estado dos modais da Martha & Dai (chegada + CQ)
+let chegadaId=null,chegadaTipo='',chegadaPiloto='',cqmId=null,def100Count=0,cqdId=null,cqdOficina=false;
 let lastPushTime=0;
 // Handle do polling. Sem guardar isto, cada login numa tablet compartilhada
 // criava mais um setInterval e ninguém limpava: depois de 5 trocas de turno
@@ -2226,6 +2359,13 @@ let syncTimer=null;
 let checkTimer=null;   // relógio do lembrete das 08:00 / 16:00 da Rosana
 let srchTimer=null;
 let hasDataStatusCol=false;
+// Colunas do controle de qualidade na planilha. Se alguma faltar, a tela da
+// Martha & Dai mostra exatamente quais criar — e não deixa gravar no vazio.
+const COLS_CQ=['CHEGOU_OFICINA','DATA_CHEGADA','PILOTO_VOLTOU','DATA_PILOTO',
+  'CQ_MARTHA','CQ_M_MOTIVO','CONSERTO_INTERNO','CONSERTO_INTERNO_OK',
+  'CONSERTO_EXTERNO','CONSERTO_EXTERNO_OK','DEFEITO_100',
+  'CQ_DENISE','CQ_D_JUST','CQ_D_ACAO','CQ_D_OFICINA','CQ_D_CONCLUSAO'];
+let colsCQFaltando=[];
 let vendo='quadro';          // 'quadro' | 'espera' | 'historico'
 let feitosHoje=0;
 let pinUser='',pinVal='',pinSide='';
@@ -2337,8 +2477,9 @@ function initApp(){
   localStorage.setItem('az_user_ts',String(Date.now()));
   document.getElementById('portal').style.display='none';
   document.getElementById('app').style.display='flex';
-  // Só o quadro trava a altura; as filas do Edvaldo e da Rosana rolam normal.
-  document.getElementById('app').classList.toggle('em-quadro',user!=='edvaldo'&&user!=='rosana');
+  // Só o quadro trava a altura; as filas do Edvaldo, da Rosana e da
+  // Martha & Dai rolam normal.
+  document.getElementById('app').classList.toggle('em-quadro',user!=='edvaldo'&&user!=='rosana'&&user!=='daimartha');
   document.getElementById('app-user').textContent=UNAMES[user]||user;
 
   const isTaty=user==='taty';
@@ -2552,6 +2693,7 @@ async function syncAll(silent,force){
       // desde a entrada da peca — antes, qualquer corte antigo aparecia em
       // vermelho no instante em que chegava numa etapa nova.
       hasDataStatusCol = Object.prototype.hasOwnProperty.call(c[0],'DATA_STATUS');
+      colsCQFaltando = COLS_CQ.filter(k=>!Object.prototype.hasOwnProperty.call(c[0],k));
       const fotoMap={};cortes.forEach(x=>{if(x.fotoLocal)fotoMap[x.id]=x.fotoLocal;});
       cortes=c.filter(r=>r.STATUS!=='DELETADO').map(r=>({
         id:str(r.ID),ref:str(r.REF),nome:str(r.NOME),
@@ -2567,6 +2709,15 @@ async function syncAll(silent,force){
         checksDesc:parseChecks(str(r.CHECKS_DESC)),
         numCorte:str(r.NUM_CORTE),dataDesc:str(r.DATA_DESCANSO),impresso:str(r.IMPRESSO)||'',
         tipo:str(r.TIPO_CHEGADA),carolObs:str(r.CAROL_OBS),giObs:str(r.GI_OBS),
+        // ── Chegada da oficina + controle de qualidade (Martha & Dai) ──
+        chegou:str(r.CHEGOU_OFICINA).toLowerCase(),dataChegada:str(r.DATA_CHEGADA),
+        pilotoVoltou:str(r.PILOTO_VOLTOU).toLowerCase(),dataPiloto:str(r.DATA_PILOTO),
+        cqM:str(r.CQ_MARTHA).toUpperCase(),cqMMotivo:str(r.CQ_M_MOTIVO),
+        consInt:str(r.CONSERTO_INTERNO),consIntOk:str(r.CONSERTO_INTERNO_OK).toLowerCase(),
+        consExt:str(r.CONSERTO_EXTERNO),consExtOk:str(r.CONSERTO_EXTERNO_OK).toLowerCase(),
+        defeito100:parseCores(str(r.DEFEITO_100)),
+        cqD:str(r.CQ_DENISE).toUpperCase(),cqDJust:str(r.CQ_D_JUST),cqDAcao:str(r.CQ_D_ACAO),
+        cqDOficina:str(r.CQ_D_OFICINA).toLowerCase(),cqDConclusao:str(r.CQ_D_CONCLUSAO),
         status:mapStatus(str(r.STATUS)),_row:r._row,
         // A espera mora na coluna GI_ENVIAR. O STATUS='EM_ESPERA' e lido tambem,
         // por causa das linhas que ficaram do jeito antigo.
@@ -2622,6 +2773,7 @@ function mapStatus(s){
     'DESCANSAR_TECIDO':'DESCANSAR_TECIDO','AGUARDANDO_APROVACAO':'AGUARDANDO_APROVACAO',
     'ENCAIXE_REPROVADO':'ENCAIXE_REPROVADO','TECIDO_DESCANSADO':'TECIDO_DESCANSADO',
     'PRONTO PARA CORTAR':'TECIDO_DESCANSADO','NO_CORTE':'NO_CORTE',
+    'CONTROLE_QUALIDADE':'CONTROLE_QUALIDADE',
     'AG_FOTO':'AG_FOTO','FOTO_OK':'FOTO_OK',
     'SEPARAR_ENVIO':'AGUARDANDO_GI',
     'AGUARDANDO_GI':'AGUARDANDO_GI','EMBALAR':'EMBALAR',
@@ -2855,7 +3007,7 @@ function verQuadro(v){
   vendo=v; statusFilter=''; filtro='todos';
   const app=document.getElementById('app');
   // A lista de espera e o histórico rolam; só o quadro trava a altura.
-  if(app)app.classList.toggle('em-quadro',v==='quadro'&&user!=='edvaldo'&&user!=='rosana');
+  if(app)app.classList.toggle('em-quadro',v==='quadro'&&user!=='edvaldo'&&user!=='rosana'&&user!=='daimartha');
   render();
 }
 async function marcarTodasCores(id){
@@ -2991,6 +3143,9 @@ function barraTopo(){
     ${admin?`<span class="tb-sep"></span>
       <button class="fb vb${vendo==='quadro'?' on':''}" data-v="quadro" onclick="verQuadro('quadro')">Quadro</button>
       <button class="fb vb${vendo==='espera'?' on':''}" data-v="espera" onclick="verQuadro('espera')">Em espera <span class="fb-c">${nE}</span></button>
+      <button class="fb vb${vendo==='historico'?' on':''}" data-v="historico" onclick="verQuadro('historico')">Histórico <span class="fb-c">${nH}</span></button>`
+    :user==='daimartha'?`<span class="tb-sep"></span>
+      <button class="fb vb${vendo==='quadro'?' on':''}" data-v="quadro" onclick="verQuadro('quadro')">Fila</button>
       <button class="fb vb${vendo==='historico'?' on':''}" data-v="historico" onclick="verQuadro('historico')">Histórico <span class="fb-c">${nH}</span></button>`:''}`;
   if(foco){const n=document.getElementById('srch');if(n){n.focus();n.setSelectionRange(a,b);}}
 }
@@ -3296,6 +3451,380 @@ function cardComOP(c){
   </div>`;
 }
 
+// ═══════════ FILA DA MARTHA & DAI · chegada da oficina + controle de qualidade ═══════════
+// Duas colunas, no mesmo desenho da tela da Rosana:
+//   Esquerda — "Na oficina" (NO_CORTE): confirma a chegada (data + tipo + piloto).
+//   Direita  — "Controle de qualidade" (CONTROLE_QUALIDADE): piloto + CQ Martha + CQ Denise.
+// Quando piloto voltou E os dois CQs estão OK (ou tratados), o card ARQUIVA SOZINHO.
+function hojeBR(){return new Date().toLocaleDateString('pt-BR');}
+function diasDesde(s){
+  const d=din(String(s||''));
+  if(!d||!d.includes('-'))return 0;
+  const dt=new Date(d+'T08:00:00');
+  if(isNaN(dt.getTime()))return 0;
+  return Math.max(0,Math.floor((Date.now()-dt.getTime())/86400000));
+}
+// A planilha precisa das colunas novas antes de qualquer gravação do CQ.
+function cqColsOk(){
+  if(cfg.url&&colsCQFaltando.length){
+    toast('Faltam colunas do CQ na planilha — veja o aviso na tela da Martha & Dai','w');
+    return false;
+  }
+  return true;
+}
+// ── Regras de "está resolvido?" ──
+function marthaOkD(c){
+  if(c.cqM==='OK')return true;
+  if(c.cqM!=='DEFEITO')return false;
+  if(c.consInt&&c.consIntOk!=='sim')return false;
+  if(c.consExt&&c.consExtOk!=='sim')return false;
+  return true;   // só incorrigíveis (ou nada além do motivo): registrado, nada a resolver
+}
+function deniseOkD(c){
+  if(c.cqD==='OK')return true;
+  if(c.cqD!=='NOK')return false;
+  if(c.cqDOficina==='sim')return !!String(c.cqDConclusao||'').trim();
+  return true;   // justificativa + ação já registradas
+}
+function pendenciasCQ(c){
+  const p=[];
+  if(c.pilotoVoltou!=='sim')p.push('piloto voltar');
+  if(!c.cqM)p.push('CQ Martha');
+  else if(!marthaOkD(c)){
+    if(c.consInt&&c.consIntOk!=='sim')p.push('conserto interno');
+    if(c.consExt&&c.consExtOk!=='sim')p.push('conserto externo');
+  }
+  if(!c.cqD)p.push('CQ Denise');
+  else if(!deniseOkD(c))p.push('conclusão da Denise');
+  return p;
+}
+function cqCompletoD(c){return pendenciasCQ(c).length===0;}
+// Grava os campos e, se com isso tudo ficou OK, arquiva sozinho — num push só.
+async function salvarCQ(c,campos,msg){
+  const done=c.status==='CONTROLE_QUALIDADE'&&cqCompletoD(c);
+  if(done){
+    c.status='ARQUIVADO';
+    campos=[...campos,['STATUS','ARQUIVADO']];
+  }
+  sl();render();
+  if(done){festa(c.id);toast('🎉 Controle de qualidade concluído — corte arquivado','s');}
+  else if(msg)toast(msg,'s');
+  await push(c._row,campos,c.id);
+}
+
+function renderFilaDai(){
+  barraTopo();
+  const st=document.getElementById('stats'); if(st)st.style.display='none';
+  if(vendo!=='quadro'){ renderListaLateral(); return; }
+  const aviso=cfg.url&&colsCQFaltando.length?`
+    <div class="cq-aviso">⚠️ <b>Faltam ${colsCQFaltando.length} colunas na planilha</b> para gravar a chegada e o controle de qualidade.
+      Abra a planilha dos cortes e cole estes nomes no fim da linha 1 (cabeçalho), um em cada coluna:
+      <div class="cq-aviso-cols">${colsCQFaltando.map(esc).join(' · ')}</div>
+      Depois toque em ↻ aqui em cima. Enquanto faltar coluna, nada do CQ é gravado.</div>`:'';
+  const l=getVisCortes();
+  const ordena=(a,b)=>(b.urg-a.urg)||(tempoDecorrido(b).nivel-tempoDecorrido(a).nivel);
+  const naOficina=l.filter(c=>c.status==='NO_CORTE').sort(ordena);
+  const emCQ=l.filter(c=>c.status==='CONTROLE_QUALIDADE')
+    .sort((a,b)=>((b.pilotoVoltou!=='sim')-(a.pilotoVoltou!=='sim'))||(b.urg-a.urg));
+  const semPiloto=emCQ.filter(c=>c.pilotoVoltou!=='sim').length;
+  document.getElementById('main-content').innerHTML=`
+    <div class="fila">
+      ${aviso}
+      <div class="ros2">
+        ${rosanaColuna('Na oficina','Confirme quando o corte chegar','var(--c3)','var(--b3)',naOficina,cardDaiOficina,'Nada na oficina agora ✨')}
+        ${rosanaColuna('Chegou — controle de qualidade',
+          semPiloto?('🚨 '+semPiloto+(semPiloto===1?' corte sem a peça piloto':' cortes sem a peça piloto'))
+                   :'Piloto · CQ Martha · CQ Denise. Tudo OK = arquiva sozinho.',
+          'var(--c5)','var(--b5)',emCQ,cardDaiCQ,'Nenhum corte no controle de qualidade.')}
+      </div>
+    </div>`;
+}
+
+// Card da ESQUERDA: corte na oficina, esperando chegar.
+function cardDaiOficina(c){
+  return `<div class="card grande${c.urg?' urg':''}">
+    ${cardTopo(c,true)}
+    <div class="enc-2">
+      <div class="d"><div class="dk">Nº do corte · OP</div><div class="dv fm">${esc(c.numCorte)||'—'}</div></div>
+      <div class="d"><div class="dk">Foi para a oficina</div><div class="dv fm">${esc(dout(din(c.dataStatus||c.dataDesc||'')))}</div></div>
+    </div>
+    ${coresListaHTML(c)}
+    <div class="cq-pergunta">Chegou da oficina?</div>
+    <div class="acts">
+      <button class="act ok" onclick="event.stopPropagation();openChegada(${jsq(c.id)})">✔ Sim, chegou — registrar</button>
+      <button class="act sec" onclick="event.stopPropagation();openDet(${jsq(c.id)})">Detalhes</button>
+    </div>
+    <div class="ros-dica">Ainda não chegou? Deixe aqui — o card fica em <strong>Na oficina</strong> contando o tempo.</div>
+  </div>`;
+}
+
+// Card da DIREITA: chegou — piloto + CQ Martha + CQ Denise.
+function cardDaiCQ(c){
+  const pend=pendenciasCQ(c);
+  return `<div class="card grande${c.urg?' urg':''}">
+    ${cardTopo(c,true)}
+    <div class="enc-2">
+      <div class="d"><div class="dk">Nº do corte · OP</div><div class="dv fm">${esc(c.numCorte)||'—'}</div></div>
+      <div class="d"><div class="dk">Chegou em</div><div class="dv fm">${esc(c.dataChegada)||'—'}</div></div>
+    </div>
+    ${c.tipo?`<div style="margin-bottom:7px"><span class="tag" style="background:${c.tipo==='novidade'?'var(--b6)':'var(--b2)'};color:${c.tipo==='novidade'?'var(--c6)':'var(--c2)'}">${c.tipo==='novidade'?'✨ novidade':'📦 reposição'}</span></div>`:''}
+    ${pilotoHTML(c)}
+    ${cqMarthaHTML(c)}
+    ${cqDeniseHTML(c)}
+    ${pend.length?`<div class="ros-dica">Para arquivar sozinho falta: <strong>${esc(pend.join(' · '))}</strong>.</div>`:''}
+    <div class="acts">
+      <button class="act sec" style="flex:1" onclick="event.stopPropagation();openDet(${jsq(c.id)})">Ver detalhes</button>
+    </div>
+  </div>`;
+}
+
+function pilotoHTML(c){
+  if(c.pilotoVoltou==='sim')
+    return `<div class="cq-linha-ok">✔ Peça piloto voltou${c.dataPiloto?' · '+esc(c.dataPiloto):''}</div>`;
+  const d=diasDesde(c.dataChegada||c.dataStatus);
+  return `<div class="piloto-alerta">🚨 Sem a peça piloto ${d>0?`há <b>${d} ${d===1?'dia':'dias'}</b>`:'<b>desde a chegada de hoje</b>'} — cobre a oficina!</div>
+    <button class="impresso" style="margin:0 0 8px" onclick="event.stopPropagation();marcarPilotoVoltou(${jsq(c.id)})">✔ A piloto voltou</button>`;
+}
+
+function cqMarthaHTML(c){
+  const chip=c.cqM==='OK'?'<span class="cq-chip ok">✔ tudo OK</span>'
+    :c.cqM==='DEFEITO'?(marthaOkD(c)?'<span class="cq-chip ok">defeito tratado ✔</span>':'<span class="cq-chip bad">✖ com defeito</span>')
+    :'<span class="cq-chip pend">pendente</span>';
+  let corpo='';
+  if(!c.cqM){
+    corpo=`<div class="cq-btns">
+      <button class="cq-escolha" style="border-color:var(--c3);color:var(--c3)" onclick="event.stopPropagation();cqMarthaOK(${jsq(c.id)})">✔ Tudo OK</button>
+      <button class="cq-escolha" style="border-color:var(--c4);color:var(--c4)" onclick="event.stopPropagation();openCQMartha(${jsq(c.id)})">✖ Com defeito</button>
+    </div>`;
+  }else if(c.cqM==='DEFEITO'){
+    corpo=`<div class="obs obs-rep">Motivo: ${esc(c.cqMMotivo||'—')}</div>
+      ${c.consInt?`<div class="cq-dest"><div class="cq-dest-tx"><b>🔧 Conserto interno</b>${esc(c.consInt)}</div>
+        <button class="cq-resolve${c.consIntOk==='sim'?' on':''}" onclick="event.stopPropagation();toggleConsertoOk(${jsq(c.id)},'int')">${c.consIntOk==='sim'?'✔ Resolvido':'Resolvido?'}</button></div>`:''}
+      ${c.consExt?`<div class="cq-dest"><div class="cq-dest-tx"><b>🏭 Conserto externo</b>${esc(c.consExt)}</div>
+        <button class="cq-resolve${c.consExtOk==='sim'?' on':''}" onclick="event.stopPropagation();toggleConsertoOk(${jsq(c.id)},'ext')">${c.consExtOk==='sim'?'✔ Resolvido':'Resolvido?'}</button></div>`:''}
+      ${(c.defeito100||[]).length?`<div class="cq-100">🚫 <b>100% defeito (incorrigível):</b> ${(c.defeito100||[]).map(x=>esc(x.cor)+' — '+esc(x.qtd)+' pç').join(' · ')}</div>`:''}
+      <button class="act sec" style="min-height:38px;font-size:.74rem" onclick="event.stopPropagation();openCQMartha(${jsq(c.id)})">✏️ Editar apontamento</button>`;
+  }else{
+    corpo=`<div class="cq-linha-ok">✔ Tudo OK no controle da Martha</div>`;
+  }
+  return `<div class="cq-sec"><div class="cq-hd"><span class="cq-ti">Controle de qualidade · Martha</span>${chip}</div>${corpo}</div>`;
+}
+
+function cqDeniseHTML(c){
+  const concl=String(c.cqDConclusao||'').trim();
+  const chip=c.cqD==='OK'?'<span class="cq-chip ok">✔ OK</span>'
+    :c.cqD==='NOK'?(deniseOkD(c)?'<span class="cq-chip ok">tratado ✔</span>':'<span class="cq-chip bad">✖ não OK</span>')
+    :'<span class="cq-chip pend">pendente</span>';
+  let corpo='';
+  if(!c.cqD){
+    corpo=`<div class="cq-btns">
+      <button class="cq-escolha" style="border-color:var(--c3);color:var(--c3)" onclick="event.stopPropagation();cqDeniseOK(${jsq(c.id)})">✔ OK</button>
+      <button class="cq-escolha" style="border-color:var(--c4);color:var(--c4)" onclick="event.stopPropagation();openCQDenise(${jsq(c.id)})">✖ Não OK</button>
+    </div>`;
+  }else if(c.cqD==='NOK'){
+    corpo=`<div class="obs obs-rep">Justificativa: ${esc(c.cqDJust||'—')}</div>
+      <div class="obs">Ação tomada: ${esc(c.cqDAcao||'—')}</div>
+      ${c.cqDOficina==='sim'?(concl
+        ?`<div class="cq-linha-ok">↩ Voltou da oficina · Conclusão: ${esc(concl)}</div>`
+        :`<div class="piloto-alerta" style="background:var(--b1);color:var(--c1);border-color:#FDE68A">↩ Foi para a oficina — falta registrar a conclusão</div>
+          <button class="impresso" style="margin:0 0 8px" onclick="event.stopPropagation();openCQDenise(${jsq(c.id)})">📝 Registrar conclusão</button>`):''}
+      <button class="act sec" style="min-height:38px;font-size:.74rem" onclick="event.stopPropagation();openCQDenise(${jsq(c.id)})">✏️ Editar</button>`;
+  }else{
+    corpo=`<div class="cq-linha-ok">✔ Tudo OK no controle da Denise</div>`;
+  }
+  return `<div class="cq-sec"><div class="cq-hd"><span class="cq-ti">Controle de qualidade · Denise</span>${chip}</div>${corpo}</div>`;
+}
+
+// ── Ações · chegada ──
+function openChegada(id){
+  const c=cortes.find(x=>x.id===id);
+  if(!c){toast('Item nao encontrado — sincronize novamente','w');return;}
+  if(!cqColsOk())return;
+  chegadaId=id;chegadaTipo=c.tipo||'';chegadaPiloto='';
+  document.getElementById('cheg-info').innerHTML=`<strong>${esc(c.ref||c.id)}</strong> — ${esc(c.nome)}${c.numCorte?' · OP '+esc(c.numCorte):''}`;
+  document.getElementById('cheg-data').value=new Date().toISOString().split('T')[0];
+  atualizaChegadaBtns();
+  op('ov-chegada');
+}
+function setChegTipo(t){chegadaTipo=t;atualizaChegadaBtns();}
+function setChegPiloto(p){chegadaPiloto=p;atualizaChegadaBtns();}
+function atualizaChegadaBtns(){
+  ['reposicao','novidade'].forEach(t=>document.getElementById('cheg-tipo-'+t)?.classList.toggle('on',chegadaTipo===t));
+  ['sim','nao'].forEach(p=>document.getElementById('cheg-pil-'+p)?.classList.toggle('on',chegadaPiloto===p));
+  const av=document.getElementById('cheg-pil-aviso');if(av)av.style.display=chegadaPiloto==='nao'?'':'none';
+}
+async function confirmarChegada(){
+  const c=cortes.find(x=>x.id===chegadaId);
+  if(!c){toast('Item nao encontrado — sincronize novamente','w');cl('ov-chegada');return;}
+  if(!cqColsOk())return;
+  if(!chegadaTipo){toast('Escolha: reposição ou novidade','w');return;}
+  if(!chegadaPiloto){toast('Responda: a peça piloto voltou?','w');return;}
+  const dISO=document.getElementById('cheg-data')?.value||new Date().toISOString().split('T')[0];
+  const dBR=dout(dISO);
+  lastPushTime=Date.now();
+  c.chegou='sim';c.dataChegada=dBR;c.tipo=chegadaTipo;
+  c.pilotoVoltou=chegadaPiloto;
+  if(chegadaPiloto==='sim')c.dataPiloto=dBR;
+  c.status='CONTROLE_QUALIDADE';
+  feitosHoje++;
+  cl('ov-chegada');
+  sl();render();
+  toast(chegadaPiloto==='sim'?'✔ Chegada registrada — agora o controle de qualidade':'✔ Chegada registrada — 🚨 sem a piloto, fica o alerta','s');
+  const campos=[['CHEGOU_OFICINA','sim'],['DATA_CHEGADA',dBR],['TIPO_CHEGADA',chegadaTipo],
+    ['PILOTO_VOLTOU',chegadaPiloto],['STATUS','CONTROLE_QUALIDADE']];
+  if(chegadaPiloto==='sim')campos.push(['DATA_PILOTO',dBR]);
+  await push(c._row,campos,c.id);
+}
+
+// ── Ações · peça piloto ──
+async function marcarPilotoVoltou(id){
+  const c=cortes.find(x=>x.id===id);
+  if(!c){toast('Item nao encontrado — sincronize novamente','w');return;}
+  if(!cqColsOk())return;
+  lastPushTime=Date.now();
+  c.pilotoVoltou='sim';c.dataPiloto=hojeBR();
+  await salvarCQ(c,[['PILOTO_VOLTOU','sim'],['DATA_PILOTO',c.dataPiloto]],'✔ Piloto de volta!');
+}
+
+// ── Ações · CQ Martha ──
+async function cqMarthaOK(id){
+  const c=cortes.find(x=>x.id===id);
+  if(!c){toast('Item nao encontrado — sincronize novamente','w');return;}
+  if(!cqColsOk())return;
+  lastPushTime=Date.now();
+  c.cqM='OK';
+  await salvarCQ(c,[['CQ_MARTHA','OK']],'✔ CQ Martha: tudo OK');
+}
+function openCQMartha(id){
+  const c=cortes.find(x=>x.id===id);
+  if(!c){toast('Item nao encontrado — sincronize novamente','w');return;}
+  if(!cqColsOk())return;
+  cqmId=id;def100Count=0;
+  document.getElementById('cqm-info').innerHTML=`<strong>${esc(c.ref||c.id)}</strong> — ${esc(c.nome)}${c.numCorte?' · OP '+esc(c.numCorte):''}`;
+  document.getElementById('cqm-motivo').value=c.cqMMotivo||'';
+  document.getElementById('cqm-int').value=c.consInt||'';
+  document.getElementById('cqm-ext').value=c.consExt||'';
+  const dl=document.getElementById('cqm-cores-dl');
+  if(dl)dl.innerHTML=(c.cores||[]).filter(x=>x.cor).map(x=>`<option value="${esc(x.cor)}">`).join('');
+  document.getElementById('cqm-defs').innerHTML='';
+  (c.defeito100||[]).forEach(x=>addDef100(x.cor,x.qtd));
+  op('ov-cqm');
+}
+function addDef100(cor,qtd){
+  def100Count++;const n=def100Count;
+  const div=document.createElement('div');div.id='cqmd-'+n;
+  div.style.cssText='display:flex;gap:7px;align-items:center;margin-bottom:6px';
+  div.innerHTML=`<input class="cor-i" list="cqm-cores-dl" placeholder="Cor" value="${esc(cor||'')}" style="flex:2;min-width:90px">
+    <input class="qtd-i" type="text" inputmode="numeric" placeholder="Peças" value="${esc(qtd||'')}">
+    <button class="rmv" onclick="document.getElementById('cqmd-${n}').remove()">✕</button>`;
+  document.getElementById('cqm-defs').appendChild(div);
+}
+async function salvarCQMartha(){
+  const c=cortes.find(x=>x.id===cqmId);
+  if(!c){toast('Item nao encontrado — sincronize novamente','w');cl('ov-cqm');return;}
+  if(!cqColsOk())return;
+  const motivo=document.getElementById('cqm-motivo').value.trim();
+  if(!motivo){toast('Descreva o motivo do defeito','w');return;}
+  const nInt=document.getElementById('cqm-int').value.trim();
+  const nExt=document.getElementById('cqm-ext').value.trim();
+  const defs=[...document.querySelectorAll('#cqm-defs > div')].map(d=>{
+    const i=d.querySelectorAll('input');
+    return{cor:i[0].value.trim(),qtd:(i[1].value.trim()||'1')};
+  }).filter(x=>x.cor);
+  lastPushTime=Date.now();
+  // Mexeu no texto do conserto (ou apagou) = o "resolvido" antigo deixa de valer.
+  if(nInt!==c.consInt||!nInt)c.consIntOk='';
+  if(nExt!==c.consExt||!nExt)c.consExtOk='';
+  c.cqM='DEFEITO';c.cqMMotivo=motivo;c.consInt=nInt;c.consExt=nExt;c.defeito100=defs;
+  cl('ov-cqm');
+  await salvarCQ(c,[
+    ['CQ_MARTHA','DEFEITO'],['CQ_M_MOTIVO',motivo],
+    ['CONSERTO_INTERNO',nInt],['CONSERTO_INTERNO_OK',c.consIntOk],
+    ['CONSERTO_EXTERNO',nExt],['CONSERTO_EXTERNO_OK',c.consExtOk],
+    ['DEFEITO_100',coresStr(defs)],
+  ],'CQ da Martha registrado');
+}
+async function toggleConsertoOk(id,qual){
+  const c=cortes.find(x=>x.id===id);
+  if(!c){toast('Item nao encontrado — sincronize novamente','w');return;}
+  if(!cqColsOk())return;
+  lastPushTime=Date.now();
+  if(qual==='int'){
+    c.consIntOk=c.consIntOk==='sim'?'':'sim';
+    await salvarCQ(c,[['CONSERTO_INTERNO_OK',c.consIntOk]],c.consIntOk?'✔ Conserto interno resolvido':'Conserto interno reaberto');
+  }else{
+    c.consExtOk=c.consExtOk==='sim'?'':'sim';
+    await salvarCQ(c,[['CONSERTO_EXTERNO_OK',c.consExtOk]],c.consExtOk?'✔ Conserto externo resolvido':'Conserto externo reaberto');
+  }
+}
+
+// ── Ações · CQ Denise ──
+async function cqDeniseOK(id){
+  const c=cortes.find(x=>x.id===id);
+  if(!c){toast('Item nao encontrado — sincronize novamente','w');return;}
+  if(!cqColsOk())return;
+  lastPushTime=Date.now();
+  c.cqD='OK';
+  await salvarCQ(c,[['CQ_DENISE','OK']],'✔ CQ Denise: OK');
+}
+function openCQDenise(id){
+  const c=cortes.find(x=>x.id===id);
+  if(!c){toast('Item nao encontrado — sincronize novamente','w');return;}
+  if(!cqColsOk())return;
+  cqdId=id;cqdOficina=c.cqDOficina==='sim';
+  document.getElementById('cqd-info').innerHTML=`<strong>${esc(c.ref||c.id)}</strong> — ${esc(c.nome)}${c.numCorte?' · OP '+esc(c.numCorte):''}`;
+  document.getElementById('cqd-just').value=c.cqDJust||'';
+  document.getElementById('cqd-acao').value=c.cqDAcao||'';
+  document.getElementById('cqd-conc').value=c.cqDConclusao||'';
+  atualizaCqdOficina();
+  op('ov-cqd');
+}
+function setCqdOficina(){cqdOficina=!cqdOficina;atualizaCqdOficina();}
+function atualizaCqdOficina(){
+  const b=document.getElementById('cqd-oficina');
+  if(b){b.classList.toggle('on',cqdOficina);b.textContent=cqdOficina?'↩ Voltou para a oficina ✔':'↩ Voltou para a oficina?';}
+  const w=document.getElementById('cqd-conc-wrap');if(w)w.style.display=cqdOficina?'':'none';
+}
+async function salvarCQDenise(){
+  const c=cortes.find(x=>x.id===cqdId);
+  if(!c){toast('Item nao encontrado — sincronize novamente','w');cl('ov-cqd');return;}
+  if(!cqColsOk())return;
+  const just=document.getElementById('cqd-just').value.trim();
+  const acao=document.getElementById('cqd-acao').value.trim();
+  if(!just){toast('Escreva a justificativa','w');return;}
+  if(!acao){toast('Escreva a ação que foi tomada','w');return;}
+  const conc=document.getElementById('cqd-conc').value.trim();
+  lastPushTime=Date.now();
+  c.cqD='NOK';c.cqDJust=just;c.cqDAcao=acao;
+  c.cqDOficina=cqdOficina?'sim':'';
+  c.cqDConclusao=cqdOficina?conc:'';
+  cl('ov-cqd');
+  await salvarCQ(c,[
+    ['CQ_DENISE','NOK'],['CQ_D_JUST',just],['CQ_D_ACAO',acao],
+    ['CQ_D_OFICINA',c.cqDOficina],['CQ_D_CONCLUSAO',c.cqDConclusao],
+  ],'CQ da Denise registrado');
+}
+
+// Resumo da chegada + CQ na tela de detalhes (todo mundo vê; Taty e Martha & Dai agem).
+function cqResumoDetHTML(c){
+  const tem=c.chegou==='sim'||c.status==='CONTROLE_QUALIDADE'||c.cqM||c.cqD||c.pilotoVoltou;
+  if(!tem)return'';
+  const concl=String(c.cqDConclusao||'').trim();
+  return `<div style="margin-top:10px"><div class="sl">Chegada da oficina · Controle de qualidade</div>
+    <div class="df"><span class="dk">Chegou da oficina</span><span class="dv">${c.chegou==='sim'?'Sim'+(c.dataChegada?' · '+esc(c.dataChegada):''):'Ainda não'}</span></div>
+    <div class="df"><span class="dk">Peça piloto</span><span class="dv">${c.pilotoVoltou==='sim'?'✔ Voltou'+(c.dataPiloto?' · '+esc(c.dataPiloto):''):(c.status==='CONTROLE_QUALIDADE'?'🚨 Não voltou — há '+diasDesde(c.dataChegada||c.dataStatus)+'d':'—')}</span></div>
+    <div class="df"><span class="dk">CQ Martha</span><span class="dv">${c.cqM==='OK'?'✔ Tudo OK':c.cqM==='DEFEITO'?(marthaOkD(c)?'Defeito tratado ✔':'✖ Com defeito'):'Pendente'}</span></div>
+    ${c.cqMMotivo?`<div class="df"><span class="dk">Motivo (Martha)</span><span class="dv">${esc(c.cqMMotivo)}</span></div>`:''}
+    ${c.consInt?`<div class="df"><span class="dk">Conserto interno</span><span class="dv">${esc(c.consInt)} — ${c.consIntOk==='sim'?'resolvido ✔':'pendente'}</span></div>`:''}
+    ${c.consExt?`<div class="df"><span class="dk">Conserto externo</span><span class="dv">${esc(c.consExt)} — ${c.consExtOk==='sim'?'resolvido ✔':'pendente'}</span></div>`:''}
+    ${(c.defeito100||[]).length?`<div class="df"><span class="dk">100% defeito</span><span class="dv">${(c.defeito100||[]).map(x=>esc(x.cor)+': '+esc(x.qtd)+' pç').join(' · ')}</span></div>`:''}
+    <div class="df"><span class="dk">CQ Denise</span><span class="dv">${c.cqD==='OK'?'✔ OK':c.cqD==='NOK'?(deniseOkD(c)?'Tratado ✔':'✖ Não OK'):'Pendente'}</span></div>
+    ${c.cqDJust?`<div class="df"><span class="dk">Justificativa (Denise)</span><span class="dv">${esc(c.cqDJust)}</span></div>`:''}
+    ${c.cqDAcao?`<div class="df"><span class="dk">Ação tomada</span><span class="dv">${esc(c.cqDAcao)}</span></div>`:''}
+    ${c.cqDOficina==='sim'?`<div class="df"><span class="dk">Voltou p/ oficina</span><span class="dv">${concl?'Sim · Conclusão: '+esc(concl):'Sim — aguardando conclusão'}</span></div>`:''}
+  </div>`;
+}
+
 function setFiltroStatus(s){
   statusFilter=s||'';
   tipoFilter='';
@@ -3411,6 +3940,7 @@ function renderCortes(){
   if(user==='edvaldo'){renderFilaEdvaldo();return;}
   if(user==='rosana'){renderFilaRosana();return;}
   if(user==='estoque'){renderEstoque();return;}
+  if(user==='daimartha'){renderFilaDai();return;}
   // Taty, Carol e qualquer outro perfil veem o quadro.
   renderCortesTaty();return;
   const cols=getColsCortes();const vis=getVisCortes();
@@ -4011,7 +4541,7 @@ function openDet(id){
   // Ele aparecia como texto cru no meio da trilha de TODO corte, e quem estava
   // em AGUARDANDO_GI ficava com iStep=-1 (trilha toda cinza, como se a peca
   // nao tivesse comecado).
-  const steps=['AGUARDANDO_ENCAIXE','AGUARDANDO_APROVACAO','ENCAIXE_REPROVADO','DEFINIR_CORES','DESCANSAR_TECIDO','TECIDO_DESCANSADO','NO_CORTE','AG_FOTO','AGUARDANDO_GI','EMBALAR','PRONTO_RETIRADA'];
+  const steps=['AGUARDANDO_ENCAIXE','AGUARDANDO_APROVACAO','ENCAIXE_REPROVADO','DEFINIR_CORES','DESCANSAR_TECIDO','TECIDO_DESCANSADO','NO_CORTE','CONTROLE_QUALIDADE','AG_FOTO','AGUARDANDO_GI','EMBALAR','PRONTO_RETIRADA'];
   const iStep=steps.indexOf(c.status);
   document.getElementById('det-c').innerHTML=`
     <div class="mhd">
@@ -4054,6 +4584,7 @@ function openDet(id){
     ${c.encObs?`<div class="obs-box obs-bl">Obs. Edvaldo: ${esc(c.encObs)}</div>`:''}
     ${c.carolObs?`<div class="obs-box" style="background:var(--b6);color:var(--c6)">Obs. Carol: ${esc(c.carolObs)}</div>`:''}
     ${c.giObs?`<div class="obs-box" style="background:var(--b8);color:var(--c8)">Obs. envio: ${esc(c.giObs)}</div>`:''}
+    ${cqResumoDetHTML(c)}
     ${c.fotoLocal?`<div style="margin-top:8px"><img src="${esc(c.fotoLocal)}" style="width:100%;border-radius:9px;max-height:180px;object-fit:cover"></div>`:''}
     ${user==='taty'?calcDetalhe(c):''}
     <div class="agroup">
@@ -4062,8 +4593,13 @@ function openDet(id){
         <button class="abtn abtn-danger" onclick="reprovar(${jsq(c.id)})">✕ Reprovar encaixe</button>`:''}
       ${user==='taty'&&c.status==='DEFINIR_CORES'?`<button class="abtn" style="background:var(--b6);color:var(--c6)" onclick="cl('ov-det');openCores(${jsq(c.id)})">Definir cores →</button>`:''}
       ${(user==='taty'||user==='daimartha')&&c.status==='NO_CORTE'?`
-        <button class="abtn" style="background:var(--b2);color:var(--c2)" onclick="cl('ov-det');marcarChegada(${jsq(c.id)},'reposicao')">📦 Reposição</button>
-        <button class="abtn" style="background:var(--b6);color:var(--c6)" onclick="cl('ov-det');marcarChegada(${jsq(c.id)},'novidade')">✨ Novidade</button>`:''}
+        <button class="abtn" style="background:var(--b3);color:var(--c3)" onclick="cl('ov-det');openChegada(${jsq(c.id)})">📦 Chegou da oficina — registrar</button>`:''}
+      ${(user==='taty'||user==='daimartha')&&c.status==='CONTROLE_QUALIDADE'?`
+        ${c.pilotoVoltou!=='sim'?`<button class="abtn" style="background:var(--b1);color:var(--c1)" onclick="cl('ov-det');marcarPilotoVoltou(${jsq(c.id)})">✔ A peça piloto voltou</button>`:''}
+        ${!c.cqM?`<button class="abtn" style="background:var(--b3);color:var(--c3)" onclick="cl('ov-det');cqMarthaOK(${jsq(c.id)})">✔ CQ Martha — tudo OK</button>
+        <button class="abtn abtn-danger" onclick="cl('ov-det');openCQMartha(${jsq(c.id)})">✖ CQ Martha — com defeito</button>`:''}
+        ${!c.cqD?`<button class="abtn" style="background:var(--b3);color:var(--c3)" onclick="cl('ov-det');cqDeniseOK(${jsq(c.id)})">✔ CQ Denise — OK</button>
+        <button class="abtn abtn-danger" onclick="cl('ov-det');openCQDenise(${jsq(c.id)})">✖ CQ Denise — não OK</button>`:''}`:''}
       ${(['gerente','taty','carol'].includes(user))&&c.status==='AGUARDANDO_GI'?`<div style="display:flex;flex-direction:column;gap:7px"><button class="abtn" style="background:var(--b3);color:var(--c3)" onclick="openDecisao(${jsq(c.id)})">✔ Decidir envio (com observação)</button><button class="abtn abtn-danger" onclick="cl('ov-det');giArquivar(${jsq(c.id)})">✕ Não precisamos</button></div>`:''}
       ${user==='daimartha'&&c.status==='EMBALAR'?`<button class="abtn" style="background:var(--b3);color:var(--c3)" onclick="cl('ov-det');transmissaoMire(${jsq(c.id)})">✔ Transmissão Miré feita</button>`:''}
       ${user==='estoque'&&c.status==='EMBALAR'?`<button class="abtn" style="background:var(--b3);color:var(--c3)" onclick="cl('ov-det');estoqueSeparou(${jsq(c.id)})">✔ Embalado — pronto para retirada</button>`:''}
@@ -4775,7 +5311,7 @@ function savePins(){
 function op(id){document.getElementById(id)?.classList.add('open');}
 function cl(id){document.getElementById(id)?.classList.remove('open');}
 function toast(msg,type='i'){const c=document.getElementById('toasts');const t=document.createElement('div');t.className=`toast ${type}`;t.textContent=msg;c.appendChild(t);setTimeout(()=>t.remove(),3500);}
-['ov-novo','ov-det','ov-cores','ov-pedido','ov-resp','ov-cfg','ov-decisao'].forEach(id=>{document.getElementById(id)?.addEventListener('click',e=>{if(e.target===e.currentTarget)cl(id);});});
+['ov-novo','ov-det','ov-cores','ov-pedido','ov-resp','ov-cfg','ov-decisao','ov-chegada','ov-cqm','ov-cqd'].forEach(id=>{document.getElementById(id)?.addEventListener('click',e=>{if(e.target===e.currentTarget)cl(id);});});
 
 function tempoDesde(c){
   const ref=c.dataDesc||c.data;if(!ref)return{texto:'—',nivel:0};
@@ -4807,6 +5343,7 @@ const PRAZOS_STATUS={
   DESCANSAR_TECIDO:2,
   TECIDO_DESCANSADO:1,
   NO_CORTE:3,
+  CONTROLE_QUALIDADE:2,
   AG_FOTO:1,
   AGUARDANDO_GI:1,
   EMBALAR:1,
