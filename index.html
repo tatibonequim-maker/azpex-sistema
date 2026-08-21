@@ -3204,6 +3204,17 @@ function renderListaLateral(){
     </div>`;
 }
 
+// Ficha do tecido no card: fornecedor + comprimento + aproveitamento.
+// O Edvaldo e a Rosana precisavam abrir os detalhes so para saber de quem
+// veio o tecido. O fornecedor so ocupa espaco quando esta preenchido.
+function fichaEnc(c){
+  const tin=String(c.tin||'').trim();
+  return `<div class="enc-2">
+    ${tin?`<div class="d" style="grid-column:1/-1"><div class="dk">Fornecedor</div><div class="dv">${esc(tin)}</div></div>`:''}
+    <div class="d"><div class="dk">Comprimento</div><div class="dv fm">${esc(c.encM)||'—'} m</div></div>
+    <div class="d"><div class="dk">Aproveitamento</div><div class="dv fm">${esc(c.encPct)||'—'}%</div></div>
+  </div>`;
+}
 const VAZIAS=['Fila limpa. Aproveita ☕','Nada aqui agora ✨','Tudo em dia por aqui','Zerou 🎈'];
 function fraseVazia(){ return VAZIAS[Math.floor(Math.random()*VAZIAS.length)]; }
 
@@ -3305,14 +3316,12 @@ function renderFilaEdvaldo(){
 
 function cardEdvDescanso(c){
   const imp=c.impresso==='sim';
-  // Sem a lista de cores: quem separa tecido e a Rosana. Aqui interessa o
-  // comprimento do risco e se ja foi impresso.
+  // Com as cores na tela ele ve quais tecidos a peca leva (e quais a Rosana
+  // ja marcou como descansados) sem precisar abrir os detalhes.
   return `<div class="card grande so-ver${c.urg?' urg':''}">
     ${cardTopo(c,true)}
-    <div class="enc-2">
-      <div class="d"><div class="dk">Comprimento</div><div class="dv fm">${esc(c.encM)||'—'} m</div></div>
-      <div class="d"><div class="dk">Aproveitamento</div><div class="dv fm">${esc(c.encPct)||'—'}%</div></div>
-    </div>
+    ${fichaEnc(c)}
+    ${coresListaHTML(c)}
     <button class="impresso${imp?' on':''}" onclick="event.stopPropagation();marcarImpresso(${jsq(c.id)})">
       ${imp?'✔ Risco impresso':'🖨️ Marcar risco como impresso'}</button>
   </div>`;
@@ -3328,6 +3337,7 @@ function cardEncaixe(c){
       <div class="d"><div class="dk">Grade</div><div class="dv fm">${esc(c.grade)||'—'}</div></div>
       <div class="d"><div class="dk">Retalho</div><div class="dv">${esc(c.ret)||'—'}</div></div>
     </div>
+    ${coresListaHTML(c)}
     <div class="campos2">
       <div class="fg"><label class="fl">Comprimento (m) *</label>
         <input class="ci" id="em-${esc(c.id)}" inputmode="decimal" placeholder="0,00"
@@ -3396,10 +3406,7 @@ function cardDescansando(c){
   const falta=cs.length-n;
   return `<div class="card grande${c.urg?' urg':''}" id="cd-${esc(c.id)}" data-lado="descansando">
     ${cardTopo(c,true)}
-    <div class="enc-2">
-      <div class="d"><div class="dk">Comprimento</div><div class="dv fm">${esc(c.encM)||'—'} m</div></div>
-      <div class="d"><div class="dk">Aproveitamento</div><div class="dv fm">${esc(c.encPct)||'—'}%</div></div>
-    </div>
+    ${fichaEnc(c)}
     <div class="cores-box">
       <div class="cores-hd">
         <span class="cores-l">Tecidos para descansar</span>
@@ -3422,10 +3429,7 @@ function cardComOP(c){
   const cs=(c.cores||[]).filter(x=>x.cor);
   return `<div class="card grande${c.urg?' urg':''}" id="cd-${esc(c.id)}" data-lado="pronta">
     ${cardTopo(c,true)}
-    <div class="enc-2">
-      <div class="d"><div class="dk">Comprimento</div><div class="dv fm">${esc(c.encM)||'—'} m</div></div>
-      <div class="d"><div class="dk">Aproveitamento</div><div class="dv fm">${esc(c.encPct)||'—'}%</div></div>
-    </div>
+    ${fichaEnc(c)}
     ${cs.length?`<div class="cores-box">
       <div class="cores-hd">
         <span class="cores-l">Tecidos descansados</span>
