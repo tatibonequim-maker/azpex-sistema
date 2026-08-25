@@ -2345,7 +2345,7 @@ function psi(s){return PSM[s]||{l:s,c:'var(--mt)',b:'var(--s2)'};}
 
 let cfg=(()=>{try{return JSON.parse(localStorage.getItem('az_cfg')||'{}');}catch(e){return {};}})();
 if(!cfg.url)cfg.url=DURL;
-let cortes=(()=>{try{return corrigeDescansadoSemOP(JSON.parse(localStorage.getItem('az_cortes')||'[]'));}catch(e){return [];}})();
+let cortes=(()=>{try{return corrigeChegadaCQ(corrigeDescansadoSemOP(JSON.parse(localStorage.getItem('az_cortes')||'[]')));}catch(e){return [];}})();
 let pedidos=(()=>{try{return JSON.parse(localStorage.getItem('az_pedidos')||'[]');}catch(e){return [];}})();
 let user='',section='cortes',filtro='todos',statusFilter='',tipoFilter='';
 let coresId=null,respId=null,corCount=0,editId=null,decisaoId=null;
@@ -2727,6 +2727,7 @@ async function syncAll(silent,force){
         fotoLocal:fotoMap[str(r.ID)]||'',
       }));
       corrigeDescansadoSemOP(cortes);
+      corrigeChegadaCQ(cortes);
     }
     if(Array.isArray(p)&&p.length>0){
       pedidos=p.map(r=>({
@@ -2763,6 +2764,28 @@ function corrigeDescansadoSemOP(lista){
   return lista;
 }
 
+// A CHEGADA DA OFICINA NAO ESTAVA "PEGANDO" — E O MOTIVO E O MESMO DE "EM ESPERA".
+// O Apps Script da planilha so conhece a lista ANTIGA de status. Ao gravar
+// STATUS='CONTROLE_QUALIDADE' ele aborta a gravacao naquele ponto: tudo que
+// vinha ANTES do STATUS entrava (CHEGOU_OFICINA, DATA_CHEGADA, TIPO_CHEGADA,
+// PILOTO_VOLTOU) e tudo do STATUS em diante era perdido. Na planilha a peca
+// continuava NO_CORTE, entao 3 segundos depois o sync de conferencia trazia
+// NO_CORTE de volta e o card pulava da coluna do controle de qualidade para
+// "Na oficina" — exatamente o que a Martha & Dai viam. (Conferido na planilha:
+// ID-4814 e ID-4942 estao com CHEGOU_OFICINA=sim e STATUS=NO_CORTE.)
+// Agora quem manda e a coluna CHEGOU_OFICINA, que a planilha grava sem
+// reclamar — do mesmo jeito que a espera passou a morar em GI_ENVIAR.
+// A planilha NAO precisa ser mexida, e linhas antigas continuam certas.
+function corrigeChegadaCQ(lista){
+  (lista||[]).forEach(c=>{
+    if(!c||String(c.chegou||'').toLowerCase()!=='sim')return;
+    // So mexe em quem a planilha deixou parado antes do controle de qualidade.
+    if(!['NO_CORTE','DESCANSAR_TECIDO','TECIDO_DESCANSADO'].includes(c.status))return;
+    // Se o CQ ja esta todo resolvido, a peca esta encerrada — nao volta ao quadro.
+    c.status = cqCompletoD(c) ? 'ARQUIVADO' : 'CONTROLE_QUALIDADE';
+  });
+  return lista;
+}
 function safeJSON(s,def){try{return s?JSON.parse(s):def;}catch(e){return def;}}
 
 function mapStatus(s){
@@ -3674,8 +3697,11 @@ async function confirmarChegada(){
   cl('ov-chegada');
   sl();render();
   toast(chegadaPiloto==='sim'?'✔ Chegada registrada — agora o controle de qualidade':'✔ Chegada registrada — 🚨 sem a piloto, fica o alerta','s');
+  // NAO manda STATUS: a planilha recusa 'CONTROLE_QUALIDADE' e aborta o resto
+  // da gravacao (era assim que o DATA_PILOTO tambem se perdia). Quem marca que
+  // o corte chegou e a coluna CHEGOU_OFICINA — veja corrigeChegadaCQ().
   const campos=[['CHEGOU_OFICINA','sim'],['DATA_CHEGADA',dBR],['TIPO_CHEGADA',chegadaTipo],
-    ['PILOTO_VOLTOU',chegadaPiloto],['STATUS','CONTROLE_QUALIDADE']];
+    ['PILOTO_VOLTOU',chegadaPiloto]];
   if(chegadaPiloto==='sim')campos.push(['DATA_PILOTO',dBR]);
   await push(c._row,campos,c.id);
 }
@@ -5361,7 +5387,12 @@ function tempoDecorrido(c) {
   // peca. Um corte que entrou ha 20 dias e chegou em EMBALAR ha uma hora
   // aparecia como "🔥 ha 20d / 1d" — ou seja, tudo que era antigo ficava
   // permanentemente vermelho e o filtro "Atrasados" perdia o sentido.
-  const ref = c.dataStatus || c.dataDesc || c.data;
+  // No controle de qualidade o relogio comeca na CHEGADA. Sem isto o card que
+  // acabou de voltar da oficina ja nascia "🔥 ha 30d / 2d" — o tempo que ele
+  // passou NA oficina — e ia direto para o topo dos atrasados.
+  const ref = (c.status==='CONTROLE_QUALIDADE' && c.dataChegada)
+    ? c.dataChegada
+    : (c.dataStatus || c.dataDesc || c.data);
   if (!ref) return { texto: '', nivel: 0, classe: '' };
   let dt;
   if (ref.includes('-')) dt = new Date(ref + 'T08:00:00');
@@ -5476,7 +5507,10 @@ function checarNovosNaFila() {
   } else if (user === 'carol') {
     novosIds = cortes.filter(c => c.status === 'AG_FOTO').map(c => c.id);
   } else if (user === 'daimartha') {
-    novosIds = cortes.filter(c => c.status === 'NO_CORTE').map(c => c.id);
+    // Antes so avisava o que ENTRAVA na oficina. O que ela precisa mesmo saber
+    // e o que chegou e esta esperando o controle de qualidade.
+    novosIds = cortes.filter(c => c.status === 'NO_CORTE' || c.status === 'CONTROLE_QUALIDADE')
+      .map(c => c.status + ':' + c.id);
   } else if (user === 'estoque') {
     novosIds = cortes.filter(c => c.status === 'EMBALAR').map(c => c.id)
       .concat(pedidos.filter(p => p.status === 'PENDENTE').map(p => 'P'+p.id));
