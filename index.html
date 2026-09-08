@@ -1507,6 +1507,9 @@ h1, h2, h3, .heading {
 .c-ref{font-family:'DM Mono',monospace;font-size:.8rem;font-weight:600;color:var(--ac)}
 .tag.turg{background:var(--b4);color:var(--c4);font-weight:700;margin-left:auto}
 .tag.pc{background:var(--acl);color:var(--ac);font-weight:600}
+/* Fornecedor (tinturaria) — anda colado no tecido, mais apagado, porque a
+   pergunta e sempre "esse tecido veio de onde?". */
+.tag.forn{background:var(--s2);border:1px solid var(--bd);color:var(--mt);font-weight:600}
 .tag.ret{background:var(--sf);border:1px solid var(--bdi);color:var(--mt);
   display:inline-flex;align-items:center;gap:4px}
 .tag.ret b{color:var(--tx);font-weight:700;font-size:.78rem}
@@ -1723,6 +1726,56 @@ h1, h2, h3, .heading {
 .cq-resolve.on{background:var(--b3);border-color:var(--c3);color:var(--c3)}
 .cq-100{font-size:.76rem;background:var(--b4);color:var(--c4);border-radius:7px;
   padding:7px 9px;margin-bottom:6px;line-height:1.45}
+/* ═══════════ APONTAMENTO COM GRADE · cor · tamanho · quantidade · motivo ═══════════ */
+/* A Martha e a Dai usam isto no computador. A tabela existe porque texto
+   corrido ("4 pç refazer barra") nunca dizia QUAL cor nem QUAL tamanho — e sem
+   isso não dá para repor a peça, nem cobrar a oficina, nem virar relatório. */
+.gr-wrap{border:1px solid var(--bd);border-radius:var(--r8);overflow:hidden;background:var(--bg)}
+.gr-hd,.gr-row{display:grid;grid-template-columns:1.4fr .8fr .7fr 1.7fr 40px;gap:6px;align-items:center;padding:7px 9px}
+.gr-hd{background:var(--s2);font-size:.62rem;text-transform:uppercase;letter-spacing:.5px;color:var(--mt);font-weight:700}
+.gr-row+.gr-row{border-top:1px solid var(--bd)}
+.gr-row input{width:100%;min-width:0;border:1.5px solid var(--bdi);border-radius:var(--r6);
+  padding:9px;font-size:.84rem;font-family:inherit;background:var(--sf);color:var(--tx)}
+.gr-row input:focus{outline:none;border-color:var(--ac)}
+.gr-pe{display:flex;justify-content:space-between;align-items:center;gap:8px;padding:8px 9px;
+  border-top:1px solid var(--bd);background:var(--s2);flex-wrap:wrap}
+.gr-tot{font-family:'DM Mono',monospace;font-size:.76rem;font-weight:700;color:var(--mt)}
+.gr-nada{padding:11px 9px;font-size:.76rem;color:var(--mt)}
+@media (max-width:760px){
+  .gr-hd{display:none}
+  .gr-row{grid-template-columns:1fr 1fr;gap:7px}
+  .gr-row .rmv{grid-column:2;justify-self:end}
+}
+/* A mesma grade, só de leitura, dentro do card */
+.gr-ler{width:100%;border-collapse:collapse;font-size:.76rem;margin:3px 0 2px}
+.gr-ler th{text-align:left;font-size:.58rem;text-transform:uppercase;letter-spacing:.5px;
+  color:var(--mt);font-weight:700;padding:3px 6px;border-bottom:1px solid var(--bd)}
+.gr-ler td{padding:5px 6px;border-bottom:1px solid var(--bd);vertical-align:top;line-height:1.35}
+.gr-ler tr:last-child td{border-bottom:none}
+.gr-ler .q{font-family:'DM Mono',monospace;font-weight:700;white-space:nowrap}
+.gr-cab{font-size:.63rem;text-transform:uppercase;letter-spacing:.5px;font-weight:700;
+  display:flex;justify-content:space-between;align-items:center;gap:8px;margin-top:7px}
+/* ═══════════ CARD POR ETAPA (e não por pessoa) ═══════════ */
+/* O card estava dividido em "CQ Martha" e "CQ Denise" — parecia que cada uma
+   tinha um app. Agora as seções são as ETAPAS do corte e o nome de quem faz é
+   só uma etiqueta. */
+.et-barra{display:flex;gap:4px;margin:1px 0 10px}
+.et-p{flex:1;text-align:center;font-size:.59rem;font-weight:700;text-transform:uppercase;
+  letter-spacing:.4px;padding:5px 2px 6px;border-radius:var(--r6);background:var(--s2);
+  color:var(--mt);border-top:3px solid var(--bd2)}
+.et-p.ok{background:var(--b3);color:var(--c3);border-top-color:var(--c3)}
+.et-p.now{background:var(--b1);color:var(--c1);border-top-color:var(--c1)}
+.cq-quem{font-size:.58rem;font-weight:700;text-transform:uppercase;letter-spacing:.5px;
+  color:var(--mt);background:var(--s2);border-radius:var(--r99);padding:2px 8px;margin-left:6px}
+.dec-espera{font-size:.77rem;font-weight:600;background:var(--b1);color:var(--c1);
+  border:1px solid var(--c1);border-radius:7px;padding:8px 9px;margin-bottom:6px;line-height:1.4}
+.dec-feita{font-size:.77rem;background:var(--b3);color:var(--c3);border-radius:7px;
+  padding:8px 9px;margin-bottom:6px;line-height:1.45}
+.dec-btns{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:12px}
+@media (max-width:620px){ .dec-btns{grid-template-columns:1fr} }
+.novo-tag{font-size:.7rem;font-weight:700;background:var(--b3);color:var(--c3);
+  border-radius:7px;padding:6px 9px;margin-bottom:6px;line-height:1.35}
+.modal.wide{max-width:900px}
 /* ═══════════ COMEMORAÇÃO ═══════════ */
 .festa{position:fixed;inset:0;pointer-events:none;z-index:800;overflow:hidden}
 .festa i{position:absolute;top:-18px;width:9px;height:13px;border-radius:2px;
@@ -2120,29 +2173,30 @@ h1, h2, h3, .heading {
 </div>
 <!-- CQ Martha — com defeito -->
 <div class="ov" id="ov-cqm">
-  <div class="modal">
+  <div class="modal wide">
     <div class="mhd">
-      <div class="mti">✖ CQ Martha — com defeito</div>
+      <div class="mti">Apontamento da conferência<span class="cq-quem">Martha</span></div>
       <button class="xb" onclick="cl('ov-cqm')">×</button>
     </div>
     <div id="cqm-info" style="font-size:.84rem;color:var(--mt);margin-bottom:12px"></div>
-    <div class="fg" style="margin-bottom:12px"><label class="fl">Motivo do defeito *</label>
-      <textarea class="fi" id="cqm-motivo" rows="2" placeholder="ex: costura torta na manga, gola desfiando..."></textarea>
-    </div>
+    <div style="font-size:.76rem;color:var(--mt);margin-bottom:12px">
+      Lance peça por peça: <b>cor</b>, <b>tamanho</b>, <b>quantidade</b> e <b>motivo</b>.
+      Preencha só as seções que existirem — as outras podem ficar vazias.</div>
+    <span class="sl">🔧 Conserto interno — a gente arruma aqui dentro</span>
+    <div id="cqm-int-wrap" style="margin-bottom:4px"></div>
     <div class="divr"></div>
-    <span class="sl">Destinação — preencha só o que existir</span>
-    <div class="fg" style="margin-bottom:10px"><label class="fl">🔧 Conserto interno (qtd + o que fazer)</label>
-      <input class="fi" id="cqm-int" placeholder="ex: 4 pç — refazer barra aqui">
-    </div>
-    <div class="fg" style="margin-bottom:10px"><label class="fl">🏭 Conserto externo (qtd + o que fazer)</label>
-      <input class="fi" id="cqm-ext" placeholder="ex: 2 pç — voltar para a oficina">
-    </div>
+    <span class="sl">🏭 Conserto externo — volta para a oficina</span>
+    <div id="cqm-ext-wrap" style="margin-bottom:4px"></div>
     <div class="divr"></div>
-    <span class="sl">Defeitos incorrigíveis — viraram 100% defeito</span>
-    <div style="font-size:.74rem;color:var(--mt);margin-bottom:8px">Cor e quantidade de peças perdidas (sem conserto). Deixe vazio se não houver.</div>
-    <div id="cqm-defs"></div>
-    <button class="add-cor" onclick="addDef100()">+ Adicionar cor com 100% defeito</button>
+    <span class="sl">🚫 100% defeito — peça perdida, sem conserto</span>
+    <div id="cqm-100-wrap" style="margin-bottom:4px"></div>
+    <div class="divr"></div>
+    <div class="fg" style="margin-bottom:4px"><label class="fl">Observação geral (opcional)</label>
+      <textarea class="fi" id="cqm-motivo" rows="2" placeholder="algo que não coube nas linhas acima"></textarea>
+    </div>
     <datalist id="cqm-cores-dl"></datalist>
+    <datalist id="cqm-tam-dl"></datalist>
+    <datalist id="cqm-mot-dl"></datalist>
     <div class="fact">
       <button class="bc" onclick="cl('ov-cqm')">Cancelar</button>
       <button class="bs" style="background:#A32D2D" onclick="salvarCQMartha()">Salvar apontamento</button>
@@ -2153,7 +2207,7 @@ h1, h2, h3, .heading {
 <div class="ov" id="ov-cqd">
   <div class="modal">
     <div class="mhd">
-      <div class="mti">✖ CQ Denise — não OK</div>
+      <div class="mti">Revisão final — não OK<span class="cq-quem">Denise</span></div>
       <button class="xb" onclick="cl('ov-cqd')">×</button>
     </div>
     <div id="cqd-info" style="font-size:.84rem;color:var(--mt);margin-bottom:12px"></div>
@@ -2172,6 +2226,27 @@ h1, h2, h3, .heading {
     <div class="fact">
       <button class="bc" onclick="cl('ov-cqd')">Cancelar</button>
       <button class="bs" style="background:#A32D2D" onclick="salvarCQDenise()">Salvar</button>
+    </div>
+  </div>
+</div>
+<!-- Decisão da produção — Rosana · Cinthia · Taty -->
+<div class="ov" id="ov-dec">
+  <div class="modal wide">
+    <div class="mhd">
+      <div class="mti">O que fazer com este corte?</div>
+      <button class="xb" onclick="cl('ov-dec')">×</button>
+    </div>
+    <div id="dec-info" style="font-size:.84rem;color:var(--mt);margin-bottom:12px"></div>
+    <div id="dec-resumo" style="margin-bottom:14px"></div>
+    <span class="sl">Ação</span>
+    <div class="dec-btns" id="dec-btns"></div>
+    <div id="dec-quem-wrap" style="margin-bottom:12px"></div>
+    <div class="fg" style="margin-bottom:4px"><label class="fl">Observação (opcional)</label>
+      <input class="fi" id="dec-obs" placeholder="ex: cobrar as 6 peças perdidas da oficina">
+    </div>
+    <div class="fact">
+      <button class="bc" onclick="cl('ov-dec')">Cancelar</button>
+      <button class="bs" onclick="salvarDecisao()">Salvar decisão</button>
     </div>
   </div>
 </div>
@@ -2270,9 +2345,15 @@ const DAI_QUADRO=new Set(['NO_CORTE','CONTROLE_QUALIDADE']);
 // so conhece a lista antiga de status). Agora a espera vive na coluna
 // GI_ENVIAR, que ninguem mais usa, e o STATUS fica intacto — o que tambem faz
 // a peca voltar para a coluna onde ela estava, e nao para "Aprovar encaixe".
-const noQuadro=c=>(user==='daimartha'?DAI_QUADRO.has(c.status):ATIVOS.has(c.status))&&!c.espera;
+// Quem decide (Rosana · Cinthia · Taty) passa a ver TAMBÉM os cortes que a
+// qualidade fechou com defeito e ainda esperam decisão — eles ficam fora das
+// 5 etapas do fluxo, então sem isto nunca chegariam a essas telas.
+const noQuadro=c=>(user==='daimartha'?DAI_QUADRO.has(c.status)
+  :(ATIVOS.has(c.status)||(DECIDEM.has(user)&&aguardaDecisao(c))))&&!c.espera;
 const emEspera=c=>!!c.espera;
-const noHistorico=c=>CONCLUIDOS.has(c.status)&&!c.espera&&!(user==='daimartha'&&DAI_QUADRO.has(c.status));
+const noHistorico=c=>CONCLUIDOS.has(c.status)&&!c.espera
+  &&!(user==='daimartha'&&DAI_QUADRO.has(c.status))
+  &&!(DECIDEM.has(user)&&aguardaDecisao(c));
 
 /* Cores dos tecidos que a equipe escreve na planilha, traduzidas para a tela.
    PRETO fica preto, GLACIAL fica aquele azul acinzentado. Na visão da Taty e
@@ -2345,12 +2426,13 @@ function psi(s){return PSM[s]||{l:s,c:'var(--mt)',b:'var(--s2)'};}
 
 let cfg=(()=>{try{return JSON.parse(localStorage.getItem('az_cfg')||'{}');}catch(e){return {};}})();
 if(!cfg.url)cfg.url=DURL;
-let cortes=(()=>{try{return corrigeChegadaCQ(corrigeDescansadoSemOP(JSON.parse(localStorage.getItem('az_cortes')||'[]')));}catch(e){return [];}})();
+let cortes=(()=>{try{return corrigeChegadaCQ(normalizaLinhas(corrigeDescansadoSemOP(JSON.parse(localStorage.getItem('az_cortes')||'[]'))));}catch(e){return [];}})();
 let pedidos=(()=>{try{return JSON.parse(localStorage.getItem('az_pedidos')||'[]');}catch(e){return [];}})();
 let user='',section='cortes',filtro='todos',statusFilter='',tipoFilter='';
 let coresId=null,respId=null,corCount=0,editId=null,decisaoId=null;
 // Estado dos modais da Martha & Dai (chegada + CQ)
-let chegadaId=null,chegadaTipo='',chegadaPiloto='',cqmId=null,def100Count=0,cqdId=null,cqdOficina=false;
+let chegadaId=null,chegadaTipo='',chegadaPiloto='',cqmId=null,cqdId=null,cqdOficina=false;
+let grSeq=0,decId='',decAcaoSel='',decQuemSel='';
 let lastPushTime=0;
 // Handle do polling. Sem guardar isto, cada login numa tablet compartilhada
 // criava mais um setInterval e ninguém limpava: depois de 5 trocas de turno
@@ -2366,6 +2448,29 @@ const COLS_CQ=['CHEGOU_OFICINA','DATA_CHEGADA','PILOTO_VOLTOU','DATA_PILOTO',
   'CONSERTO_EXTERNO','CONSERTO_EXTERNO_OK','DEFEITO_100',
   'CQ_DENISE','CQ_D_JUST','CQ_D_ACAO','CQ_D_OFICINA','CQ_D_CONCLUSAO'];
 let colsCQFaltando=[];
+// Colunas da etapa de DECISÃO (Rosana · Cinthia · Taty). A etapa nova mora em
+// COLUNA, nunca no STATUS: o Apps Script só conhece a lista antiga de status e
+// aborta a gravação em silêncio quando recebe um valor novo — foi assim que
+// "em espera" e a chegada da oficina quebraram, duas vezes.
+const COLS_DEC=['DECISAO','DECISAO_ACAO','DECISAO_OBS','DECISAO_QUEM'];
+let colsDecFaltando=[];
+// Motivos sugeridos no apontamento. É uma lista para o dado virar relatório
+// depois ("40% dos defeitos são costura"), mas o campo aceita texto livre.
+const MOTIVOS_DEFEITO=['Costura','Mancha','Furo / defeito do tecido','Medida errada',
+  'Aviamento','Tingimento / cor','Corte errado','Acabamento','Falta de peça'];
+// O que a produção pode decidir quando a qualidade fecha com defeito.
+const ACOES_DECISAO=['Refazer internamente','Devolver para a oficina',
+  'Repor no próximo corte','Aceitar a perda','Cobrar / descontar do fornecedor',
+  'Liberar mesmo assim'];
+// Quem decide. A Cinthia usa o login da Taty — por isso o modal pergunta o nome.
+const DECIDEM=new Set(['taty','carol','rosana']);
+const QUEM_DECIDE={taty:['Taty','Cinthia'],carol:['Carol','Cinthia'],rosana:['Rosana']};
+// Liga quando a planilha volta SEM o cabecalho ID na celula A1. Sem esse
+// cabecalho o Apps Script nao acha a coluna do ID: ele para de gerar ID nas
+// linhas novas e devolve todos os cortes sem ID — e no app TODO card passa a
+// ter a mesma identidade (vazia), entao clicar em qualquer um abria sempre o
+// primeiro corte da planilha. Aconteceu em 26/08/2026 (A1 = "192432").
+let semColunaID=false;
 let vendo='quadro';          // 'quadro' | 'espera' | 'historico'
 let feitosHoje=0;
 let pinUser='',pinVal='',pinSide='';
@@ -2621,7 +2726,10 @@ async function apip(b){
 // só ganha _row depois que o sync de confirmação volta; antes disso o push
 // antigo simplesmente desistia em silêncio e a alteração era perdida.
 async function resolveRow(id,row){
-  if(row)return row;
+  // Linha 1 e o cabecalho da planilha. Se algum dia vier um _row=1, gravar ali
+  // destruiria os nomes das colunas e derrubaria o app inteiro.
+  if(row&&Number(row)>1)return row;
+  if(row)return null;
   if(!id)return null;
   await forceSync();
   const c=cortes.find(x=>x.id===id);
@@ -2694,9 +2802,15 @@ async function syncAll(silent,force){
       // vermelho no instante em que chegava numa etapa nova.
       hasDataStatusCol = Object.prototype.hasOwnProperty.call(c[0],'DATA_STATUS');
       colsCQFaltando = COLS_CQ.filter(k=>!Object.prototype.hasOwnProperty.call(c[0],k));
+      colsDecFaltando = COLS_DEC.filter(k=>!Object.prototype.hasOwnProperty.call(c[0],k));
+      semColunaID = !Object.prototype.hasOwnProperty.call(c[0],'ID');
       const fotoMap={};cortes.forEach(x=>{if(x.fotoLocal)fotoMap[x.id]=x.fotoLocal;});
       cortes=c.filter(r=>r.STATUS!=='DELETADO').map(r=>({
-        id:str(r.ID),ref:str(r.REF),nome:str(r.NOME),
+        // Sem ID (planilha com o cabecalho quebrado, ou linha que o script nao
+        // conseguiu numerar) a peca ganha a propria linha como identidade.
+        // Antes todas ficavam com id '' e o app tratava a planilha inteira
+        // como se fosse um corte so.
+        id:str(r.ID)||('linha-'+r._row),ref:str(r.REF),nome:str(r.NOME),
         data:din(str(r.DATA_ENTRADA)),tec:str(r.TECIDO),tin:str(r.TINTURARIA),
         grade:str(r.GRADE),ret:str(r.RETALHO),obs:str(r.OBS),
         urg:str(r.URGENTE).toLowerCase()==='sim',
@@ -2716,6 +2830,13 @@ async function syncAll(silent,force){
         consInt:str(r.CONSERTO_INTERNO),consIntOk:str(r.CONSERTO_INTERNO_OK).toLowerCase(),
         consExt:str(r.CONSERTO_EXTERNO),consExtOk:str(r.CONSERTO_EXTERNO_OK).toLowerCase(),
         defeito100:parseCores(str(r.DEFEITO_100)),
+        // Apontamento com grade (cor · tamanho · quantidade · motivo)
+        linhasInt:parseLinhas(str(r.CONSERTO_INTERNO),false),
+        linhasExt:parseLinhas(str(r.CONSERTO_EXTERNO),false),
+        linhas100:parseLinhas(str(r.DEFEITO_100),true),
+        // Etapa de decisão (mora em coluna, não no STATUS)
+        decisao:str(r.DECISAO).toUpperCase(),decAcao:str(r.DECISAO_ACAO),
+        decObs:str(r.DECISAO_OBS),decQuem:str(r.DECISAO_QUEM),
         cqD:str(r.CQ_DENISE).toUpperCase(),cqDJust:str(r.CQ_D_JUST),cqDAcao:str(r.CQ_D_ACAO),
         cqDOficina:str(r.CQ_D_OFICINA).toLowerCase(),cqDConclusao:str(r.CQ_D_CONCLUSAO),
         status:mapStatus(str(r.STATUS)),_row:r._row,
@@ -2727,6 +2848,7 @@ async function syncAll(silent,force){
         fotoLocal:fotoMap[str(r.ID)]||'',
       }));
       corrigeDescansadoSemOP(cortes);
+      normalizaLinhas(cortes);
       corrigeChegadaCQ(cortes);
     }
     if(Array.isArray(p)&&p.length>0){
@@ -2847,6 +2969,51 @@ function parseCores(s){
   }).filter(Boolean);
 }
 function coresStr(a){return a.map(c=>`${String(c.cor).replace(/[;:]/g,' ')}:${esc(c.qtd)}`).join('; ');}
+// ── LINHAS DE APONTAMENTO: "cor|tamanho|quantidade|motivo", separadas por ";" ──
+// Formato novo, gravado nas MESMAS colunas de antes (CONSERTO_INTERNO,
+// CONSERTO_EXTERNO, DEFEITO_100) — a planilha não muda. A leitura entende os
+// dois formatos: o que já está gravado continua aparecendo.
+//   • tem "|"  → formato novo
+//   • DEFEITO_100 antigo ("PRETO:3") → vira linha com cor e quantidade
+//   • CONSERTO_* antigo (texto livre) → vira uma linha só, no campo motivo
+function parseLinhas(s,legadoCores){
+  const t=String(s||'').trim();
+  if(!t)return[];
+  if(t.includes('|')){
+    return t.split(';').map(x=>{
+      const p=x.split('|');
+      const o={cor:(p[0]||'').trim(),tam:(p[1]||'').trim(),
+               qtd:(p[2]||'').trim(),mot:(p[3]||'').trim()};
+      return (o.cor||o.tam||o.qtd||o.mot)?o:null;
+    }).filter(Boolean);
+  }
+  if(legadoCores)return parseCores(t).map(x=>({cor:x.cor,tam:'',qtd:x.qtd,mot:''}));
+  return [{cor:'',tam:'',qtd:'',mot:t}];
+}
+function linhasStr(a){
+  return (a||[]).filter(x=>x&&(x.cor||x.tam||x.qtd||x.mot))
+    .map(x=>[x.cor,x.tam,x.qtd,x.mot]
+      .map(v=>String(v||'').replace(/[|;]/g,' ').trim()).join('|'))
+    .join(';');
+}
+function totalPecas(a){
+  return (a||[]).reduce((t,x)=>t+(parseFloat(String((x&&x.qtd)||'').replace(',','.'))||0),0);
+}
+function numPT(n){return String(Math.round(n*100)/100).replace('.',',');}
+function pecasTxt(n){return n===1?'1 peça':numPT(n)+' peças';}
+// Cortes que vieram do localStorage (versão antiga do app) não têm as linhas.
+// Reconstrói a partir do que já estava salvo, para nada sumir da tela.
+function normalizaLinhas(lista){
+  (lista||[]).forEach(c=>{
+    if(!c)return;
+    if(!Array.isArray(c.linhasInt))c.linhasInt=parseLinhas(c.consInt,false);
+    if(!Array.isArray(c.linhasExt))c.linhasExt=parseLinhas(c.consExt,false);
+    if(!Array.isArray(c.linhas100))
+      c.linhas100=(c.defeito100||[]).map(x=>({cor:x.cor,tam:'',qtd:x.qtd,mot:''}));
+    if(c.decisao===undefined)c.decisao='';
+  });
+  return lista;
+}
 function parseChecks(s){
   if(!s)return{};
   const o={};
@@ -2976,6 +3143,7 @@ function render(){
   if(section==='dashboard'){renderDashboard();devolveOPs(ops);return;}
   if(section==='cortes')renderCortes();
   else renderPedidos();
+  avisarPlanilhaQuebrada();
   devolveOPs(ops);
 }
 
@@ -2985,7 +3153,9 @@ function getVisCortes(){
   // telas — e o histórico continua alimentando o preenchimento automático.
   let list=cortes.filter(vendo==='espera'?emEspera:vendo==='historico'?noHistorico:noQuadro);
   const q=(document.getElementById('srch')?.value||'').toLowerCase();
-  if(q)list=list.filter(c=>(c.id+c.nome+(c.tec||'')+(c.ref||'')).toLowerCase().includes(q));
+  // A busca não pegava o número do corte — e é justamente pela OP que a Martha
+  // e a Dai procuram um corte no meio de 70 cards.
+  if(q)list=list.filter(c=>(c.id+c.nome+(c.tec||'')+(c.ref||'')+(c.numCorte||'')).toLowerCase().includes(q));
   if(statusFilter)list=list.filter(c=>c.status===statusFilter);
   if(tipoFilter)list=list.filter(c=>(c.tipo||'reposicao')===tipoFilter);
   if(filtro==='minha'){
@@ -3186,7 +3356,9 @@ function renderCortesTaty(){
   FLUXO.forEach(e=>g[e.s].sort((a,b)=>
     (b.urg-a.urg)||(tempoDecorrido(b).nivel-tempoDecorrido(a).nivel)||(b.dias-a.dias)));
 
+  const fx=faixaDecisao();
   document.getElementById('main-content').innerHTML=
+   (fx?`<div style="padding:12px 14px 0">${fx}</div>`:'')+
    `<div class="board5">${FLUXO.map(e=>{
       const l=g[e.s], atras=l.some(c=>tempoDecorrido(c).nivel>=2);
       return `<div class="col5" data-status="${esc(e.s)}">
@@ -3227,16 +3399,30 @@ function renderListaLateral(){
     </div>`;
 }
 
-// Ficha do tecido no card: fornecedor + comprimento + aproveitamento.
-// O Edvaldo e a Rosana precisavam abrir os detalhes so para saber de quem
-// veio o tecido. O fornecedor so ocupa espaco quando esta preenchido.
+// Ficha do encaixe: comprimento + aproveitamento.
+// (O fornecedor saiu daqui e virou etiqueta no cardTopo, para aparecer em
+//  TODOS os cards — inclusive no quadro da Taty, que nao mostrava.)
 function fichaEnc(c){
-  const tin=String(c.tin||'').trim();
   return `<div class="enc-2">
-    ${tin?`<div class="d" style="grid-column:1/-1"><div class="dk">Fornecedor</div><div class="dv">${esc(tin)}</div></div>`:''}
     <div class="d"><div class="dk">Comprimento</div><div class="dv fm">${esc(c.encM)||'—'} m</div></div>
     <div class="d"><div class="dk">Aproveitamento</div><div class="dv fm">${esc(c.encPct)||'—'}%</div></div>
   </div>`;
+}
+// Aviso de planilha quebrada. Fica no topo de qualquer tela, para quem quer
+// que esteja logado — porque enquanto A1 estiver errada, cada corte novo entra
+// na planilha sem ID.
+function avisarPlanilhaQuebrada(){
+  if(!semColunaID)return;
+  const el=document.getElementById('main-content'); if(!el)return;
+  const d=document.createElement('div');
+  d.className='cq-aviso'; d.style.margin='12px 14px 0';
+  d.innerHTML='🚨 <b>A planilha perdeu o cabeçalho <span class="fm">ID</span> na célula A1.</b>'+
+    ' Alguém digitou por cima dele. Enquanto isso não for corrigido, todo corte novo'+
+    ' entra na planilha <b>sem ID</b>.'+
+    '<div class="cq-aviso-cols">Abra a planilha dos cortes → clique na célula <b>A1</b>'+
+    ' (a primeira de todas) → apague o que está lá e escreva <b>ID</b> → toque em ↻ aqui em cima.</div>'+
+    'Os cortes que já existem continuam funcionando normalmente.';
+  el.prepend(d);
 }
 const VAZIAS=['Fila limpa. Aproveita ☕','Nada aqui agora ✨','Tudo em dia por aqui','Zerou 🎈'];
 function fraseVazia(){ return VAZIAS[Math.floor(Math.random()*VAZIAS.length)]; }
@@ -3256,6 +3442,7 @@ function cardTopo(c,mostraRet){
     <div class="cnome">${esc(c.nome)}</div>
     <div class="ctags">
       ${c.tec?`<span class="tag">${esc(c.tec)}</span>`:''}
+      ${String(c.tin||'').trim()?`<span class="tag forn">${esc(c.tin)}</span>`:''}
       ${c.grade?`<span class="tag fm">${esc(c.grade)}</span>`:''}
       ${mostraRet?`<span class="tag ret${(ret&&ret!=='-')?'':' vazio'}">retalho <b class="fm">${(ret&&ret!=='-')?esc(ret.toUpperCase()):'—'}</b></span>`:''}
       ${c.rolo?`<span class="tag fm">${esc(c.rolo)}m</span>`:''}
@@ -3412,6 +3599,7 @@ function renderFilaRosana(){
   const descansando=l.filter(c=>!rosanaPronta(c));
   document.getElementById('main-content').innerHTML=`
     <div class="fila">
+      ${faixaDecisao()}
       <div class="ros2">
         ${rosanaColuna('Para descansar','Marque cada tecido quando ele descansar',
           'var(--c5)','var(--b5)',descansando,cardDescansando,fraseVazia())}
@@ -3523,9 +3711,29 @@ function pendenciasCQ(c){
   }
   if(!c.cqD)p.push('CQ Denise');
   else if(!deniseOkD(c))p.push('conclusão da Denise');
+  if(!decisaoOkD(c))p.push('decisão da produção');
   return p;
 }
 function cqCompletoD(c){return pendenciasCQ(c).length===0;}
+// ── DECISÃO DA PRODUÇÃO ──
+// A qualidade CONSTATA; quem decide o que fazer com a peça é a produção.
+// Sobe UM card só (não um por conferência), quando as DUAS conferências estão
+// registradas E houve defeito. Corte limpo continua arquivando sozinho — sem
+// burocracia para o que deu certo. O card NÃO sai da fila da Martha & Dai:
+// elas continuam marcando os consertos como resolvidos enquanto isso.
+function temDefeito(c){return c.cqM==='DEFEITO'||c.cqD==='NOK';}
+function precisaDecisao(c){return temDefeito(c)&&!!c.cqM&&!!c.cqD;}
+function aguardaDecisao(c){
+  return c.status==='CONTROLE_QUALIDADE'&&precisaDecisao(c)&&c.decisao!=='DECIDIDO';
+}
+function decisaoOkD(c){return !precisaDecisao(c)||c.decisao==='DECIDIDO';}
+// Todas as peças apontadas, das três seções, numa lista só.
+function linhasTodas(c){
+  return [].concat(
+    (c.linhasInt||[]).map(x=>Object.assign({de:'Conserto interno'},x)),
+    (c.linhasExt||[]).map(x=>Object.assign({de:'Conserto externo'},x)),
+    (c.linhas100||[]).map(x=>Object.assign({de:'100% defeito'},x)));
+}
 // Grava os campos e, se com isso tudo ficou OK, arquiva sozinho — num push só.
 async function salvarCQ(c,campos,msg){
   const done=c.status==='CONTROLE_QUALIDADE'&&cqCompletoD(c);
@@ -3539,6 +3747,43 @@ async function salvarCQ(c,campos,msg){
   await push(c._row,campos,c.id);
 }
 
+// Faixa "falta decidir" — aparece no topo das telas da Rosana e da Taty.
+// Um card por corte (não um por conferência): a qualidade fecha as duas
+// conferências e a produção decide UMA vez, com a grade inteira na mão.
+function faixaDecisao(){
+  if(!DECIDEM.has(user))return'';
+  const l=cortes.filter(c=>!c.espera&&aguardaDecisao(c))
+    .sort((a,b)=>(b.urg-a.urg)||(diasDesde(b.dataChegada)-diasDesde(a.dataChegada)));
+  if(!l.length)return'';
+  const aviso=cfg.url&&colsDecFaltando.length?`
+    <div class="cq-aviso">⚠️ <b>Faltam ${colsDecFaltando.length} colunas na planilha</b> para gravar a decisão.
+      Abra a planilha dos cortes e cole estes nomes no fim da linha 1 (o cabeçalho), um em cada coluna:
+      <div class="cq-aviso-cols">${colsDecFaltando.map(esc).join(' · ')}</div>
+      Depois toque em ↻ aqui em cima. <b>Não mexa na célula A1.</b></div>`:'';
+  return `<div class="ros-col" style="margin-bottom:12px">
+    <div class="ros-col-top" style="background:var(--ac)"></div>
+    <div class="ros-col-hd">
+      <div><span class="ros-col-ti">A qualidade fechou — falta decidir</span>
+        <span class="ros-col-sub">Rosana · Cinthia · Taty: o que fazer com as peças com defeito.</span></div>
+      <span class="ros-col-cn" style="background:var(--acl);color:var(--ac)">${l.length}</span>
+    </div>
+    <div class="ros-col-bd" style="max-height:none">${aviso}${l.map(cardDecisao).join('')}</div>
+  </div>`;
+}
+function cardDecisao(c){
+  return `<div class="card grande${c.urg?' urg':''}">
+    ${cardTopo(c,true)}
+    <div class="enc-2">
+      <div class="d"><div class="dk">Nº do corte · OP</div><div class="dv fm">${esc(c.numCorte)||'—'}</div></div>
+      <div class="d"><div class="dk">Chegou da oficina</div><div class="dv fm">${esc(c.dataChegada)||'—'}</div></div>
+    </div>
+    ${gradeResumoHTML(c,true)}
+    <div class="acts">
+      <button class="act ok" onclick="event.stopPropagation();abrirDecisaoQualidade(${jsq(c.id)})">Decidir o que fazer</button>
+      <button class="act sec" onclick="event.stopPropagation();openDet(${jsq(c.id)})">Detalhes</button>
+    </div>
+  </div>`;
+}
 function renderFilaDai(){
   barraTopo();
   const st=document.getElementById('stats'); if(st)st.style.display='none';
@@ -3550,7 +3795,7 @@ function renderFilaDai(){
       Depois toque em ↻ aqui em cima. Enquanto faltar coluna, nada do CQ é gravado.</div>`:'';
   const l=getVisCortes();
   const ordena=(a,b)=>(b.urg-a.urg)||(tempoDecorrido(b).nivel-tempoDecorrido(a).nivel);
-  const naOficina=l.filter(c=>c.status==='NO_CORTE').sort(ordena);
+  const naOficina=l.filter(c=>c.status==='NO_CORTE').sort(ordenaOficina);
   const emCQ=l.filter(c=>c.status==='CONTROLE_QUALIDADE')
     .sort((a,b)=>((b.pilotoVoltou!=='sim')-(a.pilotoVoltou!=='sim'))||(b.urg-a.urg));
   const semPiloto=emCQ.filter(c=>c.pilotoVoltou!=='sim').length;
@@ -3558,19 +3803,34 @@ function renderFilaDai(){
     <div class="fila">
       ${aviso}
       <div class="ros2">
-        ${rosanaColuna('Na oficina','Confirme quando o corte chegar','var(--c3)','var(--b3)',naOficina,cardDaiOficina,'Nada na oficina agora ✨')}
+        ${rosanaColuna('Na oficina','As liberadas pela Rosana nos últimos dias vêm primeiro. Busque pela OP lá em cima.','var(--c3)','var(--b3)',naOficina,cardDaiOficina,'Nada na oficina agora ✨')}
         ${rosanaColuna('Chegou — controle de qualidade',
           semPiloto?('🚨 '+semPiloto+(semPiloto===1?' corte sem a peça piloto':' cortes sem a peça piloto'))
-                   :'Piloto · CQ Martha · CQ Denise. Tudo OK = arquiva sozinho.',
+                   :'Piloto → conferência → revisão → decisão. Sem defeito, arquiva sozinho.',
           'var(--c5)','var(--b5)',emCQ,cardDaiCQ,'Nenhum corte no controle de qualidade.')}
       </div>
     </div>`;
 }
 
 // Card da ESQUERDA: corte na oficina, esperando chegar.
+// Ordem da coluna "Na oficina". Antes ela empatava tudo (os 70 cards estavam
+// todos "atrasados"), então a ordem virava a da planilha e o corte que a Rosana
+// tinha acabado de liberar caía no FIM da pilha — parecia que não tinha
+// aparecido. Agora: o que saiu nos últimos 3 dias vem primeiro (do mais novo
+// para o mais velho) e o resto segue do mais antigo, que é a ordem de cobrar a
+// oficina.
+function diasNaOficina(c){return diasDesde(c.dataStatus||c.dataDesc);}
+function ordenaOficina(a,b){
+  const na=diasNaOficina(a)<=3?0:1, nb=diasNaOficina(b)<=3?0:1;
+  if(na!==nb)return na-nb;
+  if(na===0)return diasNaOficina(a)-diasNaOficina(b);
+  return (b.urg-a.urg)||(diasNaOficina(b)-diasNaOficina(a));
+}
 function cardDaiOficina(c){
+  const d=diasNaOficina(c);
   return `<div class="card grande${c.urg?' urg':''}">
     ${cardTopo(c,true)}
+    ${d<=3?`<div class="novo-tag">✨ Liberada pela Rosana ${d===0?'hoje':d===1?'ontem':'há '+d+' dias'} — OP ${esc(c.numCorte)||'—'}</div>`:''}
     <div class="enc-2">
       <div class="d"><div class="dk">Nº do corte · OP</div><div class="dv fm">${esc(c.numCorte)||'—'}</div></div>
       <div class="d"><div class="dk">Foi para a oficina</div><div class="dv fm">${esc(dout(din(c.dataStatus||c.dataDesc||'')))}</div></div>
@@ -3590,6 +3850,7 @@ function cardDaiCQ(c){
   const pend=pendenciasCQ(c);
   return `<div class="card grande${c.urg?' urg':''}">
     ${cardTopo(c,true)}
+    ${etapasHTML(c)}
     <div class="enc-2">
       <div class="d"><div class="dk">Nº do corte · OP</div><div class="dv fm">${esc(c.numCorte)||'—'}</div></div>
       <div class="d"><div class="dk">Chegou em</div><div class="dv fm">${esc(c.dataChegada)||'—'}</div></div>
@@ -3598,6 +3859,7 @@ function cardDaiCQ(c){
     ${pilotoHTML(c)}
     ${cqMarthaHTML(c)}
     ${cqDeniseHTML(c)}
+    ${decisaoHTML(c)}
     ${pend.length?`<div class="ros-dica">Para arquivar sozinho falta: <strong>${esc(pend.join(' · '))}</strong>.</div>`:''}
     <div class="acts">
       <button class="act sec" style="flex:1" onclick="event.stopPropagation();openDet(${jsq(c.id)})">Ver detalhes</button>
@@ -3607,15 +3869,67 @@ function cardDaiCQ(c){
 
 function pilotoHTML(c){
   if(c.pilotoVoltou==='sim')
-    return `<div class="cq-linha-ok">✔ Peça piloto voltou${c.dataPiloto?' · '+esc(c.dataPiloto):''}</div>`;
+    return `<div class="cq-linha-ok">✔ 1 · Peça piloto voltou${c.dataPiloto?' · '+esc(c.dataPiloto):''}</div>`;
   const d=diasDesde(c.dataChegada||c.dataStatus);
   return `<div class="piloto-alerta">🚨 Sem a peça piloto ${d>0?`há <b>${d} ${d===1?'dia':'dias'}</b>`:'<b>desde a chegada de hoje</b>'} — cobre a oficina!</div>
     <button class="impresso" style="margin:0 0 8px" onclick="event.stopPropagation();marcarPilotoVoltou(${jsq(c.id)})">✔ A piloto voltou</button>`;
 }
 
+// ── A grade, só de leitura, dentro do card ──
+function gradeLerHTML(linhas,titulo,cor){
+  const l=(linhas||[]).filter(x=>x&&(x.cor||x.tam||x.qtd||x.mot));
+  if(!l.length)return'';
+  return `<div style="margin-bottom:7px">
+    <div class="gr-cab" style="color:${cor}"><span>${titulo}</span>
+      <span class="fm">${esc(pecasTxt(totalPecas(l)))}</span></div>
+    <table class="gr-ler"><thead><tr><th>Cor</th><th>Tam.</th><th>Pç</th><th>Motivo</th></tr></thead>
+    <tbody>${l.map(x=>`<tr><td>${esc(x.cor)||'—'}</td><td>${esc(x.tam)||'—'}</td>
+      <td class="q">${esc(x.qtd)||'—'}</td><td>${esc(x.mot)||'—'}</td></tr>`).join('')}</tbody></table>
+  </div>`;
+}
+// Tudo que a qualidade apontou, junto — é isto que a produção olha para decidir.
+function gradeResumoHTML(c,comTextos){
+  const tabelas=gradeLerHTML(c.linhasInt,'🔧 Conserto interno','var(--c1)')
+    +gradeLerHTML(c.linhasExt,'🏭 Conserto externo','var(--c5)')
+    +gradeLerHTML(c.linhas100,'🚫 100% defeito','var(--c4)');
+  const textos=comTextos?(
+     (c.cqMMotivo?`<div class="obs obs-rep">Conferência: ${esc(c.cqMMotivo)}</div>`:'')
+    +(c.cqDJust?`<div class="obs obs-rep">Revisão: ${esc(c.cqDJust)}${c.cqDAcao?' — ação tomada: '+esc(c.cqDAcao):''}</div>`:'')
+  ):'';
+  if(!tabelas&&!textos)return'';
+  const t=totalPecas(linhasTodas(c));
+  return tabelas+textos+(t?`<div class="gr-tot" style="margin:4px 0 8px">Total apontado: ${esc(pecasTxt(t))}</div>`:'');
+}
+// ── Barra de etapas do corte ──
+// O card era dividido por PESSOA ("CQ Martha", "CQ Denise") e por isso parecia
+// que cada uma tinha um app separado. Agora ele conta a história do CORTE.
+function etapasHTML(c){
+  const et=[{l:'Piloto',ok:c.pilotoVoltou==='sim'},
+            {l:'Conferência',ok:!!c.cqM&&marthaOkD(c)},
+            {l:'Revisão',ok:!!c.cqD&&deniseOkD(c)}];
+  if(precisaDecisao(c)||c.decisao==='DECIDIDO')et.push({l:'Decisão',ok:c.decisao==='DECIDIDO'});
+  let achou=false;
+  return `<div class="et-barra">${et.map(e=>{
+    let cls=e.ok?'ok':'';
+    if(!e.ok&&!achou){cls='now';achou=true;}
+    return `<div class="et-p ${cls}">${esc(e.l)}</div>`;}).join('')}</div>`;
+}
+// ── Bloco da decisão dentro do card ──
+function decisaoHTML(c){
+  if(c.decisao==='DECIDIDO')
+    return `<div class="dec-feita">✔ <b>Decisão:</b> ${esc(c.decAcao||'—')}${c.decObs?' — '+esc(c.decObs):''}${
+      c.decQuem?`<div style="font-size:.68rem;opacity:.85;margin-top:3px">${esc(c.decQuem)}</div>`:''}</div>`;
+  if(!aguardaDecisao(c))return'';
+  if(DECIDEM.has(user))
+    return `<div class="cq-sec">
+      <div class="cq-hd"><span class="cq-ti">4 · Decisão da produção</span><span class="cq-chip pend">com você</span></div>
+      <button class="cq-escolha" style="width:100%;border-color:var(--ac);color:var(--ac)"
+        onclick="event.stopPropagation();abrirDecisaoQualidade(${jsq(c.id)})">Decidir o que fazer</button></div>`;
+  return `<div class="dec-espera">⏳ Apontamento fechado. Esperando a produção decidir o que fazer (Rosana · Cinthia · Taty).</div>`;
+}
 function cqMarthaHTML(c){
   const chip=c.cqM==='OK'?'<span class="cq-chip ok">✔ tudo OK</span>'
-    :c.cqM==='DEFEITO'?(marthaOkD(c)?'<span class="cq-chip ok">defeito tratado ✔</span>':'<span class="cq-chip bad">✖ com defeito</span>')
+    :c.cqM==='DEFEITO'?(marthaOkD(c)?'<span class="cq-chip ok">tratado ✔</span>':'<span class="cq-chip bad">✖ com defeito</span>')
     :'<span class="cq-chip pend">pendente</span>';
   let corpo='';
   if(!c.cqM){
@@ -3624,19 +3938,20 @@ function cqMarthaHTML(c){
       <button class="cq-escolha" style="border-color:var(--c4);color:var(--c4)" onclick="event.stopPropagation();openCQMartha(${jsq(c.id)})">✖ Com defeito</button>
     </div>`;
   }else if(c.cqM==='DEFEITO'){
-    corpo=`<div class="obs obs-rep">Motivo: ${esc(c.cqMMotivo||'—')}</div>
-      ${c.consInt?`<div class="cq-dest"><div class="cq-dest-tx"><b>🔧 Conserto interno</b>${esc(c.consInt)}</div>
+    corpo=`${gradeLerHTML(c.linhasInt,'🔧 Conserto interno','var(--c1)')}
+      ${(c.linhasInt||[]).length?`<div class="cq-dest"><div class="cq-dest-tx"><b>Conserto interno</b>Já foi arrumado aqui dentro?</div>
         <button class="cq-resolve${c.consIntOk==='sim'?' on':''}" onclick="event.stopPropagation();toggleConsertoOk(${jsq(c.id)},'int')">${c.consIntOk==='sim'?'✔ Resolvido':'Resolvido?'}</button></div>`:''}
-      ${c.consExt?`<div class="cq-dest"><div class="cq-dest-tx"><b>🏭 Conserto externo</b>${esc(c.consExt)}</div>
+      ${gradeLerHTML(c.linhasExt,'🏭 Conserto externo','var(--c5)')}
+      ${(c.linhasExt||[]).length?`<div class="cq-dest"><div class="cq-dest-tx"><b>Conserto externo</b>A oficina já devolveu arrumado?</div>
         <button class="cq-resolve${c.consExtOk==='sim'?' on':''}" onclick="event.stopPropagation();toggleConsertoOk(${jsq(c.id)},'ext')">${c.consExtOk==='sim'?'✔ Resolvido':'Resolvido?'}</button></div>`:''}
-      ${(c.defeito100||[]).length?`<div class="cq-100">🚫 <b>100% defeito (incorrigível):</b> ${(c.defeito100||[]).map(x=>esc(x.cor)+' — '+esc(x.qtd)+' pç').join(' · ')}</div>`:''}
+      ${gradeLerHTML(c.linhas100,'🚫 100% defeito · peça perdida','var(--c4)')}
+      ${c.cqMMotivo?`<div class="obs obs-rep">Observação: ${esc(c.cqMMotivo)}</div>`:''}
       <button class="act sec" style="min-height:38px;font-size:.74rem" onclick="event.stopPropagation();openCQMartha(${jsq(c.id)})">✏️ Editar apontamento</button>`;
   }else{
-    corpo=`<div class="cq-linha-ok">✔ Tudo OK no controle da Martha</div>`;
+    corpo=`<div class="cq-linha-ok">✔ Passou sem defeito</div>`;
   }
-  return `<div class="cq-sec"><div class="cq-hd"><span class="cq-ti">Controle de qualidade · Martha</span>${chip}</div>${corpo}</div>`;
+  return `<div class="cq-sec"><div class="cq-hd"><span class="cq-ti">2 · Conferência<span class="cq-quem">Martha</span></span>${chip}</div>${corpo}</div>`;
 }
-
 function cqDeniseHTML(c){
   const concl=String(c.cqDConclusao||'').trim();
   const chip=c.cqD==='OK'?'<span class="cq-chip ok">✔ OK</span>'
@@ -3657,9 +3972,9 @@ function cqDeniseHTML(c){
           <button class="impresso" style="margin:0 0 8px" onclick="event.stopPropagation();openCQDenise(${jsq(c.id)})">📝 Registrar conclusão</button>`):''}
       <button class="act sec" style="min-height:38px;font-size:.74rem" onclick="event.stopPropagation();openCQDenise(${jsq(c.id)})">✏️ Editar</button>`;
   }else{
-    corpo=`<div class="cq-linha-ok">✔ Tudo OK no controle da Denise</div>`;
+    corpo=`<div class="cq-linha-ok">✔ Revisão sem problema</div>`;
   }
-  return `<div class="cq-sec"><div class="cq-hd"><span class="cq-ti">Controle de qualidade · Denise</span>${chip}</div>${corpo}</div>`;
+  return `<div class="cq-sec"><div class="cq-hd"><span class="cq-ti">3 · Revisão final<span class="cq-quem">Denise</span></span>${chip}</div>${corpo}</div>`;
 }
 
 // ── Ações · chegada ──
@@ -3725,54 +4040,91 @@ async function cqMarthaOK(id){
   c.cqM='OK';
   await salvarCQ(c,[['CQ_MARTHA','OK']],'✔ CQ Martha: tudo OK');
 }
+// ── EDITOR DE GRADE ──
+// Uma linha = uma peça (ou um punhado de peças iguais). Cor e tamanho são
+// listas SUGERIDAS (as cores do corte e a grade dele), mas dá para digitar
+// qualquer coisa — foi pedido assim, porque nem tudo cabe na lista.
+function gradeEditorHTML(key){
+  return `<div class="gr-wrap">
+    <div class="gr-hd"><span>Cor</span><span>Tamanho</span><span>Peças</span><span>Motivo</span><span></span></div>
+    <div id="gr-${key}"></div>
+    <div class="gr-nada" id="grv-${key}">Nenhuma peça aqui. Deixe assim se não houver.</div>
+    <div class="gr-pe">
+      <button class="add-cor" style="margin:0" onclick="grAdd('${key}')">+ Adicionar peça</button>
+      <span class="gr-tot" id="grt-${key}">0 peças</span>
+    </div>
+  </div>`;
+}
+function grAdd(key,l){
+  l=l||{};grSeq++;const n=grSeq;
+  const d=document.createElement('div');
+  d.className='gr-row';d.id='grr-'+n;
+  d.innerHTML=`<input list="cqm-cores-dl" placeholder="Cor" value="${esc(l.cor||'')}" oninput="grTotal('${key}')">
+    <input list="cqm-tam-dl" placeholder="Tamanho" value="${esc(l.tam||'')}">
+    <input inputmode="numeric" placeholder="Peças" value="${esc(l.qtd||'')}" oninput="grTotal('${key}')">
+    <input list="cqm-mot-dl" placeholder="Motivo" value="${esc(l.mot||'')}">
+    <button class="rmv" title="Remover esta linha" onclick="document.getElementById('grr-${n}').remove();grTotal('${key}')">✕</button>`;
+  document.getElementById('gr-'+key).appendChild(d);
+  grTotal(key);
+  const f=d.querySelector('input'); if(f&&!l.cor)f.focus();
+}
+function grLer(key){
+  return [...document.querySelectorAll('#gr-'+key+' > .gr-row')].map(d=>{
+    const i=d.querySelectorAll('input');
+    return{cor:i[0].value.trim(),tam:i[1].value.trim(),qtd:i[2].value.trim(),mot:i[3].value.trim()};
+  }).filter(x=>x.cor||x.tam||x.qtd||x.mot);
+}
+function grTotal(key){
+  const linhas=grLer(key);
+  const t=document.getElementById('grt-'+key); if(t)t.textContent=pecasTxt(totalPecas(linhas));
+  const v=document.getElementById('grv-'+key);
+  if(v)v.style.display=document.querySelector('#gr-'+key+' > .gr-row')?'none':'';
+}
 function openCQMartha(id){
   const c=cortes.find(x=>x.id===id);
   if(!c){toast('Item nao encontrado — sincronize novamente','w');return;}
   if(!cqColsOk())return;
-  cqmId=id;def100Count=0;
-  document.getElementById('cqm-info').innerHTML=`<strong>${esc(c.ref||c.id)}</strong> — ${esc(c.nome)}${c.numCorte?' · OP '+esc(c.numCorte):''}`;
+  cqmId=id;
+  document.getElementById('cqm-info').innerHTML=`<strong>${esc(c.ref||c.id)}</strong> — ${esc(c.nome)}${c.numCorte?' · OP '+esc(c.numCorte):''}${c.grade?' · grade '+esc(c.grade):''}`;
   document.getElementById('cqm-motivo').value=c.cqMMotivo||'';
-  document.getElementById('cqm-int').value=c.consInt||'';
-  document.getElementById('cqm-ext').value=c.consExt||'';
-  const dl=document.getElementById('cqm-cores-dl');
-  if(dl)dl.innerHTML=(c.cores||[]).filter(x=>x.cor).map(x=>`<option value="${esc(x.cor)}">`).join('');
-  document.getElementById('cqm-defs').innerHTML='';
-  (c.defeito100||[]).forEach(x=>addDef100(x.cor,x.qtd));
+  const dlc=document.getElementById('cqm-cores-dl');
+  if(dlc)dlc.innerHTML=(c.cores||[]).filter(x=>x.cor).map(x=>`<option value="${esc(x.cor)}">`).join('');
+  const dlt=document.getElementById('cqm-tam-dl');
+  if(dlt)dlt.innerHTML=String(c.grade||'').split(' ').filter(Boolean).map(t=>`<option value="${esc(t)}">`).join('');
+  const dlm=document.getElementById('cqm-mot-dl');
+  if(dlm)dlm.innerHTML=MOTIVOS_DEFEITO.map(m=>`<option value="${esc(m)}">`).join('');
+  [['int',c.linhasInt],['ext',c.linhasExt],['100',c.linhas100]].forEach(([k,linhas])=>{
+    document.getElementById('cqm-'+k+'-wrap').innerHTML=gradeEditorHTML(k);
+    (linhas||[]).forEach(l=>grAdd(k,l));
+    grTotal(k);
+  });
   op('ov-cqm');
-}
-function addDef100(cor,qtd){
-  def100Count++;const n=def100Count;
-  const div=document.createElement('div');div.id='cqmd-'+n;
-  div.style.cssText='display:flex;gap:7px;align-items:center;margin-bottom:6px';
-  div.innerHTML=`<input class="cor-i" list="cqm-cores-dl" placeholder="Cor" value="${esc(cor||'')}" style="flex:2;min-width:90px">
-    <input class="qtd-i" type="text" inputmode="numeric" placeholder="Peças" value="${esc(qtd||'')}">
-    <button class="rmv" onclick="document.getElementById('cqmd-${n}').remove()">✕</button>`;
-  document.getElementById('cqm-defs').appendChild(div);
 }
 async function salvarCQMartha(){
   const c=cortes.find(x=>x.id===cqmId);
   if(!c){toast('Item nao encontrado — sincronize novamente','w');cl('ov-cqm');return;}
   if(!cqColsOk())return;
-  const motivo=document.getElementById('cqm-motivo').value.trim();
-  if(!motivo){toast('Descreva o motivo do defeito','w');return;}
-  const nInt=document.getElementById('cqm-int').value.trim();
-  const nExt=document.getElementById('cqm-ext').value.trim();
-  const defs=[...document.querySelectorAll('#cqm-defs > div')].map(d=>{
-    const i=d.querySelectorAll('input');
-    return{cor:i[0].value.trim(),qtd:(i[1].value.trim()||'1')};
-  }).filter(x=>x.cor);
+  const obs=document.getElementById('cqm-motivo').value.trim();
+  const li=grLer('int'),le=grLer('ext'),l0=grLer('100');
+  if(!li.length&&!le.length&&!l0.length&&!obs){
+    toast('Aponte pelo menos uma peça — ou escreva a observação','w');return;
+  }
+  const sInt=linhasStr(li),sExt=linhasStr(le),s100=linhasStr(l0);
   lastPushTime=Date.now();
-  // Mexeu no texto do conserto (ou apagou) = o "resolvido" antigo deixa de valer.
-  if(nInt!==c.consInt||!nInt)c.consIntOk='';
-  if(nExt!==c.consExt||!nExt)c.consExtOk='';
-  c.cqM='DEFEITO';c.cqMMotivo=motivo;c.consInt=nInt;c.consExt=nExt;c.defeito100=defs;
+  // Mexeu no conserto (ou apagou) = o "resolvido" antigo deixa de valer.
+  if(sInt!==c.consInt||!sInt)c.consIntOk='';
+  if(sExt!==c.consExt||!sExt)c.consExtOk='';
+  c.cqM='DEFEITO';c.cqMMotivo=obs;
+  c.consInt=sInt;c.consExt=sExt;
+  c.linhasInt=li;c.linhasExt=le;c.linhas100=l0;
+  c.defeito100=l0.map(x=>({cor:x.cor,qtd:x.qtd}));
   cl('ov-cqm');
   await salvarCQ(c,[
-    ['CQ_MARTHA','DEFEITO'],['CQ_M_MOTIVO',motivo],
-    ['CONSERTO_INTERNO',nInt],['CONSERTO_INTERNO_OK',c.consIntOk],
-    ['CONSERTO_EXTERNO',nExt],['CONSERTO_EXTERNO_OK',c.consExtOk],
-    ['DEFEITO_100',coresStr(defs)],
-  ],'CQ da Martha registrado');
+    ['CQ_MARTHA','DEFEITO'],['CQ_M_MOTIVO',obs],
+    ['CONSERTO_INTERNO',sInt],['CONSERTO_INTERNO_OK',c.consIntOk],
+    ['CONSERTO_EXTERNO',sExt],['CONSERTO_EXTERNO_OK',c.consExtOk],
+    ['DEFEITO_100',s100],
+  ],'Apontamento salvo · '+pecasTxt(totalPecas(li.concat(le,l0))));
 }
 async function toggleConsertoOk(id,qual){
   const c=cortes.find(x=>x.id===id);
@@ -3835,6 +4187,50 @@ async function salvarCQDenise(){
   ],'CQ da Denise registrado');
 }
 
+// ── Ações · DECISÃO DA PRODUÇÃO ──
+// NOME COMPRIDO DE PROPÓSITO: já existe um openDecisao() mais abaixo (do fluxo
+// antigo de envio). Como as duas ficam no mesmo <script>, a de baixo apagava
+// esta — e o botão abria o modal errado sem dar erro nenhum.
+function abrirDecisaoQualidade(id){
+  const c=cortes.find(x=>x.id===id);
+  if(!c){toast('Item nao encontrado — sincronize novamente','w');return;}
+  if(colsDecFaltando.length){
+    toast('Faltam colunas da decisão na planilha — veja o aviso na tela','w');return;}
+  decId=id;decAcaoSel=c.decAcao||'';
+  const nomes=QUEM_DECIDE[user]||[user];
+  decQuemSel=(c.decQuem||'').split(' · ')[0]||nomes[0];
+  if(!nomes.includes(decQuemSel))decQuemSel=nomes[0];
+  document.getElementById('dec-info').innerHTML=`<strong>${esc(c.ref||c.id)}</strong> — ${esc(c.nome)}${c.numCorte?' · OP '+esc(c.numCorte):''}`;
+  document.getElementById('dec-resumo').innerHTML=gradeResumoHTML(c,true)||'<div class="obs">Sem peças apontadas — só as observações da qualidade.</div>';
+  document.getElementById('dec-obs').value=c.decObs||'';
+  pintaDec();
+  op('ov-dec');
+}
+function pintaDec(){
+  document.getElementById('dec-btns').innerHTML=ACOES_DECISAO.map(a=>
+    `<button class="cq-escolha${decAcaoSel===a?' on':''}" onclick="decAcaoSel=${jsq(a)};pintaDec()">${esc(a)}</button>`).join('');
+  const nomes=QUEM_DECIDE[user]||[user];
+  const w=document.getElementById('dec-quem-wrap');
+  // A Cinthia usa o login da Taty — sem perguntar, a planilha nunca saberia
+  // qual das duas decidiu.
+  w.innerHTML=nomes.length<2?'':`<span class="sl">Quem está decidindo</span>
+    <div class="cq-btns">${nomes.map(n=>
+      `<button class="cq-escolha${decQuemSel===n?' on':''}" onclick="decQuemSel=${jsq(n)};pintaDec()">${esc(n)}</button>`).join('')}</div>`;
+}
+async function salvarDecisao(){
+  const c=cortes.find(x=>x.id===decId);
+  if(!c){toast('Item nao encontrado — sincronize novamente','w');cl('ov-dec');return;}
+  if(!decAcaoSel){toast('Escolha o que fazer com o corte','w');return;}
+  const obs=document.getElementById('dec-obs').value.trim();
+  const quem=decQuemSel+' · '+hojeBR();
+  lastPushTime=Date.now();
+  c.decisao='DECIDIDO';c.decAcao=decAcaoSel;c.decObs=obs;c.decQuem=quem;
+  cl('ov-dec');
+  logActivity(`<strong>${esc(c.ref||c.id)}</strong> — decisão: ${esc(decAcaoSel)}`,'#8A3355');
+  await salvarCQ(c,[['DECISAO','DECIDIDO'],['DECISAO_ACAO',decAcaoSel],
+    ['DECISAO_OBS',obs],['DECISAO_QUEM',quem]],'Decisão registrada');
+}
+
 // Resumo da chegada + CQ na tela de detalhes (todo mundo vê; Taty e Martha & Dai agem).
 function cqResumoDetHTML(c){
   const tem=c.chegou==='sim'||c.status==='CONTROLE_QUALIDADE'||c.cqM||c.cqD||c.pilotoVoltou;
@@ -3844,7 +4240,10 @@ function cqResumoDetHTML(c){
     <div class="df"><span class="dk">Chegou da oficina</span><span class="dv">${c.chegou==='sim'?'Sim'+(c.dataChegada?' · '+esc(c.dataChegada):''):'Ainda não'}</span></div>
     <div class="df"><span class="dk">Peça piloto</span><span class="dv">${c.pilotoVoltou==='sim'?'✔ Voltou'+(c.dataPiloto?' · '+esc(c.dataPiloto):''):(c.status==='CONTROLE_QUALIDADE'?'🚨 Não voltou — há '+diasDesde(c.dataChegada||c.dataStatus)+'d':'—')}</span></div>
     <div class="df"><span class="dk">CQ Martha</span><span class="dv">${c.cqM==='OK'?'✔ Tudo OK':c.cqM==='DEFEITO'?(marthaOkD(c)?'Defeito tratado ✔':'✖ Com defeito'):'Pendente'}</span></div>
-    ${c.cqMMotivo?`<div class="df"><span class="dk">Motivo (Martha)</span><span class="dv">${esc(c.cqMMotivo)}</span></div>`:''}
+    ${c.cqMMotivo?`<div class="df"><span class="dk">Observação (Martha)</span><span class="dv">${esc(c.cqMMotivo)}</span></div>`:''}
+    ${gradeResumoHTML(c,false)}
+    ${c.decisao==='DECIDIDO'?`<div class="df"><span class="dk">Decisão</span><span class="dv">${esc(c.decAcao||'—')}${c.decQuem?' · '+esc(c.decQuem):''}</span></div>`:
+      aguardaDecisao(c)?`<div class="df"><span class="dk">Decisão</span><span class="dv">Aguardando a produção</span></div>`:''}
     ${c.consInt?`<div class="df"><span class="dk">Conserto interno</span><span class="dv">${esc(c.consInt)} — ${c.consIntOk==='sim'?'resolvido ✔':'pendente'}</span></div>`:''}
     ${c.consExt?`<div class="df"><span class="dk">Conserto externo</span><span class="dv">${esc(c.consExt)} — ${c.consExtOk==='sim'?'resolvido ✔':'pendente'}</span></div>`:''}
     ${(c.defeito100||[]).length?`<div class="df"><span class="dk">100% defeito</span><span class="dv">${(c.defeito100||[]).map(x=>esc(x.cor)+': '+esc(x.qtd)+' pç').join(' · ')}</span></div>`:''}
@@ -4743,6 +5142,12 @@ function lookupEnc(){
 }
 
 function openNovo(){
+  // Criar agora produziria uma linha sem ID na planilha — e foi assim que
+  // apareceram linhas orfas. Editar continua liberado: o app usa a linha.
+  if(semColunaID){
+    toast('Corrija a célula A1 da planilha (escreva ID) antes de criar cortes novos','w');
+    return;
+  }
   editId=null;autoEnc=null;
   document.getElementById('form-ti').textContent='Novo corte';
   ['f-id','f-ref','f-nome','f-ret','f-obs','f-rolo'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});
