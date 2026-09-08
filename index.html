@@ -1771,7 +1771,11 @@ h1, h2, h3, .heading {
   border:1px solid var(--c1);border-radius:7px;padding:8px 9px;margin-bottom:6px;line-height:1.4}
 .dec-feita{font-size:.77rem;background:var(--b3);color:var(--c3);border-radius:7px;
   padding:8px 9px;margin-bottom:6px;line-height:1.45}
-.dec-btns{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:12px}
+.dec-btns{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.dec-sec{border:1px solid var(--bd);border-radius:var(--r8);padding:11px 12px;
+  margin-bottom:12px;background:var(--bg)}
+.dec-sec .fg{margin-bottom:0}
+.dec-sec .gr-cab{margin-top:0}
 @media (max-width:620px){ .dec-btns{grid-template-columns:1fr} }
 .novo-tag{font-size:.7rem;font-weight:700;background:var(--b3);color:var(--c3);
   border-radius:7px;padding:6px 9px;margin-bottom:6px;line-height:1.35}
@@ -2238,9 +2242,7 @@ h1, h2, h3, .heading {
     </div>
     <div id="dec-info" style="font-size:.84rem;color:var(--mt);margin-bottom:12px"></div>
     <div id="dec-resumo" style="margin-bottom:14px"></div>
-    <span class="sl">Ação</span>
-    <div class="dec-btns" id="dec-btns"></div>
-    <div id="dec-quem-wrap" style="margin-bottom:12px"></div>
+    <div id="dec-secoes"></div>
     <div class="fg" style="margin-bottom:4px"><label class="fl">Observação (opcional)</label>
       <input class="fi" id="dec-obs" placeholder="ex: cobrar as 6 peças perdidas da oficina">
     </div>
@@ -2432,7 +2434,7 @@ let user='',section='cortes',filtro='todos',statusFilter='',tipoFilter='';
 let coresId=null,respId=null,corCount=0,editId=null,decisaoId=null;
 // Estado dos modais da Martha & Dai (chegada + CQ)
 let chegadaId=null,chegadaTipo='',chegadaPiloto='',cqmId=null,cqdId=null,cqdOficina=false;
-let grSeq=0,decId='',decAcaoSel='',decQuemSel='';
+let grSeq=0,decId='',decSel={};
 let lastPushTime=0;
 // Handle do polling. Sem guardar isto, cada login numa tablet compartilhada
 // criava mais um setInterval e ninguém limpava: depois de 5 trocas de turno
@@ -2458,13 +2460,21 @@ let colsDecFaltando=[];
 // depois ("40% dos defeitos são costura"), mas o campo aceita texto livre.
 const MOTIVOS_DEFEITO=['Costura','Mancha','Furo / defeito do tecido','Medida errada',
   'Aviamento','Tingimento / cor','Corte errado','Acabamento','Falta de peça'];
-// O que a produção pode decidir quando a qualidade fecha com defeito.
-const ACOES_DECISAO=['Refazer internamente','Devolver para a oficina',
-  'Repor no próximo corte','Aceitar a perda','Cobrar / descontar do fornecedor',
-  'Liberar mesmo assim'];
-// Quem decide. A Cinthia usa o login da Taty — por isso o modal pergunta o nome.
+// O que a produção pode decidir, POR SEÇÃO do apontamento. Trocar esta lista
+// é seguro: o app monta os botões a partir dela.
+const ACOES_DEC={
+  int:{t:'🔧 Conserto interno',n:'Conserto interno',tipo:'texto',
+       lb:'O que foi feito',ph:'ex: refizemos a barra das 4 peças aqui mesmo'},
+  ext:{t:'🏭 Conserto externo',n:'Conserto externo',tipo:'texto',
+       lb:'O que foi feito',ph:'ex: voltou para o Vladimir refazer a costura'},
+  d100:{t:'🚫 100% defeito',n:'100% defeito',tipo:'opcoes',
+       a:['Repor no próximo corte','Aceitar a perda',
+          'Cobrar / descontar da oficina','Cobrar do fornecedor do tecido']},
+  geral:{t:'O que fazer',n:'',tipo:'texto',
+       lb:'O que foi feito',ph:'ex: separamos as peças e refizemos a medida'},
+};
 const DECIDEM=new Set(['taty','carol','rosana']);
-const QUEM_DECIDE={taty:['Taty','Cinthia'],carol:['Carol','Cinthia'],rosana:['Rosana']};
+const NOME_LOGIN={taty:'Taty',carol:'Carol',rosana:'Rosana'};
 // Liga quando a planilha volta SEM o cabecalho ID na celula A1. Sem esse
 // cabecalho o Apps Script nao acha a coluna do ID: ele para de gerar ID nas
 // linhas novas e devolve todos os cortes sem ID — e no app TODO card passa a
@@ -3281,6 +3291,9 @@ function slotCheckRosana(d){
 function checarLembreteRosana(){
   if(user!=='rosana')return;
   if(document.getElementById('ov-check')?.classList.contains('open'))return;
+  // Nao interromper quem esta no meio de um modal (a decisao tem texto digitado
+  // que se perderia). O lembrete volta no proximo tique do relogio.
+  if(document.querySelector('.ov.open'))return;
   const slot=slotCheckRosana(new Date());
   if(!slot)return;
   if(localStorage.getItem('az_check_rosana')===slot)return;   // já respondeu
@@ -3917,7 +3930,8 @@ function etapasHTML(c){
 // ── Bloco da decisão dentro do card ──
 function decisaoHTML(c){
   if(c.decisao==='DECIDIDO')
-    return `<div class="dec-feita">✔ <b>Decisão:</b> ${esc(c.decAcao||'—')}${c.decObs?' — '+esc(c.decObs):''}${
+    return `<div class="dec-feita"><b>✔ Decisão da produção</b><div style="margin-top:3px">${acoesTxtHTML(c)}</div>${
+      c.decObs?`<div style="margin-top:3px">${esc(c.decObs)}</div>`:''}${
       c.decQuem?`<div style="font-size:.68rem;opacity:.85;margin-top:3px">${esc(c.decQuem)}</div>`:''}</div>`;
   if(!aguardaDecisao(c))return'';
   if(DECIDEM.has(user))
@@ -4187,6 +4201,41 @@ async function salvarCQDenise(){
   ],'CQ da Denise registrado');
 }
 
+// ── DECISÃO: uma ação por seção, tudo na coluna DECISAO_ACAO ──
+// Formato "int|Refazer aqui dentro;100|Aceitar a perda". Decisão antiga, de
+// quando era uma escolha só, continua legível (cai em 'geral').
+function secoesDecisao(c){
+  const s=[];
+  if((c.linhasInt||[]).length)s.push('int');
+  if((c.linhasExt||[]).length)s.push('ext');
+  if((c.linhas100||[]).length)s.push('d100');
+  return s.length?s:['geral'];
+}
+function parseAcoes(str_){
+  const o={};
+  String(str_||'').split(';').forEach(x=>{
+    const i=x.indexOf('|');
+    if(i<0){ if(x.trim())o.geral=x.trim(); return; }
+    let k=x.slice(0,i).trim(); const v=x.slice(i+1).trim();
+    if(k==='100')k='d100';   // chave antiga
+    if(k&&v)o[k]=v;
+  });
+  return o;
+}
+function acoesStr(o){
+  return Object.keys(o).filter(k=>o[k])
+    .map(k=>k+'|'+String(o[k]).replace(/[|;]/g,' ')).join(';');
+}
+function acoesTxtHTML(c){
+  const o=parseAcoes(c.decAcao);
+  const ks=Object.keys(o);
+  if(!ks.length)return '—';
+  return ks.map(k=>{
+    const n=(ACOES_DEC[k]||{}).n;
+    return (n?`<b>${esc(n)}:</b> `:'')+esc(o[k]);
+  }).join('<br>');
+}
+
 // ── Ações · DECISÃO DA PRODUÇÃO ──
 // NOME COMPRIDO DE PROPÓSITO: já existe um openDecisao() mais abaixo (do fluxo
 // antigo de envio). Como as duas ficam no mesmo <script>, a de baixo apagava
@@ -4196,38 +4245,60 @@ function abrirDecisaoQualidade(id){
   if(!c){toast('Item nao encontrado — sincronize novamente','w');return;}
   if(colsDecFaltando.length){
     toast('Faltam colunas da decisão na planilha — veja o aviso na tela','w');return;}
-  decId=id;decAcaoSel=c.decAcao||'';
-  const nomes=QUEM_DECIDE[user]||[user];
-  decQuemSel=(c.decQuem||'').split(' · ')[0]||nomes[0];
-  if(!nomes.includes(decQuemSel))decQuemSel=nomes[0];
+  decId=id;decSel=parseAcoes(c.decAcao);
   document.getElementById('dec-info').innerHTML=`<strong>${esc(c.ref||c.id)}</strong> — ${esc(c.nome)}${c.numCorte?' · OP '+esc(c.numCorte):''}`;
-  document.getElementById('dec-resumo').innerHTML=gradeResumoHTML(c,true)||'<div class="obs">Sem peças apontadas — só as observações da qualidade.</div>';
+  // No topo ficam só os textos da qualidade; as tabelas foram para dentro da
+  // seção a que pertencem, junto do campo de resposta.
+  const t=totalPecas(linhasTodas(c));
+  document.getElementById('dec-resumo').innerHTML=
+     (c.cqMMotivo?`<div class="obs obs-rep">Conferência: ${esc(c.cqMMotivo)}</div>`:'')
+    +(c.cqDJust?`<div class="obs obs-rep">Revisão: ${esc(c.cqDJust)}${c.cqDAcao?' — ação tomada: '+esc(c.cqDAcao):''}</div>`:'')
+    +(t?`<div class="gr-tot" style="margin-top:6px">Total apontado: ${esc(pecasTxt(t))}</div>`:'');
   document.getElementById('dec-obs').value=c.decObs||'';
   pintaDec();
   op('ov-dec');
 }
 function pintaDec(){
-  document.getElementById('dec-btns').innerHTML=ACOES_DECISAO.map(a=>
-    `<button class="cq-escolha${decAcaoSel===a?' on':''}" onclick="decAcaoSel=${jsq(a)};pintaDec()">${esc(a)}</button>`).join('');
-  const nomes=QUEM_DECIDE[user]||[user];
-  const w=document.getElementById('dec-quem-wrap');
-  // A Cinthia usa o login da Taty — sem perguntar, a planilha nunca saberia
-  // qual das duas decidiu.
-  w.innerHTML=nomes.length<2?'':`<span class="sl">Quem está decidindo</span>
-    <div class="cq-btns">${nomes.map(n=>
-      `<button class="cq-escolha${decQuemSel===n?' on':''}" onclick="decQuemSel=${jsq(n)};pintaDec()">${esc(n)}</button>`).join('')}</div>`;
+  const c=cortes.find(x=>x.id===decId);
+  if(!c)return;
+  document.getElementById('dec-secoes').innerHTML=secoesDecisao(c).map(k=>{
+    const sec=ACOES_DEC[k];
+    const linhas=k==='int'?c.linhasInt:k==='ext'?c.linhasExt:k==='d100'?c.linhas100:null;
+    const cor=k==='int'?'var(--c1)':k==='ext'?'var(--c5)':'var(--c4)';
+    // A tabela das peças é o próprio cabeçalho da seção (já traz o título e a
+    // quantidade). Sem tabela — caso 'geral' — cai num título simples.
+    const topo=linhas?gradeLerHTML(linhas,sec.t,cor):`<span class="sl">${esc(sec.t)}</span>`;
+    // Texto livre: o oninput guarda direto em decSel, então um clique nos
+    // botões de outra seção (que redesenha tudo) não apaga o que foi digitado.
+    const corpo = sec.tipo==='texto'
+      ? `<div class="fg"><label class="fl">${esc(sec.lb)}</label>
+          <textarea class="fi" rows="2" placeholder="${esc(sec.ph)}"
+            oninput="decSel[${jsq(k)}]=this.value">${esc(decSel[k]||'')}</textarea></div>`
+      : `<div class="dec-btns">${sec.a.map(a=>
+          `<button class="cq-escolha${decSel[k]===a?' on':''}" onclick="escolheDec(${jsq(k)},${jsq(a)})">${esc(a)}</button>`
+        ).join('')}</div>`;
+    return `<div class="dec-sec">${topo}${corpo}</div>`;
+  }).join('');
+}
+function escolheDec(k,a){
+  decSel[k]=decSel[k]===a?'':a;   // clicar de novo desmarca
+  pintaDec();
 }
 async function salvarDecisao(){
   const c=cortes.find(x=>x.id===decId);
   if(!c){toast('Item nao encontrado — sincronize novamente','w');cl('ov-dec');return;}
-  if(!decAcaoSel){toast('Escolha o que fazer com o corte','w');return;}
+  const secs=secoesDecisao(c);
+  const falta=secs.filter(k=>!String(decSel[k]||'').trim());
+  if(falta.length){
+    toast('Falta preencher: '+falta.map(k=>ACOES_DEC[k].n||'o que fazer').join(', '),'w');return;}
+  const acoes={};secs.forEach(k=>{acoes[k]=String(decSel[k]).trim();});
   const obs=document.getElementById('dec-obs').value.trim();
-  const quem=decQuemSel+' · '+hojeBR();
+  const quem=(NOME_LOGIN[user]||user)+' · '+hojeBR();
   lastPushTime=Date.now();
-  c.decisao='DECIDIDO';c.decAcao=decAcaoSel;c.decObs=obs;c.decQuem=quem;
+  c.decisao='DECIDIDO';c.decAcao=acoesStr(acoes);c.decObs=obs;c.decQuem=quem;
   cl('ov-dec');
-  logActivity(`<strong>${esc(c.ref||c.id)}</strong> — decisão: ${esc(decAcaoSel)}`,'#8A3355');
-  await salvarCQ(c,[['DECISAO','DECIDIDO'],['DECISAO_ACAO',decAcaoSel],
+  logActivity(`<strong>${esc(c.ref||c.id)}</strong> — decisão registrada`,'#8A3355');
+  await salvarCQ(c,[['DECISAO','DECIDIDO'],['DECISAO_ACAO',c.decAcao],
     ['DECISAO_OBS',obs],['DECISAO_QUEM',quem]],'Decisão registrada');
 }
 
@@ -4242,7 +4313,7 @@ function cqResumoDetHTML(c){
     <div class="df"><span class="dk">CQ Martha</span><span class="dv">${c.cqM==='OK'?'✔ Tudo OK':c.cqM==='DEFEITO'?(marthaOkD(c)?'Defeito tratado ✔':'✖ Com defeito'):'Pendente'}</span></div>
     ${c.cqMMotivo?`<div class="df"><span class="dk">Observação (Martha)</span><span class="dv">${esc(c.cqMMotivo)}</span></div>`:''}
     ${gradeResumoHTML(c,false)}
-    ${c.decisao==='DECIDIDO'?`<div class="df"><span class="dk">Decisão</span><span class="dv">${esc(c.decAcao||'—')}${c.decQuem?' · '+esc(c.decQuem):''}</span></div>`:
+    ${c.decisao==='DECIDIDO'?`<div class="df"><span class="dk">Decisão</span><span class="dv">${acoesTxtHTML(c)}${c.decQuem?'<br>'+esc(c.decQuem):''}</span></div>`:
       aguardaDecisao(c)?`<div class="df"><span class="dk">Decisão</span><span class="dv">Aguardando a produção</span></div>`:''}
     ${c.consInt?`<div class="df"><span class="dk">Conserto interno</span><span class="dv">${esc(c.consInt)} — ${c.consIntOk==='sim'?'resolvido ✔':'pendente'}</span></div>`:''}
     ${c.consExt?`<div class="df"><span class="dk">Conserto externo</span><span class="dv">${esc(c.consExt)} — ${c.consExtOk==='sim'?'resolvido ✔':'pendente'}</span></div>`:''}
