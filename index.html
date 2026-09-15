@@ -2328,7 +2328,11 @@ function csi(s){return CSM[s]||{l:s,c:'var(--mt)',b:'var(--s2)'};}
 const FLUXO=[
   {s:'AGUARDANDO_ENCAIXE',  l:'Fila de encaixe',    quem:'Edvaldo', i:0},
   {s:'AGUARDANDO_APROVACAO',l:'Aprovar encaixe',    quem:'Taty',    i:1},
-  {s:'ENCAIXE_REPROVADO',   l:'Refazer encaixe',    quem:'Edvaldo', i:2},
+  // "Refazer encaixe" saiu do quadro em 15/09/2026 a pedido da Taty: nao existe
+  // mais reprovar encaixe dentro do app — se o encaixe esta ruim ela fala com o
+  // Edvaldo. Cortes antigos gravados como ENCAIXE_REPROVADO voltam para a
+  // "Fila de encaixe" (ver mapStatus). Para religar a etapa, devolva a linha:
+  // {s:'ENCAIXE_REPROVADO', l:'Refazer encaixe', quem:'Edvaldo', i:2},
   {s:'DEFINIR_CORES',       l:'Definir cores',      quem:'Taty',    i:3},
   {s:'DESCANSAR_TECIDO',    l:'Descansar e cortar', quem:'Rosana',  i:4},
 ];
@@ -2926,7 +2930,8 @@ function mapStatus(s){
     'AGUARDANDO_ENCAIXE':'AGUARDANDO_ENCAIXE','DEFINIR CORES':'DEFINIR_CORES',
     'DEFINIR_CORES':'DEFINIR_CORES','DESCANSAR TECIDO':'DESCANSAR_TECIDO',
     'DESCANSAR_TECIDO':'DESCANSAR_TECIDO','AGUARDANDO_APROVACAO':'AGUARDANDO_APROVACAO',
-    'ENCAIXE_REPROVADO':'ENCAIXE_REPROVADO','TECIDO_DESCANSADO':'TECIDO_DESCANSADO',
+    // Etapa desativada: corte antigo marcado como reprovado volta para a fila.
+    'ENCAIXE_REPROVADO':'AGUARDANDO_ENCAIXE','TECIDO_DESCANSADO':'TECIDO_DESCANSADO',
     'PRONTO PARA CORTAR':'TECIDO_DESCANSADO','NO_CORTE':'NO_CORTE',
     'CONTROLE_QUALIDADE':'CONTROLE_QUALIDADE',
     'AG_FOTO':'AG_FOTO','FOTO_OK':'FOTO_OK',
@@ -3372,7 +3377,7 @@ function renderCortesTaty(){
   const fx=faixaDecisao();
   document.getElementById('main-content').innerHTML=
    (fx?`<div style="padding:12px 14px 0">${fx}</div>`:'')+
-   `<div class="board5">${FLUXO.map(e=>{
+   `<div class="board5" style="grid-template-columns:repeat(${FLUXO.length},minmax(0,1fr))">${FLUXO.map(e=>{
       const l=g[e.s], atras=l.some(c=>tempoDecorrido(c).nivel>=2);
       return `<div class="col5" data-status="${esc(e.s)}">
         <div class="col5-hd" style="background:var(--h${e.i});color:var(--t${e.i})">
@@ -3482,8 +3487,7 @@ function cardTaty(c){
       <div class="d"><div class="dk">Aproveitamento</div><div class="dv fm">${esc(c.encPct)||'—'}%</div></div>
     </div>`:''}
     <div class="acts">
-      ${apr?`<button class="act ok" onclick="event.stopPropagation();aprovar(${jsq(c.id)})">✔ Aprovar</button>
-             <button class="act nao" title="Reprovar encaixe" onclick="event.stopPropagation();reprovar(${jsq(c.id)})">✕</button>`:''}
+      ${apr?`<button class="act ok" style="flex:1" onclick="event.stopPropagation();aprovar(${jsq(c.id)})">✔ Aprovar</button>`:''}
       ${cor?`<button class="act go" onclick="event.stopPropagation();openCores(${jsq(c.id)})">Definir cores</button>`:''}
       ${enc?`<button class="act go" onclick="event.stopPropagation();openEditar(${jsq(c.id)})">Preencher encaixe</button>`:''}
       ${(!apr&&!cor&&!enc)?`<button class="act sec" style="flex:1" onclick="event.stopPropagation();openDet(${jsq(c.id)})">Ver detalhes</button>`:''}
@@ -4569,13 +4573,11 @@ function cardEdvaldoInfo(c){
 }
 
 function cardEdvaldo(c){
-  const rep=c.status==='ENCAIXE_REPROVADO';
   const rolo=c.rolo||0;
   return`<div class="card-e" id="ce-${esc(c.id)}">
     <div style="display:flex;justify-content:space-between;margin-bottom:4px">
       <div>${c.ref?`<div class="cref">${esc(c.ref)}</div>`:''}<div class="cid">${esc(c.id)}</div></div>
       ${c.urg?'<span class="tag tur">⚡</span>':''}
-      ${rep?'<span style="background:var(--b4);color:var(--c4);font-size:.61rem;padding:2px 6px;border-radius:4px">Reprovado</span>':''}
     </div>
     <div class="cnome">${esc(c.nome)}</div>
     <div class="ctags">
@@ -4794,7 +4796,7 @@ function renderStats(){
     }
   }
   const sts=[
-    {s:'AGUARDANDO_ENCAIXE',l:'Ag. Encaixe'},{s:'ENCAIXE_REPROVADO',l:'Reprovado'},
+    {s:'AGUARDANDO_ENCAIXE',l:'Ag. Encaixe'},
     {s:'AGUARDANDO_APROVACAO',l:'Ag. Aprovação'},{s:'DEFINIR_CORES',l:'Definir Cores'},
     {s:'DESCANSAR_TECIDO',l:'Descansar'},{s:'TECIDO_DESCANSADO',l:'Descansado'},
     {s:'NO_CORTE',l:'Corte/Ofic.'},{s:'AG_FOTO',l:'Ag. Foto'},
@@ -5026,12 +5028,7 @@ async function aprovar(id){
   c.status='DEFINIR_CORES';feitosHoje++;sl();cl('ov-det');render();
   toast('Encaixe aprovado — agora as cores','s');await push(c._row,[['STATUS','DEFINIR_CORES']],c.id);
 }
-async function reprovar(id){
-  const c=cortes.find(x=>x.id===id);
-  if(!c){toast('Item nao encontrado — sincronize novamente','w');cl('ov-det');return;}
-  c.status='ENCAIXE_REPROVADO';sl();cl('ov-det');render();
-  toast('Reprovado — voltou para Edvaldo','w');await push(c._row,[['STATUS','ENCAIXE_REPROVADO']],c.id);
-}
+// reprovar() foi removida em 15/09/2026 junto com a coluna "Refazer encaixe".
 
 // DETALHE CORTE
 function openDet(id){
@@ -5041,7 +5038,7 @@ function openDet(id){
   // Ele aparecia como texto cru no meio da trilha de TODO corte, e quem estava
   // em AGUARDANDO_GI ficava com iStep=-1 (trilha toda cinza, como se a peca
   // nao tivesse comecado).
-  const steps=['AGUARDANDO_ENCAIXE','AGUARDANDO_APROVACAO','ENCAIXE_REPROVADO','DEFINIR_CORES','DESCANSAR_TECIDO','TECIDO_DESCANSADO','NO_CORTE','CONTROLE_QUALIDADE','AG_FOTO','AGUARDANDO_GI','EMBALAR','PRONTO_RETIRADA'];
+  const steps=['AGUARDANDO_ENCAIXE','AGUARDANDO_APROVACAO','DEFINIR_CORES','DESCANSAR_TECIDO','TECIDO_DESCANSADO','NO_CORTE','CONTROLE_QUALIDADE','AG_FOTO','AGUARDANDO_GI','EMBALAR','PRONTO_RETIRADA'];
   const iStep=steps.indexOf(c.status);
   document.getElementById('det-c').innerHTML=`
     <div class="mhd">
@@ -5089,8 +5086,7 @@ function openDet(id){
     ${user==='taty'?calcDetalhe(c):''}
     <div class="agroup">
       ${user==='taty'&&c.status==='AGUARDANDO_APROVACAO'?`
-        <button class="abtn" style="background:var(--b3);color:var(--c3)" onclick="aprovar(${jsq(c.id)})">✔ Aprovar encaixe</button>
-        <button class="abtn abtn-danger" onclick="reprovar(${jsq(c.id)})">✕ Reprovar encaixe</button>`:''}
+        <button class="abtn" style="background:var(--b3);color:var(--c3)" onclick="aprovar(${jsq(c.id)})">✔ Aprovar encaixe</button>`:''}
       ${user==='taty'&&c.status==='DEFINIR_CORES'?`<button class="abtn" style="background:var(--b6);color:var(--c6)" onclick="cl('ov-det');openCores(${jsq(c.id)})">Definir cores →</button>`:''}
       ${(user==='taty'||user==='daimartha')&&c.status==='NO_CORTE'?`
         <button class="abtn" style="background:var(--b3);color:var(--c3)" onclick="cl('ov-det');openChegada(${jsq(c.id)})">📦 Chegou da oficina — registrar</button>`:''}
