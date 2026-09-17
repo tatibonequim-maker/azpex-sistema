@@ -2651,7 +2651,7 @@ function initApp(){
     syncTimer=setInterval(()=>{
       // Com a aba em segundo plano nao ha ninguem olhando — nao gasta cota.
       if(cfg.url && !document.hidden) syncAll(true);
-    },30000);
+    },45000);
   }
   }catch(err){
     console.error('initApp error:',err);
@@ -2721,20 +2721,69 @@ function onSearchInput(){
 }
 
 // ── API ──
+// Timeout do lado do app. Sem AbortController um fetch podia ficar pendurado
+// para sempre e a sincronização seguinte encontrava a anterior ainda viva.
+const API_TIMEOUT=28000;
 async function apip(b){
   const GET_ACTIONS=['getCortes','getListas','getPedidos'];
-  let r;
-  if(GET_ACTIONS.includes(b.action)){
-    // GET requests for reading data
-    const params=new URLSearchParams({action:b.action}).toString();
-    r=await fetch('/api/proxy?'+params);
-  } else {
-    // POST requests for writing data
-    r=await fetch('/api/proxy',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(b)});
+  const ctrl=new AbortController();
+  const tmr=setTimeout(()=>ctrl.abort(),API_TIMEOUT);
+  try{
+    let r;
+    if(GET_ACTIONS.includes(b.action)){
+      // GET requests for reading data
+      const params=new URLSearchParams({action:b.action}).toString();
+      r=await fetch('/api/proxy?'+params,{signal:ctrl.signal});
+    } else {
+      // POST requests for writing data
+      r=await fetch('/api/proxy',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(b),signal:ctrl.signal});
+    }
+    const text=await r.text();
+    try{return JSON.parse(text);}
+    catch(e){
+      // O 504 da Vercel (FUNCTION_INVOCATION_TIMEOUT) e as páginas de erro do
+      // Apps Script chegam como HTML — não é JSON e não é culpa dos dados.
+      console.error('apip: resposta que não é JSON — HTTP',r.status,text.slice(0,200));
+      const err=new Error('Resposta inválida ('+r.status+')');err.lento=true;throw err;
+    }
+  }finally{clearTimeout(tmr);}
+}
+
+function esperar(ms){return new Promise(r=>setTimeout(r,ms));}
+
+// A planilha do Google às vezes passa de 30 segundos para responder e a função
+// da Vercel é cortada antes dela (504), ou o Apps Script devolve uma página de
+// erro (502 no proxy). Não é falta de internet nem erro de quem está usando:
+// basta esperar e pedir de novo. Com três tentativas espaçadas a produção nem
+// percebe — antes, a primeira falha já estampava "Erro ao sincronizar".
+async function apipRetry(b,tentativas,opcional){
+  const n=tentativas||3;
+  let ultimo=null;
+  for(let i=0;i<n;i++){
+    if(i)await esperar(i*2500);
+    try{
+      const r=await apip(b);
+      // {error:...} do proxy também é falha. Antes o app tratava como resposta
+      // boa: a sincronização abortava calada e os dados ficavam velhos.
+      if(r&&r.error){ultimo=new Error(String(r.error));continue;}
+      return r;
+    }catch(e){ultimo=e;}
   }
-  const text=await r.text();
-  try{return JSON.parse(text);}
-  catch(e){console.error('apip JSON parse error:',text.slice(0,200));throw new Error('Resposta inválida: '+text.slice(0,80));}
+  console.error('apipRetry desistiu de',b.action,'depois de',n,'tentativas:',ultimo);
+  if(opcional)return null;
+  throw ultimo||new Error('falha na sincronização');
+}
+
+// Gravação: repete só quando a resposta não chegou (timeout/página de erro).
+// Mantém a resposta da planilha quando ela chega, para o app continuar
+// distinguindo "recusou a gravação" de "não respondeu".
+async function apipPush(b){
+  let ultimo=null;
+  for(let i=0;i<2;i++){
+    if(i)await esperar(2500);
+    try{return await apip(b);}catch(e){ultimo=e;}
+  }
+  throw ultimo;
 }
 // Resolve a linha da planilha de um corte na hora do push. Um corte recém-criado
 // só ganha _row depois que o sync de confirmação volta; antes disso o push
@@ -2762,7 +2811,7 @@ async function push(row,campos,id){
     cs=[...campos,['DATA_STATUS',new Date().toISOString().slice(0,10)]];
   }
   try{
-    const resp=await apip({action:'atualizarCampos',row:r,campos:cs});
+    const resp=await apipPush({action:'atualizarCampos',row:r,campos:cs});
     // Antes, qualquer resposta que fosse JSON valido passava por sucesso —
     // inclusive um {error:...}. O app dizia "salvo" e o sync desfazia tudo.
     if(resp&&(resp.error||resp.ok===false)){
@@ -2776,7 +2825,8 @@ async function push(row,campos,id){
     return true;
   }catch(e){
     console.error('push error:',e);
-    toast('Não salvou — sem conexão. Tente novamente.','w');
+    toast(e&&e.lento?'A planilha não respondeu a tempo. Espere alguns segundos e tente de novo.'
+                    :'Não salvou — sem conexão. Tente novamente.','w');
     return false;
   }
 }
@@ -2797,18 +2847,48 @@ async function pushNew(dados){if(!cfg.url)return null;try{return await apip({act
 
 async function forceSync(){lastPushTime=0;try{await syncAll(true,true);}catch(e){console.error('forceSync:',e);}}
 
-async function syncAll(silent,force){
+// Quantas sincronizações seguidas falharam. O aviso na tela só aparece quando
+// falha de novo: uma leitura perdida é rotina (a planilha é lenta) e o tique
+// seguinte resolve sozinho — avisar na primeira só assustava a produção.
+let syncFalhas=0;
+let syncRodando=false;
+let listasTs=0;
+const LISTAS_TTL=30*60*1000;   // tecidos, grades e tinturarias quase nunca mudam
+const USA_PEDIDOS=['taty','carol','vendA','vendB','vendC','gerente'];
+
+async function syncAll(silent,force,reagendado){
   if(!cfg.url){if(!silent)toast('Configure o URL primeiro','w');return;}
   if(silent&&!force&&Date.now()-lastPushTime<8000)return;
+  // Uma sincronização por vez. Quando a planilha demora 20s o poller já tinha
+  // começado outra: duas leituras concorrentes deixam o Apps Script ainda mais
+  // lento e é assim que a fila vira "erro de sincronização" para todo mundo.
+  // A conferência que vem depois de uma gravação (force) não pode ser jogada
+  // fora: ela espera a vez uma vez, senão o card "pula de volta".
+  if(syncRodando){if(force&&!reagendado)setTimeout(()=>syncAll(silent,force,true),3500);return;}
+  syncRodando=true;
   if(!silent)toast('Sincronizando...','i');
   // Marca o instante do início. Se o usuário mexer em algo enquanto a resposta
   // está a caminho, descartamos a resposta em vez de sobrescrever a ação dele
   // (era isso que fazia o card "pular de volta" para a coluna anterior).
   const t0=Date.now();
   try{
-    const[c,l,p]=await Promise.all([apip({action:'getCortes'}),apip({action:'getListas'}),apip({action:'getPedidos'})]);
+    // EM SÉRIE, e não as três de uma vez. O Apps Script atende uma chamada por
+    // vez para o mesmo web app: pedir getCortes+getListas+getPedidos em
+    // paralelo só formava fila, cada uma esperava as outras e as três estouravam
+    // o limite de 30s da função da Vercel — 504 e "Erro ao sincronizar".
+    const c=await apipRetry({action:'getCortes'});
     if(silent&&lastPushTime>t0)return;
-    if(c&&c.error){console.error('getCortes:',c.error);if(!silent)toast('Erro do servidor de dados','w');return;}
+    if(c&&c.error){console.error('getCortes:',c.error);throw new Error('servidor de dados: '+c.error);}
+    // As listas são as mesmas o dia inteiro: buscar a cada 30s era desperdiçar
+    // um terço da cota da planilha. Agora, de meia em meia hora.
+    let l=null,p=null;
+    if(Date.now()-listasTs>LISTAS_TTL||!localStorage.getItem('az_listas')){
+      l=await apipRetry({action:'getListas'},2,true);
+      if(l&&l.tecidos)listasTs=Date.now();
+    }
+    // Pedidos só para quem trabalha com pedidos. O Edvaldo, a Rosana e a
+    // Martha & Dai carregavam essa aba a cada 30 segundos sem nunca abrir.
+    if(USA_PEDIDOS.includes(user))p=await apipRetry({action:'getPedidos'},2,true);
     if(Array.isArray(c)&&c.length>0){
       // A coluna DATA_STATUS e opcional. Se existir na planilha, o app passa a
       // medir o tempo DA ETAPA (que e o que o prazo cobra) em vez do tempo total
@@ -2879,9 +2959,20 @@ async function syncAll(silent,force){
       }));
     }
     if(l&&l.tecidos){localStorage.setItem('az_listas',JSON.stringify(l));populateSels();}
-    sl();render();if(!silent){toast('Sincronizado ✔','s');logActivity('Sincronização concluída com sucesso','#10B981');}
+    sl();render();
+    syncFalhas=0;
+    if(!silent){toast('Sincronizado ✔','s');logActivity('Sincronização concluída com sucesso','#10B981');}
         checarNovosNaFila();
-  }catch(e){console.error(e);if(!silent)toast('Erro ao sincronizar','w');}
+  }catch(e){
+    console.error('syncAll:',e);
+    syncFalhas++;
+    // O que já está na tela continua valendo: ninguém perde trabalho por uma
+    // leitura que não voltou. Aviso só no clique manual ou na terceira falha.
+    if(!silent&&syncFalhas<3)toast('A planilha demorou para responder. Vou tentar de novo.','w');
+    else if(syncFalhas>=3)toast('A planilha está lenta — os dados na tela podem estar atrasados. Continuo tentando.','w');
+  }finally{
+    syncRodando=false;
+  }
 }
 
 // O que tira a peça do quadro é a OP, não o descanso.
