@@ -2643,6 +2643,7 @@ function initApp(){
   if(checkTimer)clearInterval(checkTimer);
   checkTimer=setInterval(checarLembreteRosana,60000);
 
+  mostrarFila();
   if(cfg.url){
     setTimeout(syncAll,600);
     // Um poller so. Antes o setInterval era criado a cada login sem ninguem
@@ -2721,23 +2722,30 @@ function onSearchInput(){
 }
 
 // ── API ──
-// Timeout do lado do app. Sem AbortController um fetch podia ficar pendurado
-// para sempre e a sincronização seguinte encontrava a anterior ainda viva.
-const API_TIMEOUT=28000;
-async function apip(b){
-  const GET_ACTIONS=['getCortes','getListas','getPedidos'];
+/* 25/09/2026 — POR QUE O APP FALA DIRETO COM A PLANILHA
+   Medido nesse dia: a planilha (Apps Script) responde em ~2 segundos quando é
+   chamada direto. Pela Vercel (/api/proxy) a MESMA chamada levava de 5 a 30s e
+   muitas vezes voltava 502/504 — era dali que vinham o "erro de sincronização"
+   e o "não salvou". O caminho Vercel → Google é que é lento, não a planilha.
+   O Apps Script aceita chamada direta do navegador (CORS liberado), e o
+   endereço dele já estava neste arquivo (DURL), então nada muda em segurança.
+   Agora: tenta direto; se falhar, cai no /api/proxy como antes. */
+const API_TIMEOUT=28000;       // proxy da Vercel (a função dela morre em 30s)
+const DIRETO_TIMEOUT=20000;    // direto na planilha — normal é ~2s
+const GET_ACTIONS=['getCortes','getListas','getPedidos'];
+// Se a rede de algum aparelho bloquear o Google direto (3 falhas seguidas do
+// direto enquanto o proxy funciona), usa só o proxy por 5 minutos e tenta de
+// novo depois. Uma falha solta não desliga nada.
+let diretoOffAte=0, diretoFalhas=0;
+function urlDireta(){
+  const u=String(cfg.url||'').trim();
+  return /^https:\/\/script\.google\.com\/macros\/s\/[\w-]+\/exec$/.test(u)?u:null;
+}
+async function fetchJSON(url,opts,ms){
   const ctrl=new AbortController();
-  const tmr=setTimeout(()=>ctrl.abort(),API_TIMEOUT);
+  const tmr=setTimeout(()=>ctrl.abort(),ms);
   try{
-    let r;
-    if(GET_ACTIONS.includes(b.action)){
-      // GET requests for reading data
-      const params=new URLSearchParams({action:b.action}).toString();
-      r=await fetch('/api/proxy?'+params,{signal:ctrl.signal});
-    } else {
-      // POST requests for writing data
-      r=await fetch('/api/proxy',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(b),signal:ctrl.signal});
-    }
+    const r=await fetch(url,{...opts,signal:ctrl.signal});
     const text=await r.text();
     try{return JSON.parse(text);}
     catch(e){
@@ -2746,16 +2754,48 @@ async function apip(b){
       console.error('apip: resposta que não é JSON — HTTP',r.status,text.slice(0,200));
       const err=new Error('Resposta inválida ('+r.status+')');err.lento=true;throw err;
     }
+  }catch(e){
+    if(e&&e.name==='AbortError'){const err=new Error('tempo esgotado');err.lento=true;err.timeout=true;throw err;}
+    if(e&&!e.lento)e.rede=true;
+    throw e;
   }finally{clearTimeout(tmr);}
+}
+function apipDireto(b,u){
+  if(GET_ACTIONS.includes(b.action))
+    return fetchJSON(u+'?action='+encodeURIComponent(b.action)+'&_t='+Date.now(),{method:'GET',cache:'no-store'},DIRETO_TIMEOUT);
+  // text/plain de propósito: é o único tipo que o navegador manda sem a
+  // "pergunta prévia" (preflight) que o Google não sabe responder. O Apps
+  // Script lê o corpo do mesmo jeito (e.postData.contents).
+  return fetchJSON(u,{method:'POST',headers:{'Content-Type':'text/plain;charset=utf-8'},body:JSON.stringify(b),cache:'no-store'},DIRETO_TIMEOUT);
+}
+function apipProxy(b){
+  if(GET_ACTIONS.includes(b.action))
+    return fetchJSON('/api/proxy?'+new URLSearchParams({action:b.action}).toString(),{},API_TIMEOUT);
+  return fetchJSON('/api/proxy',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(b)},API_TIMEOUT);
+}
+async function apip(b){
+  const u=urlDireta();
+  if(u&&Date.now()>diretoOffAte){
+    try{const r=await apipDireto(b,u);diretoFalhas=0;return r;}
+    catch(e){
+      diretoFalhas++;
+      console.warn('apip: direto na planilha falhou ('+(e&&e.message)+') — tentando pelo servidor do app');
+      // Criar corte NÃO pode ser repetido: se o direto estourou o tempo, a
+      // planilha pode ter criado a linha mesmo assim. Quem chamou confere.
+      if(b.action==='adicionarPeca'&&e&&e.timeout)throw e;
+      const r=await apipProxy(b);
+      if(diretoFalhas>=3){diretoOffAte=Date.now()+5*60*1000;diretoFalhas=0;}
+      return r;
+    }
+  }
+  return apipProxy(b);
 }
 
 function esperar(ms){return new Promise(r=>setTimeout(r,ms));}
 
-// A planilha do Google às vezes passa de 30 segundos para responder e a função
-// da Vercel é cortada antes dela (504), ou o Apps Script devolve uma página de
-// erro (502 no proxy). Não é falta de internet nem erro de quem está usando:
-// basta esperar e pedir de novo. Com três tentativas espaçadas a produção nem
-// percebe — antes, a primeira falha já estampava "Erro ao sincronizar".
+// A planilha do Google às vezes demora ou devolve uma página de erro. Não é
+// falta de internet nem erro de quem está usando: basta esperar e pedir de
+// novo. Com três tentativas espaçadas a produção nem percebe.
 async function apipRetry(b,tentativas,opcional){
   const n=tentativas||3;
   let ultimo=null;
@@ -2763,8 +2803,7 @@ async function apipRetry(b,tentativas,opcional){
     if(i)await esperar(i*2500);
     try{
       const r=await apip(b);
-      // {error:...} do proxy também é falha. Antes o app tratava como resposta
-      // boa: a sincronização abortava calada e os dados ficavam velhos.
+      // {error:...} do proxy também é falha.
       if(r&&r.error){ultimo=new Error(String(r.error));continue;}
       return r;
     }catch(e){ultimo=e;}
@@ -2774,17 +2813,6 @@ async function apipRetry(b,tentativas,opcional){
   throw ultimo||new Error('falha na sincronização');
 }
 
-// Gravação: repete só quando a resposta não chegou (timeout/página de erro).
-// Mantém a resposta da planilha quando ela chega, para o app continuar
-// distinguindo "recusou a gravação" de "não respondeu".
-async function apipPush(b){
-  let ultimo=null;
-  for(let i=0;i<2;i++){
-    if(i)await esperar(2500);
-    try{return await apip(b);}catch(e){ultimo=e;}
-  }
-  throw ultimo;
-}
 // Resolve a linha da planilha de um corte na hora do push. Um corte recém-criado
 // só ganha _row depois que o sync de confirmação volta; antes disso o push
 // antigo simplesmente desistia em silêncio e a alteração era perdida.
@@ -2799,6 +2827,131 @@ async function resolveRow(id,row){
   return c&&c._row?c._row:null;
 }
 
+/* ── FILA DE GRAVAÇÕES (25/09/2026) ──
+   Antes: clicou, o card mudou na tela, a planilha não respondeu → aparecia um
+   aviso e a alteração ERA PERDIDA; 45s depois o sync trazia o valor antigo e o
+   card "voltava sozinho". Agora a alteração fica guardada neste aparelho (sobrevive
+   a recarregar a página) e o app regrava sozinho até a planilha aceitar.
+   Enquanto houver algo na fila, a leitura da planilha espera — senão ela
+   desfaria na tela o que ainda não foi gravado. */
+const FILA_KEY='az_fila_push';
+const FILA_VALIDADE=12*60*60*1000;   // mais velho que isso não é mais seguro regravar
+let filaPush=(()=>{try{const f=JSON.parse(localStorage.getItem(FILA_KEY)||'[]');return Array.isArray(f)?f:[];}catch(e){return [];}})();
+let filaRodando=false, filaTimer=null;
+function salvaFila(){try{localStorage.setItem(FILA_KEY,JSON.stringify(filaPush));}catch(e){}mostrarFila();}
+function rotuloCorte(id){
+  const c=cortes.find(x=>x.id===id);
+  return c?(c.ref?'ref '+c.ref:c.id)+(c.numCorte?' · OP '+c.numCorte:''):(id||'corte');
+}
+function enfileirar(row,id,campos,reenvio){
+  filaPush.push({row,id,campos,ts:Date.now(),reenvio:!!reenvio});
+  salvaFila();
+  agendarFila(8000);
+}
+function agendarFila(ms){
+  clearTimeout(filaTimer);
+  filaTimer=setTimeout(async()=>{await esvaziarFila();if(!filaPush.length&&cfg.url)syncAll(true,true);},ms);
+}
+async function esvaziarFila(){
+  if(filaRodando||!filaPush.length||!cfg.url)return;
+  filaRodando=true;
+  try{
+    const velhos=filaPush.filter(it=>Date.now()-it.ts>FILA_VALIDADE);
+    if(velhos.length){
+      filaPush=filaPush.filter(it=>!velhos.includes(it));
+      toast(velhos.length+' alteração(ões) antiga(s) não chegaram à planilha e foram descartadas. Confira: '+velhos.map(v=>rotuloCorte(v.id)).join(', '),'w');
+    }
+    while(filaPush.length){
+      const it=filaPush[0];
+      let resp;
+      try{resp=await apip({action:'atualizarCampos',row:it.row,campos:it.campos});}
+      catch(e){it.tent=(it.tent||0)+1;break;}   // continua sem resposta: tenta no próximo tique
+      filaPush.shift();
+      if(resp&&(resp.error||resp.ok===false)){
+        console.error('planilha recusou (fila):',resp,it);
+        toast('A planilha recusou uma alteração de '+rotuloCorte(it.id)+': '+String(resp.error||'').slice(0,60),'w');
+        continue;
+      }
+      lastPushTime=Date.now();
+      registrarConferencia(it.row,it.id,it.campos,it.reenvio);
+    }
+  }finally{
+    filaRodando=false;
+    salvaFila();
+    if(filaPush.length)agendarFila(20000);
+  }
+}
+// Aviso fixo no canto enquanto houver algo esperando: quem clicou precisa saber
+// que ainda não está na planilha (e não fechar achando que perdeu).
+function mostrarFila(){
+  let el=document.getElementById('fila-push');
+  const n=filaPush.length;
+  if(!n){if(el)el.remove();return;}
+  if(!el){
+    el=document.createElement('button');el.id='fila-push';el.type='button';
+    el.style.cssText='position:fixed;left:12px;bottom:12px;z-index:9999;border:0;border-radius:99px;padding:9px 14px;'+
+      'background:#92400E;color:#fff;font:600 13px/1.2 inherit;box-shadow:0 4px 14px rgba(0,0,0,.25);cursor:pointer;max-width:calc(100vw - 24px)';
+    el.onclick=async()=>{el.textContent='⏳ Gravando…';await esvaziarFila();if(!filaPush.length){toast('✔ Tudo gravado na planilha','s');syncAll(true,true);}else toast('A planilha ainda não respondeu. Continuo tentando sozinho.','w');};
+    document.body.appendChild(el);
+  }
+  el.textContent='⏳ '+(n===1?'1 alteração':n+' alterações')+' esperando a planilha · tocar para tentar agora';
+}
+window.addEventListener('online',()=>{diretoOffAte=0;agendarFila(1000);});
+
+/* ── CONFERÊNCIA DEPOIS DE GRAVAR ──
+   A planilha às vezes responde {ok:true} SEM ter gravado tudo (ex.: o Apps
+   Script recusa um STATUS que não conhece e larga o resto). Na leitura
+   seguinte o app compara o que mandou com o que está lá. Se não bateu, regrava
+   uma vez sozinho; se de novo não bater, avisa na tela qual campo. */
+let confPend=[];
+function registrarConferencia(row,id,campos,reenvio){
+  confPend.push({row,id,campos,ts:Date.now(),reenvio:!!reenvio});
+}
+function mesmoValor(a,b){
+  const x=String(a==null?'':a).trim(), y=String(b==null?'':b).trim();
+  if(x===y||x.toLowerCase()===y.toLowerCase())return true;
+  const nx=Number(x.replace(',','.')), ny=Number(y.replace(',','.'));
+  if(x!==''&&y!==''&&!isNaN(nx)&&!isNaN(ny)&&Math.abs(nx-ny)<1e-6)return true;
+  // Datas: a planilha transforma "25/09/2026" em data e devolve em outro
+  // formato. Não dá para comparar sem errar fuso — aceita.
+  if(/^\d{4}-\d{2}-\d{2}T\d{2}:/.test(x))return true;
+  return false;
+}
+function conferirGravacoes(raw,t0){
+  if(!confPend.length||!Array.isArray(raw))return;
+  const resto=[];
+  for(const it of confPend){
+    if(it.ts>t0){resto.push(it);continue;}          // leitura começou antes da gravação
+    if(Date.now()-it.ts>10*60*1000)continue;
+    const r=raw.find(x=>Number(x._row)===Number(it.row));
+    if(!r)continue;
+    // A linha agora é de outro corte? Não mexe em nada.
+    if(it.id&&!String(it.id).startsWith('linha-')&&str(r.ID)&&str(r.ID)!==it.id)continue;
+    const tem=k=>Object.prototype.hasOwnProperty.call(r,k);
+    const semCol=it.campos.filter(([k])=>!tem(k)).map(x=>x[0]);
+    const errados=it.campos.filter(([k,v])=>tem(k)&&!mesmoValor(r[k],v));
+    if(semCol.length)
+      toast('⚠ A planilha não tem a coluna '+semCol.join(', ')+' — isso não foi gravado ('+rotuloCorte(it.id)+').','w');
+    if(!errados.length)continue;
+    if(!it.reenvio){
+      console.warn('conferência: não gravou, regravando',rotuloCorte(it.id),errados,'planilha tem:',errados.map(([k])=>r[k]));
+      enfileirar(it.row,it.id,ordenaCampos(errados),true);
+      agendarFila(1500);
+    }else{
+      console.error('conferência: planilha recusou de novo',rotuloCorte(it.id),errados,r);
+      toast('⚠ A planilha não aceitou '+errados.map(x=>x[0]).join(', ')+' em '+rotuloCorte(it.id)+'. Tente de novo ou avise a Taty.','w');
+    }
+  }
+  confPend=resto;
+}
+// STATUS vai sempre por ÚLTIMO. O Apps Script para de gravar quando recebe um
+// status que não conhece — tudo o que vinha depois dele se perdia calado.
+function ordenaCampos(campos){
+  return [...campos.filter(x=>x&&x[0]!=='STATUS'),...campos.filter(x=>x&&x[0]==='STATUS')];
+}
+
+// Devolve true (gravou), 'fila' (guardado, vai gravar sozinho) ou false
+// (a planilha recusou / corte ainda sem linha).
 async function push(row,campos,id){
   if(!cfg.url)return false;
   const r=await resolveRow(id,row);
@@ -2810,36 +2963,43 @@ async function push(row,campos,id){
   if(hasDataStatusCol && campos.some(x=>x&&x[0]==='STATUS') && !campos.some(x=>x&&x[0]==='DATA_STATUS')){
     cs=[...campos,['DATA_STATUS',new Date().toISOString().slice(0,10)]];
   }
+  cs=ordenaCampos(cs);
+  // Já tem coisa desta linha esperando? Entra atrás, para não gravar fora de ordem.
+  if(filaPush.some(it=>Number(it.row)===Number(r))){
+    enfileirar(r,id,cs);agendarFila(500);return 'fila';
+  }
+  let resp;
   try{
-    const resp=await apipPush({action:'atualizarCampos',row:r,campos:cs});
-    // Antes, qualquer resposta que fosse JSON valido passava por sucesso —
-    // inclusive um {error:...}. O app dizia "salvo" e o sync desfazia tudo.
-    if(resp&&(resp.error||resp.ok===false)){
-      console.error('planilha recusou:',resp);
-      toast('A planilha recusou a gravação: '+String(resp.error||'').slice(0,60),'w');
-      return false;
-    }
-    // force=true: sem isso o próprio limitador de 8s cancelava esta confirmação
-    // (ela era agendada para 3s depois do push) e a gravação nunca era conferida.
-    setTimeout(()=>{if(cfg.url)syncAll(true,true);},3000);
-    return true;
+    resp=await apip({action:'atualizarCampos',row:r,campos:cs});
   }catch(e){
     console.error('push error:',e);
-    toast(e&&e.lento?'A planilha não respondeu a tempo. Espere alguns segundos e tente de novo.'
-                    :'Não salvou — sem conexão. Tente novamente.','w');
+    enfileirar(r,id,cs);
+    toast('A planilha não respondeu agora — a alteração ficou guardada e será gravada sozinha.','w');
+    return 'fila';
+  }
+  // Antes, qualquer resposta que fosse JSON valido passava por sucesso —
+  // inclusive um {error:...}. O app dizia "salvo" e o sync desfazia tudo.
+  if(resp&&(resp.error||resp.ok===false)){
+    console.error('planilha recusou:',resp);
+    toast('A planilha recusou a gravação: '+String(resp.error||'').slice(0,60),'w');
     return false;
   }
+  lastPushTime=Date.now();
+  registrarConferencia(r,id,cs);
+  // force=true: sem isso o próprio limitador de 8s cancelava esta confirmação.
+  setTimeout(()=>{if(cfg.url)syncAll(true,true);},3000);
+  return true;
 }
 async function push2(row,campos){
   if(!cfg.url||!row){toast('Ainda sincronizando este pedido. Tente de novo.','w');return false;}
   lastPushTime=Date.now();
   try{
-    await apip({action:'atualizarPedido',row,campos});
+    const resp=await apipRetry({action:'atualizarPedido',row,campos},2);
     setTimeout(()=>{if(cfg.url)syncAll(true,true);},1500);
-    return true;
+    return !!resp;
   }catch(e){
     console.error('push2 error:',e);
-    toast('Não salvou — sem conexão. Tente novamente.','w');
+    toast('Não salvou — a planilha não respondeu. Tente novamente.','w');
     return false;
   }
 }
@@ -2867,6 +3027,16 @@ async function syncAll(silent,force,reagendado){
   if(syncRodando){if(force&&!reagendado)setTimeout(()=>syncAll(silent,force,true),3500);return;}
   syncRodando=true;
   if(!silent)toast('Sincronizando...','i');
+  // Primeiro grava o que está esperando na fila. Se ainda sobrar algo, NÃO lê:
+  // a leitura traria o valor velho e desfaria na tela o que a pessoa fez.
+  if(filaPush.length){
+    await esvaziarFila();
+    if(filaPush.length){
+      syncRodando=false;syncFalhas++;
+      if(!silent)toast('A planilha ainda não respondeu. Suas alterações estão guardadas.','w');
+      return;
+    }
+  }
   // Marca o instante do início. Se o usuário mexer em algo enquanto a resposta
   // está a caminho, descartamos a resposta em vez de sobrescrever a ação dele
   // (era isso que fazia o card "pular de volta" para a coluna anterior).
@@ -2879,6 +3049,7 @@ async function syncAll(silent,force,reagendado){
     const c=await apipRetry({action:'getCortes'});
     if(silent&&lastPushTime>t0)return;
     if(c&&c.error){console.error('getCortes:',c.error);throw new Error('servidor de dados: '+c.error);}
+    conferirGravacoes(c,t0);
     // As listas são as mesmas o dia inteiro: buscar a cada 30s era desperdiçar
     // um terço da cota da planilha. Agora, de meia em meia hora.
     let l=null,p=null;
@@ -3247,7 +3418,7 @@ function render(){
   const ops=guardaOPs();
   atualizarCabecalho();
   if(section==='dashboard'){renderDashboard();devolveOPs(ops);return;}
-  if(section==='cortes')renderCortes();
+  if(section==='cortes'){renderCortes();resultadosForaDaTela();}
   else renderPedidos();
   avisarPlanilhaQuebrada();
   devolveOPs(ops);
@@ -3259,9 +3430,8 @@ function getVisCortes(){
   // telas — e o histórico continua alimentando o preenchimento automático.
   let list=cortes.filter(vendo==='espera'?emEspera:vendo==='historico'?noHistorico:noQuadro);
   const q=(document.getElementById('srch')?.value||'').toLowerCase();
-  // A busca não pegava o número do corte — e é justamente pela OP que a Martha
-  // e a Dai procuram um corte no meio de 70 cards.
-  if(q)list=list.filter(c=>(c.id+c.nome+(c.tec||'')+(c.ref||'')+(c.numCorte||'')).toLowerCase().includes(q));
+  // A busca pega ID, referência, nº da OP, nome, tecido e fornecedor.
+  if(q)list=list.filter(c=>bateBusca(c,q));
   if(statusFilter)list=list.filter(c=>c.status===statusFilter);
   if(tipoFilter)list=list.filter(c=>(c.tipo||'reposicao')===tipoFilter);
   if(filtro==='minha'){
@@ -3274,6 +3444,69 @@ function getVisCortes(){
   if(filtro==='semcor')list=list.filter(c=>c.status==='DEFINIR_CORES');
   if(filtro==='semtecido')list=list.filter(c=>!c.tec);
   return list;
+}
+
+/* ── BUSCA (25/09/2026) ──
+   Aceita "415", "OP 415", "op-415", "4747", "ID-4747", "ref 2964", "calca"
+   (sem acento). Compara também sem espaços/traços, para "C0046" achar "C-0046". */
+function normBusca(v){
+  return String(v==null?'':v).normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase().trim();
+}
+function termosBusca(q){
+  let t=normBusca(q).replace(/^(op|o\.p\.?|ref|referencia|id)\s*[:#nº°.-]*\s*(?=\S)/,'');
+  return {t, compacto:t.replace(/[^a-z0-9]/g,'')};
+}
+function bateBusca(c,q){
+  const {t,compacto}=termosBusca(q);
+  if(!t)return true;
+  const campos=[c.id,c.ref,c.numCorte,c.nome,c.tec,c.tin].map(normBusca);
+  if(campos.some(x=>x.includes(t)))return true;
+  // "4747" acha "ID-4747"; "c0046" acha "C-0046" — só nos códigos.
+  if(compacto.length>=2)return [c.id,c.ref,c.numCorte].some(x=>normBusca(x).replace(/[^a-z0-9]/g,'').includes(compacto));
+  return false;
+}
+// Onde o corte está agora, em palavras — para o resultado da busca.
+function ondeEsta(c){
+  if(c.espera)return 'Em espera';
+  if(c.status==='NO_CORTE')return 'Na oficina';
+  if(c.status==='CONTROLE_QUALIDADE')return aguardaDecisao(c)?'Qualidade · falta decidir':'Controle de qualidade';
+  if(c.status==='ARQUIVADO')return 'Histórico · arquivado';
+  return csi(c.status).l;
+}
+/* A busca olhava só a tela aberta. Para a Taty, um corte com OP já saiu do
+   quadro (foi para a oficina / histórico) — então buscar pela OP nunca achava
+   nada. Agora, o que bate com a busca mas está em OUTRA tela aparece numa
+   faixa em cima, com o lugar onde está e o botão para abrir. */
+function resultadosForaDaTela(){
+  const q=document.getElementById('srch')?.value||'';
+  if(!termosBusca(q).t)return;
+  const main=document.getElementById('main-content'); if(!main)return;
+  const naTela=new Set(getVisCortes().map(c=>c.id));
+  const fora=cortes.filter(c=>!naTela.has(c.id)&&bateBusca(c,q))
+    .sort((a,b)=>(b._row||0)-(a._row||0));
+  const d=document.createElement('div');
+  d.className='busca-fora';
+  d.style.cssText='margin:12px 14px 0;padding:10px 12px;border-radius:12px;background:var(--s2);border:1px solid var(--bd)';
+  if(!fora.length){
+    if(naTela.size)return;
+    d.innerHTML=`<div style="font-size:.85rem;color:var(--mt)">Nenhum corte encontrado para “${esc(q)}” — procurei por ID, referência, OP, nome, tecido e fornecedor em todas as etapas.</div>`;
+    main.prepend(d);return;
+  }
+  const MAX=12;
+  d.innerHTML=`<div style="font-size:.78rem;font-weight:700;color:var(--mt);margin-bottom:6px;text-transform:uppercase;letter-spacing:.03em">
+      ${naTela.size?'Também encontrado em outras etapas':'Encontrado em outras etapas'} · ${fora.length}</div>
+    <div style="display:flex;flex-direction:column;gap:6px;max-height:40vh;overflow:auto">
+    ${fora.slice(0,MAX).map(c=>`
+      <button type="button" onclick="openDet(${jsq(c.id)})" style="display:flex;flex-wrap:wrap;align-items:center;gap:6px 10px;text-align:left;width:100%;padding:8px 10px;border-radius:9px;border:1px solid var(--bd);background:var(--sf);color:var(--tx);cursor:pointer;font:inherit">
+        <span class="fm" style="font-weight:700">${esc(c.id)}</span>
+        ${c.ref?`<span class="fm" style="color:var(--mt)">ref ${esc(c.ref)}</span>`:''}
+        ${c.numCorte?`<span class="fm" style="padding:2px 8px;border-radius:20px;background:var(--b3);color:var(--c3);font-weight:700">OP ${esc(c.numCorte)}</span>`:''}
+        <span style="flex:1 1 140px;min-width:0">${esc(c.nome)}</span>
+        <span style="font-size:.78rem;padding:2px 8px;border-radius:20px;background:var(--s2);border:1px solid var(--bd)">${esc(ondeEsta(c))}</span>
+      </button>`).join('')}
+    ${fora.length>MAX?`<div style="font-size:.8rem;color:var(--mt)">…e mais ${fora.length-MAX}. Digite mais do número para afinar.</div>`:''}
+    </div>`;
+  main.prepend(d);
 }
 
 function getColsCortes(){
@@ -3436,7 +3669,7 @@ function barraTopo(){
   const admin=user==='taty'||user==='carol';
   const nE=cortes.filter(emEspera).length, nH=cortes.filter(noHistorico).length;
   tb.innerHTML=`
-    <input class="srch" id="srch" placeholder="Buscar código, peça, tecido..." oninput="onSearchInput()" value="${esc(val)}">
+    <input class="srch" id="srch" placeholder="Buscar ID, ref, OP, peça, tecido..." oninput="onSearchInput()" value="${esc(val)}">
     <button class="fb${filtro==='urgente'?' on':''}" onclick="setF('urgente',this)">⚡ Urgentes${
       nUrg?` <span class="fb-n">${nUrg}</span>`:''}</button>
     <button class="fb${filtro==='atrasado'?' on':''}" onclick="setF('atrasado',this)">⏱ Atrasados${
@@ -3546,6 +3779,7 @@ function cardTopo(c,mostraRet){
   return `<div class="c-l1">
       <span class="c-id">${esc(c.id)}</span>
       ${c.ref?`<span class="c-ref">ref ${esc(c.ref)}</span>`:''}
+      ${c.numCorte?`<span class="c-ref fm" style="background:var(--b3);color:var(--c3);padding:1px 7px;border-radius:20px;font-weight:700">OP ${esc(c.numCorte)}</span>`:''}
       ${c.urg?'<span class="tag turg">⚡ urgente</span>':''}
     </div>
     <div class="cnome">${esc(c.nome)}</div>
@@ -5206,15 +5440,10 @@ async function marcarImpresso(id){
   sl();render();
   if(!cfg.url){toast('Configure o URL da planilha para salvar','w');return;}
   if(!c._row){toast('Erro: item sem referência na planilha','w');return;}
-  toast('Salvando...','i');
-  try{
-    await apip({action:'atualizarCampos',row:c._row,campos:[['IMPRESSO',c.impresso]]});
-    toast(c.impresso==='sim'?'✔ Impresso registrado na planilha':'Desmarcado na planilha','s');
-    setTimeout(()=>{if(cfg.url)syncAll(true,true);},3000);
-  }catch(e){
-    toast('Erro ao salvar na planilha — verifique conexão','w');
-    console.error('marcarImpresso error:',e);
-    c.impresso=c.impresso==='sim'?'nao':'sim'; // desfaz o otimismo
+  const ok=await push(c._row,[['IMPRESSO',c.impresso]],c.id);
+  if(ok===true)toast(c.impresso==='sim'?'✔ Impresso registrado na planilha':'Desmarcado na planilha','s');
+  else if(ok===false){
+    c.impresso=c.impresso==='sim'?'nao':'sim'; // a planilha recusou: desfaz o otimismo
     sl();render();
   }
 }
