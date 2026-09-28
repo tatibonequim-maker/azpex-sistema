@@ -3418,7 +3418,7 @@ function render(){
   const ops=guardaOPs();
   atualizarCabecalho();
   if(section==='dashboard'){renderDashboard();devolveOPs(ops);return;}
-  if(section==='cortes'){renderCortes();resultadosForaDaTela();}
+  if(section==='cortes')renderCortes();
   else renderPedidos();
   avisarPlanilhaQuebrada();
   devolveOPs(ops);
@@ -3465,50 +3465,6 @@ function bateBusca(c,q){
   if(compacto.length>=2)return [c.id,c.ref,c.numCorte].some(x=>normBusca(x).replace(/[^a-z0-9]/g,'').includes(compacto));
   return false;
 }
-// Onde o corte está agora, em palavras — para o resultado da busca.
-function ondeEsta(c){
-  if(c.espera)return 'Em espera';
-  if(c.status==='NO_CORTE')return 'Na oficina';
-  if(c.status==='CONTROLE_QUALIDADE')return aguardaDecisao(c)?'Qualidade · falta decidir':'Controle de qualidade';
-  if(c.status==='ARQUIVADO')return 'Histórico · arquivado';
-  return csi(c.status).l;
-}
-/* A busca olhava só a tela aberta. Para a Taty, um corte com OP já saiu do
-   quadro (foi para a oficina / histórico) — então buscar pela OP nunca achava
-   nada. Agora, o que bate com a busca mas está em OUTRA tela aparece numa
-   faixa em cima, com o lugar onde está e o botão para abrir. */
-function resultadosForaDaTela(){
-  const q=document.getElementById('srch')?.value||'';
-  if(!termosBusca(q).t)return;
-  const main=document.getElementById('main-content'); if(!main)return;
-  const naTela=new Set(getVisCortes().map(c=>c.id));
-  const fora=cortes.filter(c=>!naTela.has(c.id)&&bateBusca(c,q))
-    .sort((a,b)=>(b._row||0)-(a._row||0));
-  const d=document.createElement('div');
-  d.className='busca-fora';
-  d.style.cssText='margin:12px 14px 0;padding:10px 12px;border-radius:12px;background:var(--s2);border:1px solid var(--bd)';
-  if(!fora.length){
-    if(naTela.size)return;
-    d.innerHTML=`<div style="font-size:.85rem;color:var(--mt)">Nenhum corte encontrado para “${esc(q)}” — procurei por ID, referência, OP, nome, tecido e fornecedor em todas as etapas.</div>`;
-    main.prepend(d);return;
-  }
-  const MAX=12;
-  d.innerHTML=`<div style="font-size:.78rem;font-weight:700;color:var(--mt);margin-bottom:6px;text-transform:uppercase;letter-spacing:.03em">
-      ${naTela.size?'Também encontrado em outras etapas':'Encontrado em outras etapas'} · ${fora.length}</div>
-    <div style="display:flex;flex-direction:column;gap:6px;max-height:40vh;overflow:auto">
-    ${fora.slice(0,MAX).map(c=>`
-      <button type="button" onclick="openDet(${jsq(c.id)})" style="display:flex;flex-wrap:wrap;align-items:center;gap:6px 10px;text-align:left;width:100%;padding:8px 10px;border-radius:9px;border:1px solid var(--bd);background:var(--sf);color:var(--tx);cursor:pointer;font:inherit">
-        <span class="fm" style="font-weight:700">${esc(c.id)}</span>
-        ${c.ref?`<span class="fm" style="color:var(--mt)">ref ${esc(c.ref)}</span>`:''}
-        ${c.numCorte?`<span class="fm" style="padding:2px 8px;border-radius:20px;background:var(--b3);color:var(--c3);font-weight:700">OP ${esc(c.numCorte)}</span>`:''}
-        <span style="flex:1 1 140px;min-width:0">${esc(c.nome)}</span>
-        <span style="font-size:.78rem;padding:2px 8px;border-radius:20px;background:var(--s2);border:1px solid var(--bd)">${esc(ondeEsta(c))}</span>
-      </button>`).join('')}
-    ${fora.length>MAX?`<div style="font-size:.8rem;color:var(--mt)">…e mais ${fora.length-MAX}. Digite mais do número para afinar.</div>`:''}
-    </div>`;
-  main.prepend(d);
-}
-
 function getColsCortes(){
   return FLUXO.map(e=>({s:e.s,l:e.l,quem:e.quem,i:e.i}));
 }
@@ -3667,7 +3623,15 @@ function barraTopo(){
   const nAtr=cortes.filter(c=>noQuadro(c)&&tempoDecorrido(c).nivel>=2).length;
   tb.style.flexWrap='wrap';
   const admin=user==='taty'||user==='carol';
-  const nE=cortes.filter(emEspera).length, nH=cortes.filter(noHistorico).length;
+  // Com algo digitado na busca, cada aba mostra QUANTOS cortes daquela aba batem
+  // com a busca (e fica destacada) — assim a Taty sabe onde clicar quando o
+  // corte da OP já saiu do quadro. Sem busca, volta a ser o total da aba.
+  const qB=termosBusca(val).t?val:'';
+  const bate=c=>!qB||bateBusca(c,qB);
+  const nQ=cortes.filter(c=>noQuadro(c)&&bate(c)).length;
+  const nE=cortes.filter(c=>emEspera(c)&&bate(c)).length, nH=cortes.filter(c=>noHistorico(c)&&bate(c)).length;
+  const achou=(v,n)=>qB&&n&&vendo!==v?' style="border-color:var(--ac);box-shadow:0 0 0 2px var(--ac)"':'';
+  const cQ=qB?` <span class="fb-c">${nQ}</span>`:'';
   tb.innerHTML=`
     <input class="srch" id="srch" placeholder="Buscar ID, ref, OP, peça, tecido..." oninput="onSearchInput()" value="${esc(val)}">
     <button class="fb${filtro==='urgente'?' on':''}" onclick="setF('urgente',this)">⚡ Urgentes${
@@ -3676,12 +3640,12 @@ function barraTopo(){
       nAtr?` <span class="fb-n">${nAtr}</span>`:''}</button>
     ${filtro!=='todos'?`<button class="fb" onclick="setF('todos',this)">Limpar</button>`:''}
     ${admin?`<span class="tb-sep"></span>
-      <button class="fb vb${vendo==='quadro'?' on':''}" data-v="quadro" onclick="verQuadro('quadro')">Quadro</button>
-      <button class="fb vb${vendo==='espera'?' on':''}" data-v="espera" onclick="verQuadro('espera')">Em espera <span class="fb-c">${nE}</span></button>
-      <button class="fb vb${vendo==='historico'?' on':''}" data-v="historico" onclick="verQuadro('historico')">Histórico <span class="fb-c">${nH}</span></button>`
+      <button class="fb vb${vendo==='quadro'?' on':''}" data-v="quadro" onclick="verQuadro('quadro')"${achou('quadro',nQ)}>Quadro${cQ}</button>
+      <button class="fb vb${vendo==='espera'?' on':''}" data-v="espera" onclick="verQuadro('espera')"${achou('espera',nE)}>Em espera <span class="fb-c">${nE}</span></button>
+      <button class="fb vb${vendo==='historico'?' on':''}" data-v="historico" onclick="verQuadro('historico')"${achou('historico',nH)}>Histórico <span class="fb-c">${nH}</span></button>`
     :user==='daimartha'?`<span class="tb-sep"></span>
-      <button class="fb vb${vendo==='quadro'?' on':''}" data-v="quadro" onclick="verQuadro('quadro')">Fila</button>
-      <button class="fb vb${vendo==='historico'?' on':''}" data-v="historico" onclick="verQuadro('historico')">Histórico <span class="fb-c">${nH}</span></button>`:''}`;
+      <button class="fb vb${vendo==='quadro'?' on':''}" data-v="quadro" onclick="verQuadro('quadro')"${achou('quadro',nQ)}>Fila${cQ}</button>
+      <button class="fb vb${vendo==='historico'?' on':''}" data-v="historico" onclick="verQuadro('historico')"${achou('historico',nH)}>Histórico <span class="fb-c">${nH}</span></button>`:''}`;
   if(foco){const n=document.getElementById('srch');if(n){n.focus();n.setSelectionRange(a,b);}}
 }
 
