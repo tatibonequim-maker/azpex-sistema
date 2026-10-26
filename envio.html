@@ -63,7 +63,31 @@ h2{font-size:13px;font-weight:600;color:var(--mt);text-transform:uppercase;lette
 .st-TRANSFERIR{background:var(--inb);color:var(--in)}
 .st-RECEBER{background:var(--rsb);color:var(--rs)}
 .st-DIVERGENCIA{background:var(--alb);color:var(--al)}
+.st-CORRIGIDO{background:var(--rsb);color:var(--rs)}
 .st-CONCLUIDO{background:var(--okb);color:var(--ok)}
+
+/* número da transferência */
+.tnum{margin:14px 0 6px;padding:14px 16px;border-radius:var(--r);background:var(--inw);border:2px solid var(--in);color:var(--in)}
+.tnum span{display:block;font-size:12px;font-weight:600;text-transform:uppercase;letter-spacing:.05em}
+.tnum b{display:block;font-family:var(--mono);font-size:30px;line-height:1.15;color:var(--tx);letter-spacing:.03em;word-break:break-all}
+.tnum.vazio-n b{font-size:16px;font-family:inherit;color:var(--al)}
+.tcard{display:inline-block;margin-top:6px;padding:3px 9px;border-radius:8px;background:var(--inb);color:var(--in);font-size:13px;font-weight:600}
+.tcard b{font-family:var(--mono);font-size:15px;color:var(--tx)}
+.campo.forte span{font-size:15px;color:var(--tx)}
+.campo.forte input{height:60px;font-family:var(--mono);font-size:26px;font-weight:600;border-width:2px;border-color:var(--in)}
+/* correção da Dai */
+.corr{display:flex;align-items:center;gap:10px;padding:8px 10px;margin:0 -8px 4px;border-radius:10px}
+.corr .tm{width:46px;font-family:var(--mono);font-weight:600;font-size:18px}
+.corr .tx{flex:1;font-size:14px;color:var(--mt)}
+.corr .de{font-family:var(--mono);font-size:18px;white-space:nowrap}
+.corr .de s{color:var(--mts)}
+.corr .de b{font-size:22px;color:var(--tx)}
+.corr.dif{background:var(--alw);border:2px solid var(--al)}
+.corr.dif .tx{color:var(--al);font-weight:600}
+.corr.add{background:var(--inw);border:2px solid var(--in)}
+.corr.add .tx{color:var(--in);font-weight:600}
+.corr.okl{opacity:.55}
+.tag-x{display:inline-block;font-size:11px;font-weight:700;padding:2px 7px;border-radius:6px;background:var(--inb);color:var(--in);margin-left:6px;vertical-align:middle}
 
 /* linha do tempo */
 .trilha{display:flex;gap:4px;margin:14px 0 4px}
@@ -141,6 +165,8 @@ h2{font-size:13px;font-weight:600;color:var(--mt);text-transform:uppercase;lette
 .aviso.ok{background:var(--okw);border-color:var(--okb);color:var(--ok)}
 .rm{width:36px;height:36px;border-radius:10px;color:var(--al);font-size:20px}
 .mini{font-size:13px;color:var(--mt)}
+.chk{display:flex;align-items:center;gap:10px;font-size:15px;margin:4px 0 10px;cursor:pointer}
+.chk input{-webkit-appearance:checkbox;appearance:auto;flex:none;width:22px;height:22px;margin:0;accent-color:var(--ok)}
 .hist{font-size:13px;color:var(--mt);line-height:1.7}
 
 /* faltas */
@@ -201,10 +227,11 @@ const ETAPA = {
   TRANSFERIR:{l:'Transferir', quem:'Dai'},
   RECEBER:{l:'Na loja p/ conferir', quem:'Gi'},
   DIVERGENCIA:{l:'Diferença', quem:'Dai'},
+  CORRIGIDO:{l:'Gi confere correção', quem:'Gi'},
   CONCLUIDO:{l:'Concluído', quem:''},
 };
 const ORDEM = ['RASCUNHO','SEPARAR','TRANSFERIR','RECEBER','CONCLUIDO'];
-const MINHAS = { ana:['SEPARAR'], dai:['TRANSFERIR','DIVERGENCIA'], gi:['RECEBER'] };
+const MINHAS = { ana:['SEPARAR'], dai:['TRANSFERIR','DIVERGENCIA'], gi:['RECEBER','CORRIGIDO'] };
 
 // ── utilidades ──
 const $ = (s) => document.querySelector(s);
@@ -216,6 +243,7 @@ const ls = {
 };
 function dataCurta(ms){ const d=new Date(ms); return String(d.getDate()).padStart(2,'0')+'/'+String(d.getMonth()+1).padStart(2,'0'); }
 function hora(ms){ const d=new Date(ms); return dataCurta(ms)+' '+String(d.getHours()).padStart(2,'0')+':'+String(d.getMinutes()).padStart(2,'0'); }
+function progresso(msg){ let t=document.getElementById('prog'); if(!msg){ if(t) t.remove(); return; } if(!t){ t=document.createElement('div'); t.id='prog'; t.className='toast'; document.body.appendChild(t); } t.textContent=msg; }
 function toast(msg){ const t=document.createElement('div'); t.className='toast'; t.textContent=msg; document.body.appendChild(t); setTimeout(()=>t.remove(),2600); }
 function chip(st){ return '<span class="chip st-'+st+'">'+esc(ETAPA[st]?.l||st)+'</span>'; }
 function plural(n,s,p){ return n+' '+(n===1?s:p); }
@@ -290,6 +318,7 @@ function lerTexto(txt){
     if(!limpo) return;
     let m;
     if(/^ENVIO\b/i.test(limpo) && !/^\d/.test(limpo)){ if(!titulo) titulo = limpo.replace(/\s+[–-]\s+\d+\s*pe[cç]as.*$/i,''); return; }
+    if(/^\d{1,5}\s*pe[cç]as\b/i.test(limpo) || /^=+$/.test(limpo)) return; // linha de total ("507 peças em 42 códigos") ou separador
     if((m = limpo.match(reSolta))){ add(m[1], '', m[2].toUpperCase().replace(/\s*[:–-]\s*$/,''), m[3].toUpperCase(), Number(m[4])); cod=m[1]; desc=''; cor=m[2].toUpperCase(); return; }
     if((m = limpo.match(/^(\d{6,8})\b\s*(.*)$/)) && !/:\s*\d+\s*$/.test(limpo)){ cod=m[1]; desc=m[2].replace(/\s+[–-]\s+\d+\s*pe[cç]as.*$/i,'').toUpperCase(); cor=null; return; }
     if((m = limpo.match(reTam))){
@@ -352,7 +381,7 @@ function cartao(e){
   if(e.sep!=null) linhas.push('separou '+e.sep+' pç'+(e.faltas?' · '+plural(e.faltas,'falta','faltas'):''));
   if(e.rec!=null) linhas.push('loja recebeu '+e.rec+' pç'+(e.div?' · '+plural(e.div,'diferença','diferenças'):''));
   return '<button class="ecard" onclick="location.hash=\'#/e/'+e.id+'\'"><div class="l1"><span class="t">'+esc(e.titulo)+'</span>'+chip(e.status)+'</div>'+
-    '<div class="l2">'+linhas.map(esc).join('<br>')+'</div><div class="l3">criado '+hora(e.criado)+(ETAPA[e.status].quem?' · agora com '+ETAPA[e.status].quem:'')+'</div></button>';
+    '<div class="l2">'+linhas.map(esc).join('<br>')+'</div>'+(e.transf?'<div class="tcard">Transferência Nº <b>'+esc(e.transf)+'</b></div>':'')+'<div class="l3">criado '+hora(e.criado)+(ETAPA[e.status].quem?' · agora com '+ETAPA[e.status].quem:'')+'</div></button>';
 }
 function telaInicio(){
   const L=ESTADO.lista;
@@ -388,7 +417,11 @@ function telaNovo(){
   if(R.erros.length) h+='<div class="aviso erro">'+R.erros.slice(0,8).map(esc).join('<br>')+(R.erros.length>8?'<br>e mais '+(R.erros.length-8):'')+'</div>';
   if(R.itens.length){
     const tot=R.itens.reduce((s,i)=>s+i.ped,0);
-    h+='<label class="campo"><span>Nome do envio</span><input id="titulo" value="'+esc(R.titulo||('ENVIO DO DIA '+hoje()))+'" oninput="ESTADO.rascunho.titulo=this.value"></label>';
+    if(R.porCodigo==null) R.porCodigo=true;
+    const ncod=new Set(R.itens.filter(i=>i.ped>0).map(i=>i.cod)).size;
+    h+='<label class="campo"><span>Nome do envio</span><input id="titulo" value="'+esc(baseTitulo(R.titulo))+'" oninput="ESTADO.rascunho.titulo=this.value"></label>';
+    h+='<label class="chk"><input type="checkbox" '+(R.porCodigo?'checked':'')+' onchange="ESTADO.rascunho.porCodigo=this.checked;pintar()"> Separar um envio por código'+(R.porCodigo?' ('+plural(ncod,'envio','envios')+')':'')+'</label>';
+    if(R.porCodigo) h+='<div class="mini" style="margin:-4px 0 10px">Cada código vira um envio com o nome "'+esc(baseTitulo(R.titulo))+' - NOME DA PEÇA CÓDIGO".</div>';
     h+='<h2>Conferir: '+plural(R.itens.length,'linha','linhas')+' · '+tot+' peças</h2>';
     h+=blocosEdicao(R.itens,'r');
     h+='</div><div class="bar"><div class="wrap"><button class="btn sec" onclick="salvarNovo(false)">Salvar rascunho</button><button class="btn ok" style="flex:1" onclick="salvarNovo(true)">Aprovar e mandar</button></div></div>';
@@ -425,13 +458,49 @@ function addLinha(){
   R.texto=$('#txt').value; pintar();
   setTimeout(()=>{ const t=$('#a-tam'); if(t){ $('#a-cod').value=cod; $('#a-cor').value=cor; t.focus(); } },0);
 }
+// "ENVIO DO DIA 26/10: PARTE 1, REPOSIÇÃO" vira "ENVIO DO DIA 26/10"
+function baseTitulo(t){
+  t=String(t||'').trim();
+  if(!t) return 'ENVIO DO DIA '+hoje();
+  const m=t.match(/^(ENVIO\s+DO\s+DIA\s+\d{1,2}\/\d{1,2}(?:\/\d{2,4})?)/i);
+  return m ? m[1].toUpperCase() : t;
+}
+let salvando=false;
 async function salvarNovo(aprovar){
+  if(salvando) return;
   const R=ESTADO.rascunho; const t=$('#titulo'); if(t) R.titulo=t.value;
   const itens=R.itens.filter(i=>i.ped>0);
   if(!itens.length){ toast('Lista vazia'); return; }
-  if(aprovar && !await modal('Mandar pra Ana?', esc(plural(itens.length,'linha','linhas'))+', '+itens.reduce((s,i)=>s+i.ped,0)+' peças. A lista aparece no celular dela na hora.','Mandar','Voltar')) return;
-  try { const j=await api('criar',{titulo:R.titulo||('ENVIO DO DIA '+hoje()),itens,aprovar}); ESTADO.rascunho=null; ESTADO.lista=null; toast(aprovar?'Enviado pra Ana':'Rascunho salvo'); location.hash='#/e/'+j.envio.id; }
-  catch(e){ toast(e.message); }
+  const base=baseTitulo(R.titulo); const pecas=itens.reduce((s,i)=>s+i.ped,0);
+  // agrupa por código, na ordem em que apareceram no texto
+  const grupos=[]; const gm=new Map();
+  itens.forEach(i=>{ if(!gm.has(i.cod)){ const g={cod:i.cod,desc:'',itens:[]}; gm.set(i.cod,g); grupos.push(g); } const g=gm.get(i.cod); if(!g.desc&&i.desc) g.desc=i.desc; g.itens.push(i); });
+  const separar=R.porCodigo!==false; // mesmo com 1 código só, o nome leva peça e código
+  if(aprovar && !await modal('Mandar pra Ana?', (separar?esc(plural(grupos.length,'envio','envios'))+' (um por código), ':esc(plural(itens.length,'linha','linhas'))+', ')+pecas+' peças. A lista aparece no celular dela na hora.','Mandar','Voltar')) return;
+  if(!separar){
+    try { const j=await api('criar',{titulo:base,itens,aprovar}); ESTADO.rascunho=null; ESTADO.lista=null; toast(aprovar?'Enviado pra Ana':'Rascunho salvo'); location.hash='#/e/'+j.envio.id; }
+    catch(e){ toast(e.message); }
+    return;
+  }
+  // um envio por código. Cria do último pro primeiro: a lista mostra o mais novo em cima,
+  // então o primeiro código do texto fica no topo da tela da Ana.
+  salvando=true; let feitos=0;
+  try {
+    for(let k=grupos.length-1;k>=0;k--){
+      const g=grupos[k];
+      progresso('Salvando '+(grupos.length-k)+' de '+grupos.length+'...');
+      await api('criar',{titulo:base+' - '+(g.desc?g.desc+' ':'')+g.cod,itens:g.itens,aprovar});
+      feitos++;
+      R.itens=R.itens.filter(i=>i.cod!==g.cod); // se cair no meio, o que falta continua na tela
+    }
+    ESTADO.rascunho=null; ESTADO.lista=null;
+    toast(plural(feitos,'envio','envios')+(aprovar?' mandados pra Ana':' salvos como rascunho'));
+    location.hash='';
+  } catch(e){
+    ESTADO.lista=null;
+    toast((feitos?plural(feitos,'envio salvo','envios salvos')+'. ':'')+'Parou: '+e.message+'. O que falta ficou na tela, toque de novo.');
+    pintar();
+  } finally { salvando=false; progresso(null); }
 }
 
 // ── DETALHE DO ENVIO ──
@@ -450,7 +519,7 @@ function agrupar(itens){
   return [...m.values()].map(c=>({...c,cores:[...c.cores.values()]}));
 }
 function trilha(st){
-  const i=st==='DIVERGENCIA'?3:ORDEM.indexOf(st);
+  const i=(st==='DIVERGENCIA'||st==='CORRIGIDO')?3:ORDEM.indexOf(st);
   return '<div class="trilha">'+ORDEM.slice(0,4).map((s,k)=>'<div class="'+(k<i||st==='CONCLUIDO'?'f':(k===i?'a':''))+'"></div>').join('')+'</div>'+
     '<div class="trilha-l"><span>Taty</span><span>Ana</span><span>Dai</span><span>Gi</span></div>';
 }
@@ -463,6 +532,7 @@ function telaEnvio(id){
   if(st==='RECEBER' && (u==='gi')) return telaReceber(E);
   if(st==='TRANSFERIR' && (u==='dai')) return telaTransferir(E);
   if(st==='DIVERGENCIA' && (u==='dai')) return telaDivergencia(E);
+  if(st==='CORRIGIDO' && (u==='gi')) return telaConfCorrecao(E);
   if(st==='RASCUNHO' && u==='taty') return telaRascunho(E);
   return telaResumo(E);
 }
@@ -500,9 +570,9 @@ function atualizaLinha(it,campo){
   if(campo==='sep'){ el.className='lin '+estadoSep(it); el.querySelector('small').textContent=rotSep(it); el.querySelector('input').value=it.sep==null?'':it.sep; }
   else { el.className='lin '+estadoRec(it); el.querySelector('small').textContent=rotRec(it); el.querySelector('input').value=it.rec==null?'':it.rec; }
   const E=ESTADO.envio; const bar=document.querySelector('.bar .pr'); const fp=document.getElementById('fpend');
-  if(fp) fp.textContent=campo==='sep'?'Falta separar ('+E.itens.filter(i=>i.sep==null).length+')':'Falta conferir ('+E.itens.filter(i=>(i.sep||0)>0&&i.rec==null).length+')';
+  if(fp) fp.textContent=campo==='sep'?'Falta separar ('+E.itens.filter(i=>i.sep==null).length+')':'Falta conferir ('+visRec(E).filter(i=>i.rec==null).length+')';
   if(bar && campo==='sep'){ const pend=E.itens.filter(i=>i.sep==null).length; bar.innerHTML='<b>'+(E.itens.length-pend)+' de '+E.itens.length+' linhas</b>'+E.itens.reduce((s,i)=>s+(i.sep||0),0)+' de '+E.itens.reduce((s,i)=>s+i.ped,0)+' peças'; }
-  if(bar && campo==='rec'){ const vis=E.itens.filter(i=>(i.sep||0)>0); const pend=vis.filter(i=>i.rec==null).length; bar.innerHTML='<b>'+(vis.length-pend)+' de '+vis.length+' conferidas</b>'+vis.reduce((s,i)=>s+(i.rec||0),0)+' de '+vis.reduce((s,i)=>s+i.sep,0)+' peças'; }
+  if(bar && campo==='rec'){ const vis=visRec(E); const pend=vis.filter(i=>i.rec==null).length; bar.innerHTML='<b>'+(vis.length-pend)+' de '+vis.length+' conferidas</b>'+vis.reduce((s,i)=>s+(i.rec||0),0)+' de '+vis.reduce((s,i)=>s+(i.sep||0),0)+' peças'; }
 }
 async function fimSep(){
   const E=ESTADO.envio; const pend=E.itens.filter(i=>i.sep==null).length;
@@ -516,6 +586,10 @@ async function fimSep(){
 }
 
 // Dai
+function bannerTransf(E, texto){
+  return E.notaTransf ? '<div class="tnum"><span>'+esc(texto||'Transferência')+' Nº</span><b>'+esc(E.notaTransf)+'</b></div>'
+    : '<div class="tnum vazio-n"><span>'+esc(texto||'Transferência')+'</span><b>sem número</b></div>';
+}
 function telaTransferir(E){
   const vai=E.itens.filter(i=>(i.sep||0)>0); const tot=vai.reduce((s,i)=>s+i.sep,0);
   const feitos=ls.get('envio_tr_'+E.id)||{};
@@ -523,51 +597,67 @@ function telaTransferir(E){
   h+='<p class="mini" style="margin:14px 0">Faça a transferência no Miré com estas quantidades (o que a Ana separou de verdade). Toque em <b>lancei</b> pra ir marcando.</p>';
   h+=agrupar(vai).map(c=>'<div class="cod '+(feitos[c.cod]?'feito':'')+'"><div class="cod-h"><button class="marca" onclick="marcaCod(\''+E.id+'\',\''+esc(c.cod)+'\')">'+(feitos[c.cod]?'✓ lancei':'lancei')+'</button><div class="c">'+esc(c.cod)+'</div>'+(c.desc?'<div class="d">'+esc(c.desc)+'</div>':'')+'</div>'+
     c.cores.map(co=>'<div class="cmp"><div class="n">'+esc(co.cor)+'</div><div class="q">'+co.itens.map(it=>'<span>'+esc(it.tam)+': <b>'+it.sep+'</b></span>').join('')+'</div></div>').join('')+'</div>').join('');
-  h+='<label class="campo"><span>Nº da transferência no Miré (se tiver)</span><input id="nota" inputmode="numeric" value="'+esc(E.notaTransf||'')+'"></label>';
+  h+='<label class="campo forte"><span>Nº da transferência no Miré (obrigatório)</span><input id="nota" inputmode="numeric" autocomplete="off" value="'+esc(ESTADO.nTransf!=null?ESTADO.nTransf:(E.notaTransf||''))+'" oninput="ESTADO.nTransf=this.value"></label>';
+  h+='<p class="mini">A Gi vai usar esse número pra achar a transferência na loja.</p>';
   h+='</div><div class="bar"><div class="wrap"><div class="pr"><b>'+tot+' peças</b>'+plural(agrupar(vai).length,'código','códigos')+'</div><button class="btn" onclick="fimTransf()">Transferência feita</button></div></div>';
   return h;
 }
 function marcaCod(id,cod){ const k='envio_tr_'+id; const f=ls.get(k)||{}; f[cod]=!f[cod]; ls.set(k,f); pintar(); }
 async function fimTransf(){
-  const E=ESTADO.envio;
-  if(!await modal('Transferência feita?','A Gi vai conferir na loja o que chegou.','Sim, feita','Voltar')) return;
-  try { await api('transferido',{id:E.id,nota:($('#nota')||{}).value||''}); toast('Pronto! Foi pra Gi.'); ESTADO.lista=null; location.hash=''; } catch(e){ toast(e.message); }
+  const E=ESTADO.envio; const n=(($('#nota')||{}).value||'').trim();
+  if(!n){ toast('Digite o número da transferência'); const el=$('#nota'); if(el) el.focus(); return; }
+  if(!await modal('Transferência Nº '+esc(n)+'?','Confira se o número está certo. A Gi vai conferir na loja com esse número.','Sim, feita','Voltar')) return;
+  try { await api('transferido',{id:E.id,nota:n}); ESTADO.nTransf=null; toast('Pronto! Foi pra Gi.'); ESTADO.lista=null; location.hash=''; } catch(e){ toast(e.message); }
+}
+// linhas da transferência com o que precisa mudar destacado
+function linhasCorrecao(E){
+  const linhas=E.itens.filter(i=>(i.sep||0)>0||i.extra||(i.rec||0)>0);
+  return agrupar(linhas).map(c=>'<div class="cod"><div class="cod-h"><div class="c">'+esc(c.cod)+'</div>'+(c.desc?'<div class="d">'+esc(c.desc)+'</div>':'')+'</div>'+
+    c.cores.map(co=>'<div class="cor"><div class="cor-n">'+esc(co.cor)+'</div>'+co.itens.map(it=>{
+      const t=it.sep||0, r=it.rec==null?t:it.rec;
+      if(it.extra||(t===0&&r>0)) return '<div class="corr add"><div class="tm">'+esc(it.tam)+'</div><div class="tx">não estava na transferência: ADICIONAR</div><div class="de"><b>'+r+'</b></div></div>';
+      if(r!==t) return '<div class="corr dif"><div class="tm">'+esc(it.tam)+'</div><div class="tx">'+(r===0?'não chegou: TIRAR':'corrigir')+'</div><div class="de"><s>'+t+'</s> → <b>'+r+'</b></div></div>';
+      return '<div class="corr okl"><div class="tm">'+esc(it.tam)+'</div><div class="tx">certo</div><div class="de">'+t+'</div></div>';
+    }).join('')+'</div>').join('')+'</div>').join('');
 }
 function telaDivergencia(E){
   const d=E.itens.filter(i=>i.rec!=null&&i.rec!==(i.sep||0));
   let h=topo(E.titulo,true)+'<div class="wrap">';
-  h+='<div class="aviso erro" style="margin-top:14px">A Gi conferiu e '+plural(d.length,'linha veio diferente','linhas vieram diferentes')+' da transferência. Corrija a transferência no Miré pra ficar igual ao que chegou.</div>';
-  h+=agrupar(d).map(c=>'<div class="cod"><div class="cod-h"><div class="c">'+esc(c.cod)+'</div>'+(c.desc?'<div class="d">'+esc(c.desc)+'</div>':'')+'</div>'+
-    c.cores.map(co=>'<div class="cor"><div class="cor-n">'+esc(co.cor)+'</div>'+co.itens.map(it=>{
-      const df=it.rec-(it.sep||0);
-      return '<div class="lin s-menos"><div class="tm">'+esc(it.tam)+'</div><div class="pd">transferido <b>'+(it.sep||0)+'</b> · chegou <b>'+it.rec+'</b><small>'+(df<0?'chegou '+(-df)+' a menos':'chegou '+df+' a mais')+'</small></div></div>';
-    }).join('')+'</div>').join('')+'</div>').join('');
+  h+=bannerTransf(E,'Editar a transferência');
+  if(E.notaGi) h+='<div class="aviso erro"><b>A Gi conferiu de novo e disse:</b> '+esc(E.notaGi)+'</div>';
+  h+='<div class="aviso erro">A Gi conferiu e '+plural(d.length,'linha veio diferente','linhas vieram diferentes')+'. Edite essa transferência no Miré pra ficar igual ao que chegou. O que precisa mudar está destacado.</div>';
+  h+=linhasCorrecao(E);
   h+='<label class="campo"><span>Observação (opcional)</span><input id="nota" value=""></label>';
-  h+='</div><div class="bar"><div class="wrap"><div class="pr"><b>'+plural(d.length,'diferença','diferenças')+'</b></div><button class="btn" onclick="fimCorrecao()">Corrigi a transferência</button></div></div>';
+  h+='</div><div class="bar"><div class="wrap"><div class="pr"><b>'+plural(d.length,'correção','correções')+'</b>'+(E.notaTransf?'transf. '+esc(E.notaTransf):'')+'</div><button class="btn" onclick="fimCorrecao()">Corrigi a transferência</button></div></div>';
   return h;
 }
 async function fimCorrecao(){
   const E=ESTADO.envio;
-  if(!await modal('Corrigiu no Miré?','O envio fecha e as diferenças ficam registradas pra Taty.','Sim, corrigi','Voltar')) return;
-  try { await api('corrigido',{id:E.id,nota:($('#nota')||{}).value||''}); toast('Envio fechado.'); ESTADO.lista=null; location.hash=''; } catch(e){ toast(e.message); }
+  if(!await modal('Corrigiu no Miré?','A Gi vai conferir se a correção entrou. Depois o envio fecha.','Sim, corrigi','Voltar')) return;
+  try { await api('corrigido',{id:E.id,nota:($('#nota')||{}).value||''}); toast('Foi pra Gi conferir.'); ESTADO.lista=null; location.hash=''; } catch(e){ toast(e.message); }
 }
 
 // Gi
-function estadoRec(it){ if(it.rec==null) return ''; return it.rec===it.sep?'s-ok':(it.rec<it.sep?'s-menos':'s-mais'); }
-function rotRec(it){ if(it.rec==null) return ''; if(it.rec===it.sep) return 'certo'; return it.rec<it.sep?'chegou '+(it.sep-it.rec)+' a menos':'chegou '+(it.rec-it.sep)+' a mais'; }
+function visRec(E){ return E.itens.filter(i=>(i.sep||0)>0||i.extra); }
+function estadoRec(it){ if(it.rec==null) return ''; const t=it.sep||0; return it.rec===t?'s-ok':(it.rec<t?'s-menos':'s-mais'); }
+function rotRec(it){ if(it.rec==null) return ''; if(it.extra) return 'não estava na transferência'; const t=it.sep||0; if(it.rec===t) return 'certo'; return it.rec<t?'chegou '+(t-it.rec)+' a menos':'chegou '+(it.rec-t)+' a mais'; }
 function telaReceber(E){
-  const vis=E.itens.filter(i=>(i.sep||0)>0); const pend=vis.filter(i=>i.rec==null).length;
+  const vis=visRec(E); const pend=vis.filter(i=>i.rec==null).length;
   let itens=vis; if(ESTADO.filtro==='pend') itens=itens.filter(i=>i.rec==null);
   let h=topo(E.titulo,true,'<span class="save" id="salvo"></span>')+'<div class="wrap">';
+  h+=bannerTransf(E);
   h+='<div class="filtro"><button class="tab '+(ESTADO.filtro==='todos'?'on':'')+'" onclick="filtro(\'todos\')">Tudo ('+vis.length+')</button><button class="tab '+(ESTADO.filtro==='pend'?'on':'')+'" onclick="filtro(\'pend\')" id="fpend">Falta conferir ('+pend+')</button></div>';
-  h+='<p class="mini" style="margin-bottom:12px">Confira cada linha. <b>✓</b> = chegou certo. Se veio diferente, digite quanto chegou.</p>';
+  h+='<p class="mini" style="margin-bottom:12px">Confira cada linha. <b>✓</b> = chegou certo. Se veio diferente, digite quanto chegou de verdade.</p>';
   if(!itens.length) h+='<div class="vazio"><b>Tudo conferido</b>Aperte "Terminei".</div>';
   h+=agrupar(itens).map(c=>'<div class="cod"><div class="cod-h"><div class="c">'+esc(c.cod)+'</div>'+(c.desc?'<div class="d">'+esc(c.desc)+'</div>':'')+'</div>'+
     c.cores.map(co=>'<div class="cor"><div class="cor-n">'+esc(co.cor)+'</div>'+co.itens.map(it=>
-      '<div class="lin '+estadoRec(it)+'" id="l-'+it.id+'"><div class="tm">'+esc(it.tam)+'</div><div class="pd">veio <b>'+it.sep+'</b><small>'+rotRec(it)+'</small></div>'+
-      '<input inputmode="numeric" pattern="[0-9]*" aria-label="Recebido '+esc(it.cod+' '+it.cor+' '+it.tam)+'" value="'+(it.rec==null?'':it.rec)+'" onchange="digRec(\''+it.id+'\',this.value)">'+
-      '<button class="qb ok" aria-label="Chegou certo" onclick="digRec(\''+it.id+'\','+it.sep+',true)">✓</button></div>').join('')+'</div>').join('')+'</div>').join('');
-  h+='</div><div class="bar"><div class="wrap"><div class="pr"><b>'+(vis.length-pend)+' de '+vis.length+' conferidas</b>'+vis.reduce((s,i)=>s+(i.rec||0),0)+' de '+vis.reduce((s,i)=>s+i.sep,0)+' peças</div><button class="btn" onclick="fimRec()">Terminei</button></div></div>';
+      '<div class="lin '+estadoRec(it)+'" id="l-'+it.id+'"><div class="tm">'+esc(it.tam)+'</div><div class="pd">'+(it.extra?'<span class="tag-x">A MAIS</span>':'transferido <b>'+(it.sep||0)+'</b>')+'<small>'+rotRec(it)+'</small></div>'+
+      '<input inputmode="numeric" pattern="[0-9]*" aria-label="Chegou '+esc(it.cod+' '+it.cor+' '+it.tam)+'" value="'+(it.rec==null?'':it.rec)+'" onchange="digRec(\''+it.id+'\',this.value)">'+
+      (it.extra?'<button class="qb no" aria-label="Tirar linha" onclick="tiraExtra(\''+it.id+'\')">×</button>':'<button class="qb ok" aria-label="Chegou certo" onclick="digRec(\''+it.id+'\','+(it.sep||0)+',true)">✓</button>')+'</div>').join('')+'</div>').join('')+'</div>').join('');
+  const codPadrao=new Set(E.itens.map(i=>i.cod)).size===1?E.itens[0].cod:'';
+  h+='<h2>Veio algo que não está na lista?</h2><p class="mini" style="margin-bottom:8px">Código, cor ou tamanho a mais: coloque aqui. A Dai vai acrescentar na transferência.</p>';
+  h+='<div class="add"><div><label>Código</label><input id="x-cod" inputmode="numeric" autocomplete="off" value="'+esc(codPadrao)+'"></div><div><label>Cor</label><input id="x-cor" autocomplete="off"></div><div><label>Tam</label><input id="x-tam" autocomplete="off"></div><div><label>Qtd</label><input id="x-q" inputmode="numeric" autocomplete="off"></div><button class="qb" onclick="addExtra()" aria-label="Adicionar">+</button></div>';
+  h+='</div><div class="bar"><div class="wrap"><div class="pr"><b>'+(vis.length-pend)+' de '+vis.length+' conferidas</b>'+vis.reduce((s,i)=>s+(i.rec||0),0)+' de '+vis.reduce((s,i)=>s+(i.sep||0),0)+' peças</div><button class="btn" onclick="fimRec()">Terminei</button></div></div>';
   return h;
 }
 function digRec(itemId,v,botao){
@@ -578,15 +668,44 @@ function digRec(itemId,v,botao){
   if(ESTADO.filtro==='pend' && botao){ pintar(); return; }
   atualizaLinha(it,'rec');
 }
+async function addExtra(){
+  const E=ESTADO.envio;
+  const cod=$('#x-cod').value.trim().toUpperCase(), cor=$('#x-cor').value.trim().toUpperCase(), tam=$('#x-tam').value.trim().toUpperCase(), q=Math.round(Number($('#x-q').value));
+  if(!cod||!cor||!tam||!(q>0)){ toast('Preencha código, cor, tamanho e quantidade'); return; }
+  const ja=E.itens.find(i=>i.cod===cod&&i.cor===cor&&i.tam===tam&&!i.extra&&(i.sep||0)>0);
+  if(ja){ digRec(ja.id,q); toast('Essa linha já estava na lista: atualizei pra '+q); return; }
+  if(!await esperarFila()){ toast('Sem internet. Tente de novo.'); return; }
+  try { await api('extra',{id:E.id,cod,cor,tam,q}); toast('Adicionado'); await carregarEnvio(E.id); } catch(e){ toast(e.message); }
+}
+async function tiraExtra(itemId){
+  if(!await modal('Tirar essa linha?','Ela foi adicionada como "a mais".','Tirar','Voltar',true)) return;
+  if(!await esperarFila()){ toast('Sem internet. Tente de novo.'); return; }
+  try { await api('extraRem',{id:ESTADO.envio.id,item:itemId}); await carregarEnvio(ESTADO.envio.id); } catch(e){ toast(e.message); }
+}
 async function fimRec(){
-  const E=ESTADO.envio; const vis=E.itens.filter(i=>(i.sep||0)>0);
+  const E=ESTADO.envio; const vis=visRec(E);
   const pend=vis.filter(i=>i.rec==null).length;
   if(pend){ await modal('Falta conferir', 'Ainda tem '+plural(pend,'linha','linhas')+' sem conferir. Use o filtro "Falta conferir" pra achar.','Ok'); return; }
-  const d=vis.filter(i=>i.rec!==i.sep).length;
-  const txt=d?'<b>'+plural(d,'linha veio diferente','linhas vieram diferentes')+'.</b> A Dai vai corrigir a transferência.':'Tudo chegou certo. O envio fecha.';
+  const d=vis.filter(i=>i.rec!==(i.sep||0)).length;
+  const txt=d?'<b>'+plural(d,'linha veio diferente','linhas vieram diferentes')+'.</b> A Dai vai corrigir a transferência'+(E.notaTransf?' Nº '+esc(E.notaTransf):'')+'.':'Tudo chegou certo. O envio fecha.';
   if(!await modal('Terminou a conferência?',txt,'Terminei','Voltar')) return;
   if(!await esperarFila()){ toast('Sem internet. Espere salvar e tente de novo.'); return; }
   try { await api('fimRecebimento',{id:E.id}); toast(d?'Foi pra Dai corrigir.':'Envio concluído!'); ESTADO.lista=null; location.hash=''; } catch(e){ toast(e.message); }
+}
+function telaConfCorrecao(E){
+  let h=topo(E.titulo,true)+'<div class="wrap">';
+  h+=bannerTransf(E);
+  h+='<div class="aviso">A Dai corrigiu essa transferência no Miré. Abra a transferência e confira se ficou como abaixo.'+(E.notaCorrecao?'<br><b>Dai:</b> '+esc(E.notaCorrecao):'')+'</div>';
+  h+=linhasCorrecao(E);
+  h+='<label class="campo"><span>Se ainda estiver errado, escreva o quê</span><input id="nota" value=""></label>';
+  h+='</div><div class="bar"><div class="wrap"><button class="btn sec" onclick="confCorr(false)">Ainda errado</button><button class="btn ok" style="flex:1" onclick="confCorr(true)">Correção certa</button></div></div>';
+  return h;
+}
+async function confCorr(ok){
+  const E=ESTADO.envio; const nota=(($('#nota')||{}).value||'').trim();
+  if(!ok && !nota){ toast('Escreva o que ainda está errado'); const el=$('#nota'); if(el) el.focus(); return; }
+  if(!await modal(ok?'Correção conferida?':'Voltar pra Dai?', ok?'O envio fecha.':'A Dai vai ver o seu recado e corrigir de novo.', ok?'Fechar envio':'Mandar pra Dai','Voltar')) return;
+  try { await api('confirmaCorrecao',{id:E.id,ok,nota}); toast(ok?'Envio concluído!':'Voltou pra Dai.'); ESTADO.lista=null; location.hash=''; } catch(e){ toast(e.message); }
 }
 
 // Taty: rascunho e resumo
@@ -622,12 +741,13 @@ function telaResumo(E){
   const st=E.status;
   let h=topo(E.titulo,true)+'<div class="wrap">'+trilha(st);
   h+='<div style="margin:14px 0">'+chip(st)+(ETAPA[st].quem?' <span class="mini">agora com '+ETAPA[st].quem+'</span>':'')+'</div>';
+  if(E.notaTransf) h+=bannerTransf(E);
   const temSep=E.itens.some(i=>i.sep!=null), temRec=E.itens.some(i=>i.rec!=null);
   h+=agrupar(E.itens).map(c=>'<div class="cod"><div class="cod-h"><div class="c">'+esc(c.cod)+'</div>'+(c.desc?'<div class="d">'+esc(c.desc)+'</div>':'')+'</div>'+
     c.cores.map(co=>'<div class="cor"><div class="cor-n">'+esc(co.cor)+'</div><table class="tb"><tr><th>Tam</th><th>Pedido</th>'+(temSep?'<th>Separado</th>':'')+(temRec?'<th>Chegou</th>':'')+'</tr>'+
       co.itens.map(it=>'<tr><td>'+esc(it.tam)+'</td><td>'+it.ped+'</td>'+
         (temSep?'<td class="'+(it.sep==null?'':(it.sep<it.ped?'x':'o'))+'">'+(it.sep==null?'·':it.sep)+'</td>':'')+
-        (temRec?'<td class="'+(it.rec==null?'':(it.rec!==(it.sep||0)?'x':'o'))+'">'+(it.rec==null?'·':it.rec)+'</td>':'')+'</tr>').join('')+'</table></div>').join('')+'</div>').join('');
+        (temRec?'<td class="'+(it.rec==null?'':(it.rec!==(it.sep||0)?'x':'o'))+'">'+(it.rec==null?'·':it.rec)+(it.extra?' <span class="tag-x">A MAIS</span>':'')+'</td>':'')+'</tr>').join('')+'</table></div>').join('')+'</div>').join('');
   h+='<h2>Histórico</h2><div class="hist">'+(E.hist||[]).map(x=>hora(x.em)+' · '+esc(PESSOAS[x.por]?.nome||x.por)+': '+esc(ETAPA[x.st]?.l||x.st)+(x.nota?' ('+esc(x.nota)+')':'')).join('<br>')+'</div>';
   if(S.user==='taty' && st!=='RASCUNHO') h+='<button class="btn perigo w" style="margin-top:20px" onclick="voltarEtapa()">Voltar uma etapa</button>';
   if(S.user==='taty') h+='<button class="btn sec w" style="margin-top:10px" onclick="excluir()">Apagar envio</button>';
@@ -659,7 +779,7 @@ function telaFaltas(){
   h+='<button class="btn sec w" style="margin-top:6px" onclick="ESTADO.mostrarOk=!ESTADO.mostrarOk;pintar()">'+(ESTADO.mostrarOk?'Esconder as já verificadas':'Mostrar também as já verificadas')+'</button>';
   h+='<h2>Diferenças no recebimento ('+R.divs.length+')</h2>';
   if(!R.divs.length) h+='<div class="vazio"><b>Nenhuma diferença</b>Tudo que a Gi conferiu bateu.</div>';
-  else h+='<div class="cod">'+R.divs.map(d=>'<div class="fl"><div class="i"><b>'+esc(d.cod)+'</b> '+esc(d.cor)+' <b>'+esc(d.tam)+'</b><div>'+esc(d.titulo)+' · transferido '+d.sep+', chegou '+d.rec+(d.status==='DIVERGENCIA'?' · Dai corrigindo':'')+'</div></div><div class="q">'+(d.rec-d.sep>0?'+':'')+(d.rec-d.sep)+'</div></div>').join('')+'</div>';
+  else h+='<div class="cod">'+R.divs.map(d=>'<div class="fl"><div class="i"><b>'+esc(d.cod)+'</b> '+esc(d.cor)+' <b>'+esc(d.tam)+'</b><div>'+esc(d.titulo)+(d.transf?' · transf. '+esc(d.transf):'')+' · '+(d.extra?'não estava na transferência, chegou '+d.rec:'transferido '+d.sep+', chegou '+d.rec)+(d.status==='DIVERGENCIA'?' · Dai corrigindo':(d.status==='CORRIGIDO'?' · Gi conferindo a correção':''))+'</div></div><div class="q">'+(d.rec-d.sep>0?'+':'')+(d.rec-d.sep)+'</div></div>').join('')+'</div>';
   return h+'</div>';
 }
 async function verif(envio,item,ok){

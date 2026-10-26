@@ -4,7 +4,8 @@
 //   SEPARAR     Ana separa pelo celular e digita quanto conseguiu
 //   TRANSFERIR  Dai faz a transferência no Miré
 //   RECEBER     Gi confere o que chegou na Bonequim
-//   DIVERGENCIA Gi achou diferença: Dai corrige a transferência
+//   DIVERGENCIA Gi achou diferença (ou veio item a mais): Dai edita a mesma transferência
+//   CORRIGIDO   Dai corrigiu: Gi confirma no Miré que a correção entrou
 //   CONCLUIDO
 // O que a Ana marcou como "não tem" vai para o relatório de faltas da Taty.
 //
@@ -15,7 +16,7 @@
 const PINS_PADRAO = { taty: '1234', ana: '1357', dai: '3456', gi: '4444' };
 const NOMES = { taty: 'Taty', ana: 'Ana', dai: 'Dai', gi: 'Gi' };
 
-const ETAPAS = ['RASCUNHO', 'SEPARAR', 'TRANSFERIR', 'RECEBER', 'DIVERGENCIA', 'CONCLUIDO'];
+const ETAPAS = ['RASCUNHO', 'SEPARAR', 'TRANSFERIR', 'RECEBER', 'DIVERGENCIA', 'CORRIGIDO', 'CONCLUIDO'];
 
 // ── BANCO ──────────────────────────────────────────────────────────────
 const RURL = process.env.KV_REST_API_URL || process.env.UPSTASH_REDIS_REST_URL;
@@ -110,7 +111,7 @@ function marcar(d, user, status, nota) {
 function resumo(d) {
   const r = { id: d.id, titulo: d.titulo, status: d.status, criado: d.criado, atualizado: d.atualizado,
     linhas: d.itens.length, codigos: new Set(d.itens.map((i) => i.cod)).size,
-    ped: 0, sep: null, rec: null, faltas: 0, div: 0, nota: d.notaTransf || '', hist: d.hist || [] };
+    ped: 0, sep: null, rec: null, faltas: 0, div: 0, nota: d.notaTransf || '', transf: d.notaTransf || '', hist: d.hist || [] };
   r.ped = d.itens.reduce((s, i) => s + i.ped, 0);
   if (d.itens.some((i) => i.sep != null)) {
     r.sep = d.itens.reduce((s, i) => s + (i.sep || 0), 0);
@@ -139,7 +140,8 @@ const ACOES = {
   async entrar() { return { ok: true }; },
 
   async listar(user, b) {
-    const ids = await cmd(['ZREVRANGE', kIdx, '0', String(Math.min(Number(b.max) || 60, 300) - 1)]);
+    // com um envio por código são dezenas por dia: busca bastante pra nada pendente sumir da tela
+    const ids = await cmd(['ZREVRANGE', kIdx, '0', String(Math.min(Number(b.max) || 400, 1000) - 1)]);
     if (!ids || !ids.length) return { envios: [] };
     const docs = await cmd(['MGET', ...ids.map(kDoc)]);
     const envios = docs.filter(Boolean).map((s) => resumo(typeof s === 'string' ? JSON.parse(s) : s));
@@ -151,7 +153,8 @@ const ACOES = {
   async criar(user, b) {
     exige(user, 'taty');
     const agora = Date.now();
-    const d = { id: 'e' + agora.toString(36), titulo: txt(b.titulo, 80) || 'Envio', criado: agora,
+    // sufixo aleatório: quando a lista vira um envio por código, vários são criados no mesmo instante
+    const d = { id: 'e' + agora.toString(36) + Math.random().toString(36).slice(2, 6), titulo: txt(b.titulo, 80) || 'Envio', criado: agora,
       origem: txt(b.origem, 20) || 'manual', itens: limparItens(b.itens), hist: [] };
     marcar(d, user, b.aprovar ? 'SEPARAR' : 'RASCUNHO');
     await gravarDoc(d);
@@ -185,7 +188,7 @@ const ACOES = {
   async voltar(user, b) {
     exige(user, 'taty');
     const d = await completo(txt(b.id, 40));
-    const para = { SEPARAR: 'RASCUNHO', TRANSFERIR: 'SEPARAR', RECEBER: 'TRANSFERIR', DIVERGENCIA: 'RECEBER', CONCLUIDO: 'RECEBER' }[d.status];
+    const para = { SEPARAR: 'RASCUNHO', TRANSFERIR: 'SEPARAR', RECEBER: 'TRANSFERIR', DIVERGENCIA: 'RECEBER', CORRIGIDO: 'DIVERGENCIA', CONCLUIDO: 'RECEBER' }[d.status];
     if (!para) throw falha('Não dá para voltar desta etapa');
     const cmds = [];
     if (para === 'SEPARAR') { // devolve o que a Ana tinha digitado para a tela dela
@@ -227,8 +230,10 @@ const ACOES = {
   async transferido(user, b) {
     exige(user, 'dai', 'taty');
     const d = await lerDoc(txt(b.id, 40)); naEtapa(d, 'TRANSFERIR');
-    d.notaTransf = txt(b.nota, 60);
-    marcar(d, user, 'RECEBER', d.notaTransf); await gravarDoc(d);
+    const n = txt(b.nota, 30);
+    if (!n) throw falha('Digite o número da transferência do Miré');
+    d.notaTransf = n;
+    marcar(d, user, 'RECEBER', 'transferência nº ' + n); await gravarDoc(d);
     return { resumo: resumo(d) };
   },
 
@@ -238,6 +243,32 @@ const ACOES = {
     const it = d.itens.find((i) => i.id === b.item); if (!it) throw falha('Linha não encontrada');
     if (b.q === null || b.q === '') await cmd(['HDEL', kRec(d.id), it.id]);
     else await cmd(['HSET', kRec(d.id), it.id, String(qtd(b.q))]);
+    return { ok: true };
+  },
+
+  // Gi: veio algo que não estava na transferência (código, cor ou tamanho a mais)
+  async extra(user, b) {
+    exige(user, 'gi', 'taty');
+    const d = await lerDoc(txt(b.id, 40)); naEtapa(d, 'RECEBER');
+    const cod = txt(b.cod, 20).toUpperCase(), cor = txt(b.cor, 40).toUpperCase(), tam = txt(b.tam, 8).toUpperCase();
+    if (!cod || !cor || !tam) throw falha('Preencha código, cor e tamanho');
+    const q = qtd(b.q); if (!q) throw falha('Digite quantas peças chegaram');
+    let it = d.itens.find((i) => i.cod === cod && i.cor === cor && i.tam === tam);
+    if (!it) {
+      const irmao = d.itens.find((i) => i.cod === cod && i.desc);
+      let n = d.itens.length + 1; while (d.itens.some((i) => i.id === 'x' + n)) n++;
+      it = { id: 'x' + n, cod, desc: irmao ? irmao.desc : '', cor, tam, ped: 0, sep: 0, extra: true };
+      d.itens.push(it); await gravarDoc(d);
+    }
+    await cmd(['HSET', kRec(d.id), it.id, String(q)]);
+    return { ok: true, item: it.id };
+  },
+
+  async extraRem(user, b) {
+    exige(user, 'gi', 'taty');
+    const d = await lerDoc(txt(b.id, 40)); naEtapa(d, 'RECEBER');
+    const ix = d.itens.findIndex((i) => i.id === b.item && i.extra); if (ix < 0) throw falha('Linha não encontrada');
+    d.itens.splice(ix, 1); await gravarDoc(d); await cmd(['HDEL', kRec(d.id), String(b.item)]);
     return { ok: true };
   },
 
@@ -256,15 +287,28 @@ const ACOES = {
   async corrigido(user, b) {
     exige(user, 'dai', 'taty');
     const d = await lerDoc(txt(b.id, 40)); naEtapa(d, 'DIVERGENCIA');
-    d.notaCorrecao = txt(b.nota, 200);
-    marcar(d, user, 'CONCLUIDO', d.notaCorrecao || 'transferência corrigida'); await gravarDoc(d);
+    d.notaCorrecao = txt(b.nota, 200); delete d.notaGi;
+    marcar(d, user, 'CORRIGIDO', d.notaCorrecao || 'transferência corrigida'); await gravarDoc(d);
+    return { resumo: resumo(d) };
+  },
+
+  // Gi confere no Miré se a correção da Dai entrou. Se não, volta pra Dai.
+  async confirmaCorrecao(user, b) {
+    exige(user, 'gi', 'taty');
+    const d = await lerDoc(txt(b.id, 40)); naEtapa(d, 'CORRIGIDO');
+    if (b.ok) marcar(d, user, 'CONCLUIDO', 'correção conferida');
+    else {
+      const n = txt(b.nota, 200); if (!n) throw falha('Escreva o que ainda está errado');
+      marcar(d, user, 'DIVERGENCIA', n); d.notaGi = n;
+    }
+    await gravarDoc(d);
     return { resumo: resumo(d) };
   },
 
   // Relatório da Taty: tudo que a Ana não achou, mais as divergências da Gi
   async relatorio(user) {
     exige(user, 'taty');
-    const ids = await cmd(['ZREVRANGE', kIdx, '0', '299']);
+    const ids = await cmd(['ZREVRANGE', kIdx, '0', '1999']);
     const docs = ids && ids.length ? await cmd(['MGET', ...ids.map(kDoc)]) : [];
     const faltas = []; const divs = [];
     docs.filter(Boolean).map((s) => (typeof s === 'string' ? JSON.parse(s) : s)).forEach((d) => {
@@ -272,7 +316,7 @@ const ACOES = {
         if (i.sep != null && i.sep < i.ped) faltas.push({ envio: d.id, titulo: d.titulo, criado: d.criado, item: i.id,
           cod: i.cod, desc: i.desc, cor: i.cor, tam: i.tam, ped: i.ped, sep: i.sep, ok: !!i.fok });
         if (i.rec != null && i.rec !== (i.sep || 0)) divs.push({ envio: d.id, titulo: d.titulo, criado: d.criado,
-          cod: i.cod, desc: i.desc, cor: i.cor, tam: i.tam, sep: i.sep || 0, rec: i.rec, status: d.status });
+          cod: i.cod, desc: i.desc, cor: i.cor, tam: i.tam, sep: i.sep || 0, rec: i.rec, status: d.status, extra: !!i.extra, transf: d.notaTransf || '' });
       });
     });
     return { faltas, divs };
