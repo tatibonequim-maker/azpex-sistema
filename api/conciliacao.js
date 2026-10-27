@@ -1,4 +1,4 @@
-// CONCILIAÇÃO BONEQUIM
+// CONCILIAÇÃO (Fábrica, Bonequim e Azpex)
 // O app (conciliacao.html) chama esta função. Ela confere o PIN de quem está
 // usando e repassa o pedido para o Apps Script da planilha
 // "CONCILIAÇÃO BONEQUIM", junto com o segredo combinado.
@@ -6,15 +6,14 @@
 // Variáveis na Vercel (Settings > Environment Variables):
 //   CONCILIACAO_SCRIPT_URL  endereço do App da Web do Apps Script (termina em /exec)
 //   CONCILIACAO_SEGREDO     o segredo que a função configurar() mostrou
-//   CONCILIACAO_PINS        opcional, JSON com os PINs, ex. {"ana":"1357","taty":"1234","carol":"2468"}
+//   CONCILIACAO_PINS        JSON com o PIN de cada pessoa: {"ana":"....","edson":"....", ...}
+// Os PINs ficam SÓ na Vercel. Este repositório é público: nunca escreva PIN aqui.
 
-const PINS_PADRAO = { ana: '1357', taty: '1234', carol: '2468' };
-const NOMES = { ana: 'Ana', taty: 'Taty', carol: 'Carol' };
+const NOMES = { ana: 'Ana', edson: 'Edson', renan: 'Renan', rose: 'Rose', gi: 'Gi', taty: 'Taty', carol: 'Carol' };
 const ACOES = new Set(['entrar', 'listar', 'salvar', 'descartar', 'aprovar', 'corrigir', 'solicitar', 'cancelar']);
 
 function pinsAtuais() {
-  try { if (process.env.CONCILIACAO_PINS) return { ...PINS_PADRAO, ...JSON.parse(process.env.CONCILIACAO_PINS) }; } catch (e) { /* usa padrão */ }
-  return PINS_PADRAO;
+  try { return JSON.parse(process.env.CONCILIACAO_PINS || 'null'); } catch (e) { return null; }
 }
 
 function lerCorpo(req) {
@@ -33,7 +32,8 @@ export default async function handler(req, res) {
   const b = await lerCorpo(req);
   const user = String(b.user || '');
   const pins = pinsAtuais();
-  if (!pins[user] || String(b.pin || '') !== String(pins[user])) return res.status(401).json({ erro: 'PIN incorreto' });
+  if (!pins) return res.status(500).json({ erro: 'Os PINs ainda não foram cadastrados na Vercel' });
+  if (!NOMES[user] || !pins[user] || String(b.pin || '') !== String(pins[user])) return res.status(401).json({ erro: 'PIN incorreto' });
 
   const action = String(b.action || '');
   if (!ACOES.has(action)) return res.status(400).json({ erro: 'Ação desconhecida' });
@@ -45,7 +45,7 @@ export default async function handler(req, res) {
 
   // só repassa os campos que o Apps Script usa
   const corpo = { segredo: SEGREDO, user, action };
-  ['id', 'codigo', 'cores', 'final', 'abertoEm', 'motivo', 'codigos', 'obs'].forEach((k) => { if (b[k] !== undefined) corpo[k] = b[k]; });
+  ['id', 'codigo', 'local', 'cores', 'final', 'abertoEm', 'motivo', 'codigos', 'obs'].forEach((k) => { if (b[k] !== undefined) corpo[k] = b[k]; });
 
   try {
     const r = await fetch(URL_SCRIPT, {
