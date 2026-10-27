@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Azpex Apps">
+<meta name="theme-color" content="#f4f6f5">
+<title>Apps Azpex · Bonequim</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@400;600;700&display=swap">
+<style>
+:root{
+  --bg:#f4f6f5; --surface:#ffffff; --fg:#18221e; --muted:#5f6b66; --line:#d9dfdc; --accent:#1f5f4f; --accent-soft:#e1eee9;
+  color-scheme:light;
+}
+@media (prefers-color-scheme: dark){ :root{
+  --bg:#111715; --surface:#19211e; --fg:#e6ece9; --muted:#9aa7a1; --line:#2e3a35; --accent:#5fb39b; --accent-soft:#1d3a32;
+  color-scheme:dark;
+}}
+*{box-sizing:border-box}
+html,body{margin:0;min-height:100%}
+body{background:var(--bg);color:var(--fg);font-family:"Instrument Sans",system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;font-size:16px;line-height:1.45}
+main{max-width:560px;margin:0 auto;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-top:calc(28px + env(safe-area-inset-top,0px));padding-bottom:calc(32px + env(safe-area-inset-bottom,0px))}
+.eyebrow{font-size:12px;letter-spacing:.09em;text-transform:uppercase;color:var(--muted);font-weight:600}
+h1{margin:2px 0 24px;font-size:30px;font-weight:700;letter-spacing:-.01em;line-height:1.15}
+.apps{display:flex;flex-direction:column;gap:12px}
+a.app{display:flex;align-items:center;gap:14px;padding:18px;border:1px solid var(--line);background:var(--surface);border-radius:12px;color:inherit;text-decoration:none}
+a.app:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
+.ic{width:46px;height:46px;border-radius:12px;display:grid;place-items:center;background:var(--accent-soft);color:var(--accent);flex:none}
+.ic svg{width:24px;height:24px}
+.t{font-weight:700;font-size:18px}
+.s{font-size:14px;color:var(--muted)}
+.go{margin-left:auto;color:var(--muted);font-size:22px}
+.dica{margin-top:26px;font-size:14px;color:var(--muted)}
+</style>
+</head>
+<body>
+<main>
+  <div class="eyebrow">Azpex · Bonequim</div>
+  <h1>Apps</h1>
+  <nav class="apps" aria-label="Apps">
+    <a class="app" href="/">
+      <span class="ic" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="6" cy="6" r="3"/><circle cx="6" cy="18" r="3"/><path d="M20 4 8.1 15.9M14.5 14.5 20 20M8.1 8.1 12 12"/></svg></span>
+      <span><span class="t">Sistema de cortes</span><br><span class="s">Do corte até a oficina e o envio</span></span>
+      <span class="go" aria-hidden="true">›</span>
+    </a>
+    <a class="app" href="/envio.html">
+      <span class="ic" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 4h13v12H1zM14 9h4l4 4v3h-8z"/><circle cx="5.5" cy="18.5" r="2"/><circle cx="17.5" cy="18.5" r="2"/></svg></span>
+      <span><span class="t">Envio Bonequim</span><br><span class="s">Separar, transferir e receber da fábrica pra loja</span></span>
+      <span class="go" aria-hidden="true">›</span>
+    </a>
+    <a class="app" href="/conciliacao.html">
+      <span class="ic" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 4h6v3H9z"/><path d="M15 5h3v16H6V5h3"/><path d="m9 13 2 2 4-4"/></svg></span>
+      <span><span class="t">Conciliação</span><br><span class="s">Contagem de estoque da Fábrica, Bonequim e Azpex</span></span>
+      <span class="go" aria-hidden="true">›</span>
+    </a>
+  </nav>
+  <p class="dica">Salve esta página nos favoritos. No celular, use "Adicionar à tela de início" pra ela virar um ícone.</p>
+</main>
+</body>
+</html>

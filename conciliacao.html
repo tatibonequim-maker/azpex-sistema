@@ -90,6 +90,13 @@ p{margin:0}
 .pad button{min-height:64px;border-radius:var(--r);border:1px solid var(--line);background:var(--surface);font-family:var(--font-mono);font-size:24px;font-weight:600}
 .pad button.ghost{border-color:transparent;background:transparent;font-family:var(--font-body);font-size:15px;color:var(--muted)}
 .center{text-align:center}
+.who-group{font-size:12px;letter-spacing:.09em;text-transform:uppercase;color:var(--muted);font-weight:700;margin:6px 0 -2px}
+.locais{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:16px}
+.loc{border:1px solid var(--line);background:var(--surface);border-radius:999px;padding:9px 14px;font-size:14px;font-weight:600;min-height:40px}
+.loc.on{background:var(--fg);border-color:var(--fg);color:var(--bg)}
+.loc-pick .loc{flex:1;min-height:48px;font-size:16px;border-radius:10px}
+.tag{display:inline-block;font-size:12px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;color:var(--muted);border:1px solid var(--line);border-radius:6px;padding:1px 6px;margin-right:6px;vertical-align:1px}
+.foot-link{display:block;text-align:center;margin-top:22px;color:var(--muted);font-size:14px;font-weight:600}
 
 /* contagem */
 .field{display:flex;flex-direction:column;gap:6px;margin-bottom:16px}
@@ -177,11 +184,19 @@ details.hist ol{margin:8px 0 0;padding-left:20px;display:flex;flex-direction:col
 (function(){
 const SIZES = ['PP','P','M','G','GG'];
 const ST = { SOL:'SOLICITADA', PEN:'PENDENTE', COR:'CORRIGIR', APR:'AGUARDANDO APROVACAO', OK:'CONCLUIDA' };
+const LOCAIS = ['FABRICA','BONEQUIM','AZPEX'];
+const NOME_LOCAL = {FABRICA:'Fábrica', BONEQUIM:'Bonequim', AZPEX:'Azpex'};
+// local vazio = vê todos os lugares
 const USERS = [
-  {id:'ana',   nome:'Ana',   papel:'estoque', desc:'Estoque. Faz as contagens'},
-  {id:'taty',  nome:'Taty',  papel:'aprova',  desc:'Aprova e solicita contagens'},
-  {id:'carol', nome:'Carol', papel:'aprova',  desc:'Aprova e solicita contagens'}
+  {id:'ana',   nome:'Ana',   local:'FABRICA',  conta:true, desc:'Conta o estoque da Fábrica'},
+  {id:'edson', nome:'Edson', local:'BONEQUIM', conta:true, desc:'Conta o estoque da Bonequim'},
+  {id:'renan', nome:'Renan', local:'BONEQUIM', conta:true, desc:'Conta o estoque da Bonequim'},
+  {id:'rose',  nome:'Rose',  local:'AZPEX',    conta:true, desc:'Conta o estoque da Azpex'},
+  {id:'gi',    nome:'Gi',    local:'BONEQUIM', pede:true,  desc:'Pede contagens da Bonequim'},
+  {id:'taty',  nome:'Taty',  local:'', conta:true, pede:true, aprova:true, desc:'Pede e aprova contagens'},
+  {id:'carol', nome:'Carol', local:'', conta:true, pede:true, aprova:true, desc:'Pede e aprova contagens'}
 ];
+function quemConta(local){ const n = USERS.filter(u=>u.conta && u.local===local).map(u=>u.nome); return n.length>1 ? n.slice(0,-1).join(', ')+' e '+n[n.length-1] : (n[0]||'a equipe'); }
 const app = document.getElementById('app');
 const toastSlot = document.getElementById('toast-slot');
 
@@ -199,7 +214,11 @@ let view = {name:'home'};
 let busy = false;
 let pinUser = null, pinBuf = '', pinErr = '';
 
-const isAprova = () => me && me.papel === 'aprova';
+const isAprova = () => !!(me && me.aprova);
+const podeContar = () => !!(me && me.conta);
+const podePedir = () => !!(me && me.pede);
+const veTodos = () => !!(me && !me.local);
+let filtroLocal = lsGet('conc_filtro') || '';
 
 /* ---------- conversa com a Vercel ---------- */
 async function api(action, dados){
@@ -242,7 +261,22 @@ function num(v){ const n = parseInt(String(v==null?'':v).replace(/\D/g,''),10); 
 function rowTotal(c){ return SIZES.reduce((a,s)=>a+num(c.q && c.q[s]),0); }
 function docTotal(d){ return (d.cores||[]).reduce((a,c)=>a+rowTotal(c),0); }
 function pecas(n){ return n===1 ? '1 peça' : n.toLocaleString('pt-BR')+' peças'; }
-function byStatus(){ const s = Array.from(arguments); return docs.filter(d=>s.includes(d.status)); }
+function visiveis(){ return (veTodos() && filtroLocal) ? docs.filter(d=>d.local===filtroLocal) : docs; }
+function byStatus(){ const s = Array.from(arguments); return visiveis().filter(d=>s.includes(d.status)); }
+function tagLocal(d){ return veTodos() && d.local ? '<span class="tag">'+esc(NOME_LOCAL[d.local]||d.local)+'</span>' : ''; }
+function filtroHTML(){
+  if(!veTodos()) return '';
+  return '<div class="locais" role="group" aria-label="Filtrar por lugar">'+[['','Todos']].concat(LOCAIS.map(l=>[l,NOME_LOCAL[l]])).map(x=>
+    '<button class="loc'+(filtroLocal===x[0]?' on':'')+'" data-act="filtro" data-l="'+x[0]+'">'+x[1]+'</button>').join('')+'</div>';
+}
+function escolhaLocalHTML(sel, act){
+  return '<div class="locais loc-pick" role="group" aria-label="Lugar">'+LOCAIS.map(l=>'<button class="loc'+(sel===l?' on':'')+'" data-act="'+act+'" data-l="'+l+'">'+NOME_LOCAL[l]+'</button>').join('')+'</div>';
+}
+function abrir(id){
+  const d = docs.find(x=>x.id===id); if(!d) return;
+  if(podeContar() && [ST.SOL,ST.PEN,ST.COR].includes(d.status)) openEditor(id);
+  else go({name:'detalhe', id:id, from:view, mode:null});
+}
 function sortBy(arr, f, dir){ return arr.slice().sort((a,b)=>{ const x=a[f]||'', y=b[f]||''; return dir==='desc' ? (x<y?1:x>y?-1:0) : (x<y?-1:x>y?1:0); }); }
 function statusInfo(d){
   return ({
@@ -313,9 +347,10 @@ function loginHTML(){
   }
   return '<div class="login">'+
     '<div><div class="eyebrow">Conciliação</div><h1>Bonequim</h1><p class="muted" style="margin-top:8px">Quem está usando?</p></div>'+
-    '<div class="who">'+ USERS.map(u=>
-      '<button class="who-btn" data-act="login" data-u="'+u.id+'"><span class="avatar">'+u.nome[0]+'</span><span><div class="t">'+u.nome+'</div><div class="s">'+u.desc+'</div></span></button>'
-    ).join('') +'</div></div>';
+    '<div class="who">'+ [['Contagem', USERS.filter(u=>u.local && u.conta)], ['Pedidos e aprovação', USERS.filter(u=>!u.conta || !u.local)]].map(g=>
+      '<div class="who-group">'+g[0]+'</div>'+g[1].map(u=>
+      '<button class="who-btn" data-act="login" data-u="'+u.id+'"><span class="avatar">'+u.nome[0]+'</span><span><div class="t">'+u.nome+'</div><div class="s">'+u.desc+'</div></span></button>').join('')
+    ).join('') +'</div><a class="foot-link" href="/acesso.html">Ver todos os apps</a></div>';
 }
 async function digitaPin(n){
   if(pinBuf.length>=4) return;
@@ -334,20 +369,20 @@ function homeHTML(){
   const corr = byStatus(ST.COR);
   const apr = byStatus(ST.APR);
   const conc = byStatus(ST.OK);
-  let h = '<header class="top"><div><div class="eyebrow">Conciliação</div><h1>Bonequim</h1></div>'+
+  let h = '<header class="top"><div><div class="eyebrow">Conciliação</div><h1>'+(me.local ? esc(NOME_LOCAL[me.local]) : 'Estoques')+'</h1></div>'+
           '<button class="chip" data-act="logout">'+esc(me.nome)+' · sair</button></header>';
-  h += syncHTML();
+  h += syncHTML() + filtroHTML();
   h += '<div class="stack">';
   if(sol.length){
-    h += card('alert','lista:solicitacoes', isAprova() ? 'Solicitações em aberto' : 'Solicitações de contagem',
-      isAprova() ? 'Códigos pedidos que a Ana ainda não começou' : 'A Taty ou a Carol pediram pra contar', sol.length);
+    h += card('alert','lista:solicitacoes', podeContar() && me.local ? 'Solicitações de contagem' : 'Solicitações em aberto',
+      podeContar() && me.local ? 'Códigos que pediram pra você contar' : 'Pedidos que ainda não começaram', sol.length);
   }
-  if(isAprova() && apr.length) h += card('approve','lista:aprovacao','Aprovar contagens','A Ana finalizou e está esperando vocês', apr.length);
-  h += card('main','novo','Iniciar contagem','Digite o código e conte por cor e tamanho', '');
+  if(isAprova() && apr.length) h += card('approve','lista:aprovacao','Aprovar contagens','Contagens finalizadas esperando vocês', apr.length);
+  if(podeContar()) h += card('main','novo','Iniciar contagem','Digite o código e conte por cor e tamanho', '');
   h += card('','lista:pendentes','Contagem pendente', corr.length ? corr.length+' com correção pedida' : 'Salvas e aguardando aprovação', loaded ? pend.length : '·');
   h += card('','lista:concluidas','Contagem concluída','Aprovadas, com a data da conciliação', loaded ? conc.length : '·');
-  if(isAprova()) h += card('','solicitar','Solicitar contagem','Peça pra Ana contar um ou mais códigos','');
-  h += '</div><div class="sync" id="sync"></div>';
+  if(podePedir()) h += card(podeContar()?'':'main','solicitar','Solicitar contagem', me.local ? 'Peça pra '+quemConta(me.local)+' contar um ou mais códigos' : 'Peça uma contagem na Fábrica, na Bonequim ou na Azpex','');
+  h += '</div><div class="sync" id="sync"></div><a class="foot-link" href="/acesso.html">Ver todos os apps</a>';
   setTimeout(syncLine,0);
   return h;
 }
@@ -362,15 +397,15 @@ function openEditor(id){
   const d = id ? docs.find(x=>x.id===id) : null;
   const key = 'conc_draft_'+(id||'novo');
   const draft = lsGet(key);
-  const st = {name:'contar', id:id||null, codigo:'', cores:[blankRow()], err:'', rm:-1, sheet:null, restored:false, abertoEm:nowIso()};
+  const st = {name:'contar', id:id||null, codigo:'', local: me.local || (filtroLocal||''), cores:[blankRow()], err:'', rm:-1, sheet:null, restored:false, abertoEm:nowIso()};
   if(d){
-    st.codigo = d.codigo||'';
+    st.codigo = d.codigo||''; st.local = d.local||'';
     st.cores = (d.cores && d.cores.length) ? d.cores.map(c=>({cor:c.cor||'', q:Object.assign({PP:'',P:'',M:'',G:'',GG:''}, c.q||{})})) : [blankRow()];
     SIZES.forEach(s=>st.cores.forEach(c=>{ if(c.q[s]===null || c.q[s]===undefined) c.q[s]=''; c.q[s] = String(c.q[s]); }));
   }
   if(draft && draft.cores && (!d || (draft.ts||'') > (d.atualizadoEm||d.solicitadoEm||''))){
     const has = draft.codigo || draft.cores.some(c=>c.cor || SIZES.some(s=>String(c.q[s]||'')!==''));
-    if(has){ st.codigo = (d && d.solicitadoPor) ? d.codigo : (draft.codigo || st.codigo); st.cores = draft.cores; st.restored = true; }
+    if(has){ st.codigo = (d && d.solicitadoPor) ? d.codigo : (draft.codigo || st.codigo); if(!d && !me.local && draft.local) st.local = draft.local; st.cores = draft.cores; st.restored = true; }
   }
   st.snapshot = st.restored ? '' : JSON.stringify({c:st.codigo, r:st.cores});
   go(st);
@@ -379,7 +414,7 @@ function dirty(){ return view.name==='contar' && JSON.stringify({c:view.codigo, 
 function saveDraft(){
   clearTimeout(saveDraft._t);
   const key = 'conc_draft_'+(view.id||'novo');
-  saveDraft._t = setTimeout(()=>{ if(view.name==='contar') lsSet(key, {codigo:view.codigo, cores:view.cores, ts:nowIso()}); }, 300);
+  saveDraft._t = setTimeout(()=>{ if(view.name==='contar') lsSet(key, {codigo:view.codigo, local:view.local, cores:view.cores, ts:nowIso()}); }, 300);
 }
 
 function editorHTML(){
@@ -389,6 +424,8 @@ function editorHTML(){
   if(d && d.status===ST.COR && d.correcao) h += '<div class="note bad gap"><b>'+esc(d.correcao.por)+' pediu correção · '+esc(fmt(d.correcao.em))+'</b>'+esc(d.correcao.motivo||'Sem observação.')+'</div>';
   if(d && d.solicitadoPor && d.status===ST.SOL) h += '<div class="note warn gap"><b>Pedido de '+esc(d.solicitadoPor)+' · '+esc(fmt(d.solicitadoEm))+'</b>'+esc(d.obsSolicitacao||'Contar todas as cores deste código.')+'</div>';
   if(st.restored) h += '<div class="note info gap">Recuperei o que estava digitado e ainda não tinha sido salvo.</div>';
+  if(!me.local && !d) h += '<div class="field"><label>Onde é a contagem?</label>'+escolhaLocalHTML(st.local,'ed-local')+'</div>';
+  else h += '<div class="eyebrow" style="margin-bottom:12px">Estoque da '+esc(NOME_LOCAL[st.local]||'')+'</div>';
   h += '<div class="field"><label for="f-codigo">Código</label>'+
        '<input class="inp big" id="f-codigo" inputmode="numeric" autocomplete="off" placeholder="0000000" value="'+esc(st.codigo)+'"'+(d && d.solicitadoPor ? ' readonly' : '')+'></div>';
   h += '<div id="dup-warn"></div>';
@@ -423,7 +460,7 @@ function sheetHTML(){
     const cores = st.cores.filter(c=>c.cor.trim());
     const blanks = cores.some(c=>SIZES.some(z=>String(c.q[z]||'')===''));
     return wrap('Enviar para aprovação?',
-      '<div>Código <b class="mono">'+esc(st.codigo.trim())+'</b> com '+cores.length+(cores.length===1?' cor':' cores')+', '+pecas(cores.reduce((a,c)=>a+rowTotal(c),0))+'.</div>'+
+      '<div>'+esc(NOME_LOCAL[st.local]||'')+', código <b class="mono">'+esc(st.codigo.trim())+'</b> com '+cores.length+(cores.length===1?' cor':' cores')+', '+pecas(cores.reduce((a,c)=>a+rowTotal(c),0))+'.</div>'+
       (blanks ? '<div class="note warn">Tem tamanho em branco. Ele vai como 0.</div>' : '')+
       '<div class="muted" style="font-size:14px">Depois de enviar, a Taty ou a Carol aprovam ou pedem correção.</div>',
       ['<button class="btn" data-act="sheet-close">Voltar</button>','<button class="btn primary" data-act="ed-finish-ok">Enviar</button>']);
@@ -442,8 +479,9 @@ function updateDupWarn(){
   const box = document.getElementById('dup-warn'); if(!box) return;
   const code = (view.codigo||'').trim();
   if(!code || view.id){ box.innerHTML=''; return; }
-  const open = docs.find(d=>d.codigo===code && [ST.PEN,ST.COR,ST.APR].includes(d.status));
-  const sol = docs.find(d=>d.codigo===code && d.status===ST.SOL);
+  if(!view.local){ box.innerHTML=''; return; }
+  const open = docs.find(d=>d.codigo===code && d.local===view.local && [ST.PEN,ST.COR,ST.APR].includes(d.status));
+  const sol = docs.find(d=>d.codigo===code && d.local===view.local && d.status===ST.SOL);
   if(open){
     box.innerHTML = '<div class="note warn" style="margin:-4px 0 16px"><b>Esse código já tem contagem '+(open.status===ST.APR?'aguardando aprovação':'em andamento')+'</b>'+
       (open.status!==ST.APR ? '<button class="btn" style="margin-top:8px;width:100%" data-act="open-edit" data-id="'+open.id+'">Abrir a contagem que já existe</button>' : 'Espere a aprovação antes de contar de novo.')+'</div>';
@@ -464,6 +502,7 @@ function rerenderEditor(focusId){
 }
 function validate(final){
   const codigo = (view.codigo||'').trim();
+  if(!view.local) return {err:'Escolha onde é a contagem: Fábrica, Bonequim ou Azpex.'};
   if(!codigo) return {err:'Digite o código.'};
   const seen = {}; let n = 0;
   for(let i=0;i<view.cores.length;i++){
@@ -484,7 +523,7 @@ async function persist(final){
   busy = final ? 'final' : 'save'; view.sheet = null; view.err=''; rerenderEditor();
   const ed = view;
   try{
-    await api('salvar', {id:ed.id, codigo:ed.codigo.trim(), cores:ed.cores, final:final, abertoEm:ed.abertoEm});
+    await api('salvar', {id:ed.id, codigo:ed.codigo.trim(), local:ed.local, cores:ed.cores, final:final, abertoEm:ed.abertoEm});
     lsDel('conc_draft_'+(ed.id||'novo'));
     busy = false;
     toast(final ? 'Enviado para aprovação.' : 'Salvo. Está em Contagem pendente.');
@@ -506,14 +545,14 @@ async function discard(){
 /* ---------- listas ---------- */
 const LISTAS = { solicitacoes:'Solicitações de contagem', pendentes:'Contagem pendente', aprovacao:'Aprovar contagens', concluidas:'Contagem concluída' };
 function listaHTML(){
-  let h = '<header class="bar"><button class="back" data-act="home">‹ Início</button><h2>'+LISTAS[view.tipo]+'</h2></header>';
+  let h = '<header class="bar"><button class="back" data-act="home">‹ Início</button><h2>'+LISTAS[view.tipo]+'</h2></header>' + filtroHTML();
   if(view.tipo==='concluidas') h += '<div class="field"><label for="f-busca">Buscar código</label><input class="inp" id="f-busca" inputmode="numeric" autocomplete="off" placeholder="Digite parte do código" value="'+esc(view.q||'')+'"></div>';
   h += '<div id="list-sync"></div><div id="list-body"></div><div class="sync" id="sync"></div>';
   setTimeout(syncLine,0);
   return h;
 }
-function itemHTML(d, sub, act){
-  return '<button class="item" data-act="'+act+'" data-id="'+esc(d.id)+'"><span class="item-main"><span class="code">'+esc(d.codigo)+'</span><span class="s">'+sub+'</span>'+pill(d)+'</span>'+
+function itemHTML(d, sub){
+  return '<button class="item" data-act="abrir" data-id="'+esc(d.id)+'"><span class="item-main"><span class="code">'+esc(d.codigo)+'</span><span class="s">'+tagLocal(d)+sub+'</span>'+pill(d)+'</span>'+
     (d.status!==ST.SOL ? '<span class="pc">'+pecas(docTotal(d))+'</span>' : '')+'</button>';
 }
 function group(title, items){ return items.length ? '<div class="group"><h3>'+title+'</h3>'+items.join('')+'</div>' : ''; }
@@ -527,28 +566,28 @@ function renderListBody(){
   if(view.tipo==='solicitacoes'){
     const l = sortBy(byStatus(ST.SOL),'solicitadoEm','asc');
     h = l.length ? '<div class="group">'+l.map(d=>
-      '<div class="item-wrap">'+itemHTML(d, 'Pedido de '+esc(d.solicitadoPor)+' · '+esc(fmt(d.solicitadoEm))+(d.obsSolicitacao ? '<br>'+esc(d.obsSolicitacao) : ''), 'open-edit')+
-      (isAprova() ? '<div class="item-actions"><button class="small-btn" data-act="cancel-sol" data-id="'+esc(d.id)+'">'+(view.cancel===d.id?'Toque de novo pra cancelar o pedido':'Cancelar pedido')+'</button></div>' : '')+'</div>'
+      '<div class="item-wrap">'+itemHTML(d, 'Pedido de '+esc(d.solicitadoPor)+' · '+esc(fmt(d.solicitadoEm))+(d.obsSolicitacao ? '<br>'+esc(d.obsSolicitacao) : ''))+
+      (podePedir() ? '<div class="item-actions"><button class="small-btn" data-act="cancel-sol" data-id="'+esc(d.id)+'">'+(view.cancel===d.id?'Toque de novo pra cancelar o pedido':'Cancelar pedido')+'</button></div>' : '')+'</div>'
     ).join('')+'</div>' : empty('Nenhuma contagem pedida agora.');
   }
   if(view.tipo==='pendentes'){
     const corr = sortBy(byStatus(ST.COR),'atualizadoEm','asc');
     const andam = sortBy(byStatus(ST.PEN),'atualizadoEm','desc');
     const apr = sortBy(byStatus(ST.APR),'finalizadoEm','asc');
-    h = group('Correção pedida', corr.map(d=>itemHTML(d,'Pedida por '+esc(d.correcao ? d.correcao.por : '')+' · '+esc(fmt(d.correcao ? d.correcao.em : '')),'open-edit')))+
-        group('Em andamento', andam.map(d=>itemHTML(d,'Salva por '+esc(lastBy(d))+' · '+esc(fmt(d.atualizadoEm)),'open-edit')))+
-        group('Aguardando aprovação', apr.map(d=>itemHTML(d,'Finalizada por '+esc(d.finalizadoPor)+' · '+esc(fmt(d.finalizadoEm)),'open-det')));
+    h = group('Correção pedida', corr.map(d=>itemHTML(d,'Pedida por '+esc(d.correcao ? d.correcao.por : '')+' · '+esc(fmt(d.correcao ? d.correcao.em : '')))))+
+        group('Em andamento', andam.map(d=>itemHTML(d,'Salva por '+esc(lastBy(d))+' · '+esc(fmt(d.atualizadoEm)))))+
+        group('Aguardando aprovação', apr.map(d=>itemHTML(d,'Finalizada por '+esc(d.finalizadoPor)+' · '+esc(fmt(d.finalizadoEm)))));
     if(!h) h = empty('Nada pendente. Toque em Iniciar contagem na página inicial.');
   }
   if(view.tipo==='aprovacao'){
     const l = sortBy(byStatus(ST.APR),'finalizadoEm','asc');
-    h = l.length ? '<div class="group">'+l.map(d=>itemHTML(d,'Finalizada por '+esc(d.finalizadoPor)+' · '+esc(fmt(d.finalizadoEm)),'open-det')).join('')+'</div>' : empty('Nenhuma contagem esperando aprovação.');
+    h = l.length ? '<div class="group">'+l.map(d=>itemHTML(d,'Finalizada por '+esc(d.finalizadoPor)+' · '+esc(fmt(d.finalizadoEm)))).join('')+'</div>' : empty('Nenhuma contagem esperando aprovação.');
   }
   if(view.tipo==='concluidas'){
     const q = (view.q||'').trim();
     let l = sortBy(byStatus(ST.OK),'conciliadoEm','desc');
     if(q) l = l.filter(d=>String(d.codigo).includes(q));
-    h = l.length ? '<div class="group">'+l.map(d=>itemHTML(d,'Conciliada em '+esc(fmtDia(d.conciliadoEm))+' por '+esc(d.aprovadoPor),'open-det')).join('')+'</div>'
+    h = l.length ? '<div class="group">'+l.map(d=>itemHTML(d,'Conciliada em '+esc(fmtDia(d.conciliadoEm))+' por '+esc(d.aprovadoPor))).join('')+'</div>'
                  : empty(q ? 'Nenhuma contagem concluída com esse código.' : 'Ainda não tem contagem aprovada.');
   }
   box.innerHTML = h;
@@ -560,7 +599,7 @@ function detalheHTML(){
   let h = '<header class="bar"><button class="back" data-act="det-back">‹ Voltar</button><h2>Contagem</h2></header>';
   if(!d) return h + empty('Essa contagem não existe mais.');
   h += pill(d)+'<div class="head-code">'+esc(d.codigo)+'</div>';
-  const f = [];
+  const f = [['Lugar', esc(NOME_LOCAL[d.local]||d.local)]];
   if(d.solicitadoPor) f.push(['Solicitada', esc(d.solicitadoPor)+' · '+esc(fmt(d.solicitadoEm))]);
   if(d.iniciadoEm) f.push(['Iniciada', esc(fmt(d.iniciadoEm))]);
   if(d.finalizadoEm) f.push(['Finalizada', esc(fmt(d.finalizadoEm))]);
@@ -572,7 +611,7 @@ function detalheHTML(){
   h += tabelaHTML(d);
   if(d.status===ST.APR && isAprova()){
     if(view.mode==='corrigir'){
-      h += '<div class="field" style="margin-top:18px"><label for="f-motivo">O que a Ana precisa corrigir?</label><textarea class="inp" id="f-motivo" placeholder="Ex.: recontar o PRETO no M, deu diferente do sistema">'+esc(view.motivo||'')+'</textarea></div>';
+      h += '<div class="field" style="margin-top:18px"><label for="f-motivo">O que precisa corrigir?</label><textarea class="inp" id="f-motivo" placeholder="Ex.: recontar o PRETO no M, deu diferente do sistema">'+esc(view.motivo||'')+'</textarea></div>';
       if(view.err) h += '<div class="err">'+esc(view.err)+'</div>';
       h += '<div class="actionbar"><div class="actionbar-in"><button class="btn" data-act="corr-cancel">Cancelar</button><button class="btn danger" data-act="corr-ok"'+(busy?' disabled':'')+'>'+(busy?'Enviando…':'Enviar correção')+'</button></div></div>';
     } else {
@@ -582,8 +621,8 @@ function detalheHTML(){
     }
   } else if(d.status===ST.APR){
     h += '<div class="note info" style="margin-top:16px">Esperando a Taty ou a Carol aprovarem.</div>';
-  } else if(d.status===ST.PEN || d.status===ST.COR){
-    h += '<div class="actionbar"><div class="actionbar-in"><button class="btn primary" data-act="open-edit" data-id="'+esc(d.id)+'">Continuar contagem</button></div></div>';
+  } else if((d.status===ST.PEN || d.status===ST.COR || d.status===ST.SOL) && podeContar()){
+    h += '<div class="actionbar"><div class="actionbar-in"><button class="btn primary" data-act="open-edit" data-id="'+esc(d.id)+'">'+(d.status===ST.SOL?'Iniciar contagem':'Continuar contagem')+'</button></div></div>';
   }
   const hs = d.historico||[];
   if(hs.length) h += '<details class="hist"><summary>Histórico ('+hs.length+')</summary><ol>'+hs.map(x=>'<li>'+esc(fmt(x.em))+' · '+esc(x.por)+': '+esc(x.acao)+'</li>').join('')+'</ol></details>';
@@ -606,29 +645,32 @@ async function pedirCorrecao(){
   const v0 = view; const motivo = (view.motivo||'').trim();
   if(!motivo){ view.err = 'Escreva o que precisa corrigir.'; render(); return; }
   busy = true; view.err=''; render();
-  try{ await api('corrigir', {id:v0.id, motivo:motivo}); busy = false; toast('Correção enviada pra Ana.'); go({name:'home'}); carregar(); }
+  try{ await api('corrigir', {id:v0.id, motivo:motivo}); busy = false; toast('Correção enviada pra '+quemConta((docs.find(x=>x.id===v0.id)||{}).local)+'.'); go({name:'home'}); carregar(); }
   catch(e){ busy = false; v0.err = e.message; if(view===v0) render(); }
 }
 
 /* ---------- solicitar ---------- */
 function solicitarHTML(){
   let h = '<header class="bar"><button class="back" data-act="home">‹ Início</button><h2>Solicitar contagem</h2></header>';
-  h += '<div class="field"><label for="f-codigos">Códigos pra Ana contar</label><textarea class="inp mono" id="f-codigos" inputmode="numeric" placeholder="Um ou vários. Ex.:&#10;0192432&#10;0782256">'+esc(view.codigos||'')+'</textarea><span class="muted" style="font-size:13px">Pode colar vários, um por linha.</span></div>';
+  if(!me.local) h += '<div class="field"><label>Onde contar?</label>'+escolhaLocalHTML(view.local,'sol-local')+'</div>';
+  else h += '<div class="note plain gap">O pedido vai pra '+esc(quemConta(me.local))+', no estoque da '+esc(NOME_LOCAL[me.local])+'.</div>';
+  h += '<div class="field"><label for="f-codigos">Códigos pra contar</label><textarea class="inp mono" id="f-codigos" inputmode="numeric" placeholder="Um ou vários. Ex.:&#10;0192432&#10;0782256">'+esc(view.codigos||'')+'</textarea><span class="muted" style="font-size:13px">Pode colar vários, um por linha.</span></div>';
   h += '<div class="field"><label for="f-obs">Observação (opcional)</label><input class="inp" id="f-obs" autocomplete="off" placeholder="Ex.: olhar também a estante do fundo" value="'+esc(view.obs||'')+'"></div>';
   if(view.err) h += '<div class="err" role="alert">'+esc(view.err)+'</div>';
-  h += '<div class="actionbar"><div class="actionbar-in"><button class="btn primary" data-act="sol-ok"'+(busy?' disabled':'')+'>'+(busy?'Enviando…':'Enviar pra Ana')+'</button></div></div>';
+  h += '<div class="actionbar"><div class="actionbar-in"><button class="btn primary" data-act="sol-ok"'+(busy?' disabled':'')+'>'+(busy?'Enviando…':(view.local?'Enviar pra '+esc(quemConta(view.local)):'Enviar pedido'))+'</button></div></div>';
   return h;
 }
 async function solicitar(){
   const codes = Array.from(new Set(String(view.codigos||'').split(/[\s,;]+/).map(s=>s.trim()).filter(Boolean)));
+  if(!view.local){ view.err = 'Escolha onde contar: Fábrica, Bonequim ou Azpex.'; render(); return; }
   if(!codes.length){ view.err = 'Digite pelo menos um código.'; render(); return; }
   const v0 = view; busy = true; view.err=''; render();
   try{
-    const j = await api('solicitar', {codigos:codes, obs:(view.obs||'').trim()});
+    const j = await api('solicitar', {codigos:codes, local:view.local, obs:(view.obs||'').trim()});
     busy = false;
     const nov = j.novos||[], ja = j.jaAbertos||[];
     if(!nov.length){ v0.err = 'Esses códigos já estão em aberto: '+ja.join(', ')+'.'; if(view===v0) render(); return; }
-    toast((nov.length===1?'1 código enviado':nov.length+' códigos enviados')+' pra Ana.'+(ja.length?' Já estavam em aberto: '+ja.join(', ')+'.':''));
+    toast((nov.length===1?'1 código enviado':nov.length+' códigos enviados')+' pra '+quemConta(v0.local)+'.'+(ja.length?' Já estavam em aberto: '+ja.join(', ')+'.':''));
     go({name:'home'}); carregar();
   }catch(e){ busy = false; v0.err = e.message; if(view===v0) render(); }
 }
@@ -645,7 +687,7 @@ app.addEventListener('click', e=>{
     if(!me) return;
     const to = g.dataset.go;
     if(to==='novo') return openEditor(null);
-    if(to==='solicitar') return go({name:'solicitar', codigos:'', obs:'', err:''});
+    if(to==='solicitar') return go({name:'solicitar', local: me.local || filtroLocal || '', codigos:'', obs:'', err:''});
     if(to.indexOf('lista:')===0){ go({name:'lista', tipo:to.slice(6), q:''}); carregar(); }
     return;
   }
@@ -675,7 +717,10 @@ app.addEventListener('click', e=>{
     case 'ed-discard': view.sheet={type:'discard'}; rerenderEditor(); break;
     case 'ed-discard-ok': if(!busy) discard(); break;
     case 'open-edit': openEditor(id); break;
-    case 'open-det': go({name:'detalhe', id:id, from:view, mode:null}); break;
+    case 'abrir': abrir(id); break;
+    case 'filtro': filtroLocal = b.dataset.l; lsSet('conc_filtro', filtroLocal); render(); break;
+    case 'ed-local': view.local = b.dataset.l; view.err=''; saveDraft(); rerenderEditor(); break;
+    case 'sol-local': view.local = b.dataset.l; view.err=''; render(); break;
     case 'det-back': go(view.from && view.from.name==='lista' ? {name:'lista', tipo:view.from.tipo, q:view.from.q||''} : {name:'home'}); break;
     case 'aprovar': if(!busy) aprovar(); break;
     case 'corr': view.mode='corrigir'; view.err=''; render(); setTimeout(()=>{ const t=document.getElementById('f-motivo'); if(t) t.focus(); },0); break;

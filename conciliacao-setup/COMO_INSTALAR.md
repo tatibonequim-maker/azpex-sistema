@@ -1,6 +1,6 @@
-# Conciliação Bonequim: como ligar
+# Conciliação: como ligar
 
-O app fica em **azpex-sistema.vercel.app/conciliacao.html**. Os dados ficam na planilha **CONCILIAÇÃO BONEQUIM**, no Drive da conta tatibonequim (abas CONTAGENS e ITENS).
+O app fica em **azpex-sistema.vercel.app/conciliacao**. Todos os apps ficam reunidos em **azpex-sistema.vercel.app/acesso**. Os dados ficam na planilha **CONCILIAÇÃO BONEQUIM**, no Drive da conta tatibonequim (abas CONTAGENS e ITENS).
 
 São três partes, feitas uma vez só.
 
@@ -24,19 +24,25 @@ No projeto azpex-sistema da Vercel: **Settings > Environment Variables**. Crie:
 |---|---|
 | `CONCILIACAO_SCRIPT_URL` | o URL que termina em `/exec` |
 | `CONCILIACAO_SEGREDO` | o SEGREDO do passo 1.5 |
-| `CONCILIACAO_PINS` | opcional, pra trocar os PINs. Ex.: `{"ana":"1357","taty":"1234","carol":"2468"}` |
+| `CONCILIACAO_PINS` | o PIN de cada pessoa (o Claude passa o texto pronto no chat) |
 
 Depois de salvar as variáveis, faça um **Redeploy** pra elas valerem.
 
-## 3. PINs
+## 3. Quem usa
 
-Sem a variável `CONCILIACAO_PINS`, os PINs são:
+| Pessoa | O que faz |
+|---|---|
+| Ana | conta a Fábrica |
+| Edson | conta a Bonequim |
+| Renan | conta a Bonequim |
+| Rose | conta a Azpex |
+| Gi | pede contagens da Bonequim |
+| Taty | pede, conta e aprova em todos os lugares |
+| Carol | pede, conta e aprova em todos os lugares |
 
-- Ana: 1357
-- Taty: 1234
-- Carol: 2468
+Cada pessoa só vê as contagens do seu lugar. Taty e Carol veem os três e podem filtrar.
 
-Como este repositório é público, vale definir PINs próprios na variável.
+Os PINs ficam só na variável `CONCILIACAO_PINS` da Vercel, nunca neste repositório (ele é público). Pra trocar um PIN, edite essa variável e faça Redeploy.
 
 ## Se mudar o Apps Script depois
 
@@ -46,10 +52,10 @@ Cole o código novo, salve e vá em **Implantar > Gerenciar implantações > edi
 
 | STATUS na planilha | O que quer dizer |
 |---|---|
-| SOLICITADA | Taty ou Carol pediram pra contar |
-| PENDENTE | Ana salvou e ainda está contando |
-| AGUARDANDO APROVACAO | Ana finalizou |
-| CORRIGIR | Taty ou Carol pediram correção, voltou pra Ana |
+| SOLICITADA | Taty, Carol ou Gi pediram pra contar |
+| PENDENTE | quem conta salvou e ainda está contando |
+| AGUARDANDO APROVACAO | quem conta finalizou |
+| CORRIGIR | Taty ou Carol pediram correção, voltou pra quem conta |
 | CONCLUIDA | Aprovada. CONCILIADO_EM tem a data |
 
-A aba ITENS tem uma linha por cor, com PP, P, M, G, GG e total. Dá pra filtrar por código ou por data de conciliação direto na planilha. Não apague nem mude a ordem das colunas: o app depende delas.
+A coluna LOCAL diz se a contagem é da FABRICA, BONEQUIM ou AZPEX. A aba ITENS tem uma linha por cor, com PP, P, M, G, GG e total. Dá pra filtrar por código ou por data de conciliação direto na planilha. Não apague nem mude a ordem das colunas: o app depende delas.

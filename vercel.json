@@ -1,6 +1,10 @@
 {
   "functions": { "api/proxy.js": { "maxDuration": 30 }, "api/conciliacao.js": { "maxDuration": 30 } },
-  "rewrites": [{ "source": "/((?!api/).*)", "destination": "/index.html" }],
+  "rewrites": [
+    { "source": "/acesso", "destination": "/acesso.html" },
+    { "source": "/conciliacao", "destination": "/conciliacao.html" },
+    { "source": "/((?!api/).*)", "destination": "/index.html" }
+  ],
   "headers": [
     {
       "source": "/(.*)",
