@@ -756,6 +756,8 @@ app.addEventListener('keydown', e=>{
   }
 });
 
+// link pessoal (?u=ana) abre direto no PIN daquela pessoa
+try{ const q = new URLSearchParams(location.search).get('u'); if(q && USERS.some(u=>u.id===q)){ if(S && S.user!==q) sair(); if(!S) pinUser = q; } }catch(e){}
 render();
 if(S) carregar();
 })();
