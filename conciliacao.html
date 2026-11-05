@@ -399,7 +399,7 @@ function openEditor(id){
   const draft = lsGet(key);
   const st = {name:'contar', id:id||null, codigo:'', local: me.local || (filtroLocal||''), cores:[blankRow()], err:'', rm:-1, sheet:null, restored:false, abertoEm:nowIso()};
   if(d){
-    st.codigo = d.codigo||''; st.local = d.local||'';
+    st.codigo = d.codigo||''; st.local = d.local || me.local || '';
     st.cores = (d.cores && d.cores.length) ? d.cores.map(c=>({cor:c.cor||'', q:Object.assign({PP:'',P:'',M:'',G:'',GG:''}, c.q||{})})) : [blankRow()];
     SIZES.forEach(s=>st.cores.forEach(c=>{ if(c.q[s]===null || c.q[s]===undefined) c.q[s]=''; c.q[s] = String(c.q[s]); }));
   }
@@ -425,7 +425,7 @@ function editorHTML(){
   if(d && d.solicitadoPor && d.status===ST.SOL) h += '<div class="note warn gap"><b>Pedido de '+esc(d.solicitadoPor)+' · '+esc(fmt(d.solicitadoEm))+'</b>'+esc(d.obsSolicitacao||'Contar todas as cores deste código.')+'</div>';
   if(st.restored) h += '<div class="note info gap">Recuperei o que estava digitado e ainda não tinha sido salvo.</div>';
   if(!me.local && !d) h += '<div class="field"><label>Onde é a contagem?</label>'+escolhaLocalHTML(st.local,'ed-local')+'</div>';
-  else h += '<div class="eyebrow" style="margin-bottom:12px">Estoque da '+esc(NOME_LOCAL[st.local]||'')+'</div>';
+  else if(NOME_LOCAL[st.local]) h += '<div class="eyebrow" style="margin-bottom:12px">Estoque da '+esc(NOME_LOCAL[st.local])+'</div>';
   h += '<div class="field"><label for="f-codigo">Código</label>'+
        '<input class="inp big" id="f-codigo" inputmode="numeric" autocomplete="off" placeholder="0000000" value="'+esc(st.codigo)+'"'+(d && d.solicitadoPor ? ' readonly' : '')+'></div>';
   h += '<div id="dup-warn"></div>';
@@ -756,6 +756,8 @@ app.addEventListener('keydown', e=>{
   }
 });
 
+// link pessoal (?u=ana) abre direto no PIN daquela pessoa
+try{ const q = new URLSearchParams(location.search).get('u'); if(q && USERS.some(u=>u.id===q)){ if(S && S.user!==q) sair(); if(!S) pinUser = q; } }catch(e){}
 render();
 if(S) carregar();
 })();
