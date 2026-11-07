@@ -56,6 +56,10 @@ h2{font-size:13px;font-weight:600;color:var(--mt);text-transform:uppercase;lette
 .ecard .l1{display:flex;align-items:center;gap:8px;justify-content:space-between}
 .ecard .t{font-weight:700;font-size:16px}
 .ecard .l2{font-size:14px;color:var(--mt);margin-top:4px}
+.ecard .np{font-size:17px;color:var(--tx)}
+.pedido{display:flex;align-items:baseline;justify-content:space-between;gap:10px;margin:14px 0 2px}
+.pedido b{font-size:20px}
+.pedido span{font-size:14px;color:var(--mt)}
 .ecard .l3{font-size:13px;color:var(--mts);margin-top:6px}
 .chip{display:inline-block;font-size:12px;font-weight:600;padding:4px 9px;border-radius:999px;white-space:nowrap}
 .st-RASCUNHO{background:var(--s3);color:var(--mt)}
@@ -372,10 +376,21 @@ async function digito(n){
 
 // ── INÍCIO (lista de envios) ──
 async function carregarLista(){
-  try { const j=await api('listar'); ESTADO.lista=j.envios; } catch(e){ toast(e.message); }
+  try { const j=await api('listar'); ESTADO.lista=numerar(j.envios); } catch(e){ toast(e.message); }
   if(rota().tela==='inicio') pintar();
 }
+// número do pedido (#01, #02...). Envios antigos sem número: posição no dia, do mais novo pro mais velho.
+function numerar(lista){
+  const dia=new Map();
+  [...lista].sort((a,b)=>b.criado-a.criado).forEach(e=>{ const k=dataCurta(e.criado); const n=(dia.get(k)||0)+1; dia.set(k,n); e.num=e.ordem||n; });
+  return lista;
+}
+function nPedido(n){ return '#'+String(n||1).padStart(2,'0')+' Pedido'; }
 function cartao(e){
+  if(S.user==='ana'){ // a Ana vê só a ordem do pedido e a data, sem total de peças
+    return '<button class="ecard" onclick="location.hash=\'#/e/'+e.id+'\'"><div class="l1"><span class="t">'+esc(e.titulo)+'</span>'+chip(e.status)+'</div>'+
+      '<div class="l2"><b class="np">'+nPedido(e.num)+'</b></div><div class="l3">Solicitado em '+dataCurta(e.criado)+'</div></button>';
+  }
   const linhas=[];
   linhas.push(plural(e.codigos,'código','códigos')+' · '+e.ped+' pç pedidas');
   if(e.sep!=null) linhas.push('separou '+e.sep+' pç'+(e.faltas?' · '+plural(e.faltas,'falta','faltas'):''));
@@ -478,7 +493,7 @@ async function salvarNovo(aprovar){
   const separar=R.porCodigo!==false; // mesmo com 1 código só, o nome leva peça e código
   if(aprovar && !await modal('Mandar pra Ana?', (separar?esc(plural(grupos.length,'envio','envios'))+' (um por código), ':esc(plural(itens.length,'linha','linhas'))+', ')+pecas+' peças. A lista aparece no celular dela na hora.','Mandar','Voltar')) return;
   if(!separar){
-    try { const j=await api('criar',{titulo:base,itens,aprovar}); ESTADO.rascunho=null; ESTADO.lista=null; toast(aprovar?'Enviado pra Ana':'Rascunho salvo'); location.hash='#/e/'+j.envio.id; }
+    try { const j=await api('criar',{titulo:base,itens,aprovar,ordem:1}); ESTADO.rascunho=null; ESTADO.lista=null; toast(aprovar?'Enviado pra Ana':'Rascunho salvo'); location.hash='#/e/'+j.envio.id; }
     catch(e){ toast(e.message); }
     return;
   }
@@ -489,7 +504,7 @@ async function salvarNovo(aprovar){
     for(let k=grupos.length-1;k>=0;k--){
       const g=grupos[k];
       progresso('Salvando '+(grupos.length-k)+' de '+grupos.length+'...');
-      await api('criar',{titulo:base+' - '+(g.desc?g.desc+' ':'')+g.cod,itens:g.itens,aprovar});
+      await api('criar',{titulo:base+' - '+(g.desc?g.desc+' ':'')+g.cod,itens:g.itens,aprovar,ordem:k+1});
       feitos++;
       R.itens=R.itens.filter(i=>i.cod!==g.cod); // se cair no meio, o que falta continua na tela
     }
@@ -542,9 +557,10 @@ function estadoSep(it){ if(it.sep==null) return ''; if(it.sep===it.ped) return '
 function rotSep(it){ if(it.sep==null) return ''; if(it.sep===it.ped) return 'completo'; if(it.sep===0) return 'não tem'; return it.sep<it.ped?'faltou '+(it.ped-it.sep):(it.sep-it.ped)+' a mais'; }
 function telaSeparar(E){
   const pend=E.itens.filter(i=>i.sep==null).length, tot=E.itens.length;
-  const sep=E.itens.reduce((s,i)=>s+(i.sep||0),0);
   let itens=E.itens; if(ESTADO.filtro==='pend') itens=itens.filter(i=>i.sep==null);
+  const doLista=(ESTADO.lista||[]).find(x=>x.id===E.id);
   let h=topo(E.titulo,true,'<span class="save" id="salvo"></span>')+'<div class="wrap">';
+  h+='<div class="pedido"><b>'+nPedido(E.ordem||(doLista&&doLista.num))+'</b><span>Solicitado em '+dataCurta(E.criado)+'</span></div>';
   h+='<div class="filtro"><button class="tab '+(ESTADO.filtro==='todos'?'on':'')+'" onclick="filtro(\'todos\')">Tudo ('+tot+')</button><button class="tab '+(ESTADO.filtro==='pend'?'on':'')+'" onclick="filtro(\'pend\')" id="fpend">Falta separar ('+pend+')</button></div>';
   h+='<p class="mini" style="margin-bottom:12px">Digite quantas peças você separou. <b>✓</b> = separou tudo. <b>0</b> = não tem.</p>';
   if(!itens.length) h+='<div class="vazio"><b>Tudo separado</b>Confira e aperte "Terminei".</div>';
@@ -553,7 +569,7 @@ function telaSeparar(E){
       '<div class="lin '+estadoSep(it)+'" id="l-'+it.id+'"><div class="tm">'+esc(it.tam)+'</div><div class="pd">pediu <b>'+it.ped+'</b><small>'+rotSep(it)+'</small></div>'+
       '<input inputmode="numeric" pattern="[0-9]*" aria-label="Separado '+esc(it.cod+' '+it.cor+' '+it.tam)+'" value="'+(it.sep==null?'':it.sep)+'" onchange="digSep(\''+it.id+'\',this.value)">'+
       '<button class="qb ok" aria-label="Separou tudo" onclick="digSep(\''+it.id+'\','+it.ped+',true)">✓</button><button class="qb no" aria-label="Não tem" onclick="digSep(\''+it.id+'\',0,true)">0</button></div>').join('')+'</div>').join('')+'</div>').join('');
-  h+='</div><div class="bar"><div class="wrap"><div class="pr"><b>'+(tot-pend)+' de '+tot+' linhas</b>'+sep+' de '+E.itens.reduce((s,i)=>s+i.ped,0)+' peças</div><button class="btn" onclick="fimSep()">Terminei</button></div></div>';
+  h+='</div><div class="bar"><div class="wrap"><div class="pr"><b>'+(tot-pend)+' de '+tot+' linhas</b>separadas</div><button class="btn" onclick="fimSep()">Terminei</button></div></div>';
   return h;
 }
 function filtro(f){ ESTADO.filtro=f; pintar(); }
@@ -571,7 +587,7 @@ function atualizaLinha(it,campo){
   else { el.className='lin '+estadoRec(it); el.querySelector('small').textContent=rotRec(it); el.querySelector('input').value=it.rec==null?'':it.rec; }
   const E=ESTADO.envio; const bar=document.querySelector('.bar .pr'); const fp=document.getElementById('fpend');
   if(fp) fp.textContent=campo==='sep'?'Falta separar ('+E.itens.filter(i=>i.sep==null).length+')':'Falta conferir ('+visRec(E).filter(i=>i.rec==null).length+')';
-  if(bar && campo==='sep'){ const pend=E.itens.filter(i=>i.sep==null).length; bar.innerHTML='<b>'+(E.itens.length-pend)+' de '+E.itens.length+' linhas</b>'+E.itens.reduce((s,i)=>s+(i.sep||0),0)+' de '+E.itens.reduce((s,i)=>s+i.ped,0)+' peças'; }
+  if(bar && campo==='sep'){ const pend=E.itens.filter(i=>i.sep==null).length; bar.innerHTML='<b>'+(E.itens.length-pend)+' de '+E.itens.length+' linhas</b>separadas'; }
   if(bar && campo==='rec'){ const vis=visRec(E); const pend=vis.filter(i=>i.rec==null).length; bar.innerHTML='<b>'+(vis.length-pend)+' de '+vis.length+' conferidas</b>'+vis.reduce((s,i)=>s+(i.rec||0),0)+' de '+vis.reduce((s,i)=>s+(i.sep||0),0)+' peças'; }
 }
 async function fimSep(){
@@ -579,7 +595,7 @@ async function fimSep(){
   const faltas=E.itens.filter(i=>i.sep!=null&&i.sep<i.ped).length;
   let txt='';
   if(pend) txt+='<b>'+plural(pend,'linha está','linhas estão')+' sem número</b> e '+(pend===1?'vai':'vão')+' contar como NÃO TEM.<br><br>';
-  txt+='Separado: '+E.itens.reduce((s,i)=>s+(i.sep||0),0)+' peças.'+(faltas?' '+plural(faltas,'linha','linhas')+' com falta.':'')+' A lista vai pra Dai fazer a transferência.';
+  txt+=(faltas?plural(faltas,'linha','linhas')+' com falta. ':'')+'A lista vai pra Dai fazer a transferência.';
   if(!await modal('Terminou a separação?',txt,'Terminei','Voltar')) return;
   if(!await esperarFila()){ toast('Sem internet. Espere salvar e tente de novo.'); return; }
   try { await api('fimSeparacao',{id:E.id}); toast('Pronto! Foi pra Dai.'); ESTADO.lista=null; location.hash=''; } catch(e){ toast(e.message); }
