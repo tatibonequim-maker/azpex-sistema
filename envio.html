@@ -56,6 +56,10 @@ h2{font-size:13px;font-weight:600;color:var(--mt);text-transform:uppercase;lette
 .ecard .l1{display:flex;align-items:center;gap:8px;justify-content:space-between}
 .ecard .t{font-weight:700;font-size:16px}
 .ecard .l2{font-size:14px;color:var(--mt);margin-top:4px}
+.ecard .np{font-size:17px;color:var(--tx)}
+.pedido{display:flex;align-items:baseline;justify-content:space-between;gap:10px;margin:14px 0 2px}
+.pedido b{font-size:20px}
+.pedido span{font-size:14px;color:var(--mt)}
 .ecard .l3{font-size:13px;color:var(--mts);margin-top:6px}
 .chip{display:inline-block;font-size:12px;font-weight:600;padding:4px 9px;border-radius:999px;white-space:nowrap}
 .st-RASCUNHO{background:var(--s3);color:var(--mt)}
@@ -205,6 +209,35 @@ h2{font-size:13px;font-weight:600;color:var(--mt);text-transform:uppercase;lette
 .mod .bts .btn{flex:1}
 .toast{position:fixed;left:50%;bottom:calc(96px + env(safe-area-inset-bottom));transform:translateX(-50%);background:var(--tx);color:#fff;padding:10px 16px;border-radius:12px;font-size:14px;z-index:60;max-width:90vw}
 .carreg{padding:40px 0;text-align:center;color:var(--mt)}
+
+/* filtro por etapa: botões no celular, colunas no computador */
+.fchips{display:flex;gap:6px;overflow-x:auto;margin:12px -16px 0;padding:2px 16px 4px;scrollbar-width:none}
+.fchips::-webkit-scrollbar{display:none}
+.fchip{display:flex;align-items:center;gap:6px;padding:8px 12px;border-radius:999px;border:1.5px solid var(--bd2);background:var(--sf);font-size:14px;font-weight:600;white-space:nowrap;color:var(--mt)}
+.fchip .n{min-width:22px;padding:1px 7px;border-radius:999px;font-size:12px;text-align:center}
+.fchip .n.z{background:var(--s2);color:var(--mts)}
+.fchip.on{background:var(--pri);border-color:var(--pri);color:var(--prit)}
+.mais{display:block;width:100%;padding:12px;margin:4px 0 10px;border-radius:12px;border:1.5px dashed var(--bd2);color:var(--mt);font-size:14px;font-weight:600}
+.so-pc{display:none}
+.quadro{grid-auto-flow:column;grid-auto-columns:minmax(230px,1fr);gap:12px;overflow-x:auto;align-items:start;margin:18px 0 0;padding-bottom:8px}
+.col{background:var(--s2);border-radius:var(--r);padding:10px 8px 2px;min-width:0}
+.col.minha{background:var(--avw);box-shadow:inset 0 0 0 2px var(--avb)}
+.col-h{display:flex;align-items:center;justify-content:space-between;gap:6px;margin:0 4px 10px}
+.col-h b{font-size:14px}
+.col-h small{display:block;font-size:12px;color:var(--mts);font-weight:500}
+.col .cards{max-height:calc(100vh - 230px);overflow-y:auto;padding:0 2px}
+.col .ecard{padding:12px;margin-bottom:8px}
+.col .ecard .t{font-size:14px}
+.col .ecard .l1{flex-direction:column;align-items:flex-start;gap:6px}
+.col .ecard .l2{font-size:13px}
+.col .ecard .l3{font-size:12px}
+.col .ecard .np{font-size:15px}
+.col .vz{font-size:13px;color:var(--mts);text-align:center;padding:18px 6px 20px}
+@media(min-width:900px){
+  .pg-inicio .wrap{max-width:1500px}
+  .so-cel{display:none}
+  .so-pc{display:grid}
+}
 </style>
 </head>
 <body>
@@ -232,6 +265,16 @@ const ETAPA = {
 };
 const ORDEM = ['RASCUNHO','SEPARAR','TRANSFERIR','RECEBER','CONCLUIDO'];
 const MINHAS = { ana:['SEPARAR'], dai:['TRANSFERIR','DIVERGENCIA'], gi:['RECEBER','CORRIGIDO'] };
+// grupos da tela inicial (botões no celular, colunas no computador)
+const GRUPOS = [
+  {k:'aprovar', l:'Aprovar', st:['RASCUNHO'], quem:'Taty', so:'taty'},
+  {k:'separando', l:'Separando', st:['SEPARAR'], quem:'Ana'},
+  {k:'transferir', l:'Transferir', st:['TRANSFERIR'], quem:'Dai'},
+  {k:'naloja', l:'Na loja', st:['RECEBER'], quem:'Gi'},
+  {k:'divergencia', l:'Divergência', st:['DIVERGENCIA','CORRIGIDO'], quem:'Dai e Gi'},
+  {k:'concluidos', l:'Concluídos', st:['CONCLUIDO'], quem:'últimos 7 dias'},
+];
+const DIAS_CONCL = 7;
 
 // ── utilidades ──
 const $ = (s) => document.querySelector(s);
@@ -372,15 +415,27 @@ async function digito(n){
 
 // ── INÍCIO (lista de envios) ──
 async function carregarLista(){
-  try { const j=await api('listar'); ESTADO.lista=j.envios; } catch(e){ toast(e.message); }
+  try { const j=await api('listar'); ESTADO.lista=numerar(j.envios); } catch(e){ toast(e.message); }
   if(rota().tela==='inicio') pintar();
 }
-function cartao(e){
+// número do pedido (#01, #02...). Envios antigos sem número: posição no dia, do mais novo pro mais velho.
+function numerar(lista){
+  const dia=new Map();
+  [...lista].sort((a,b)=>b.criado-a.criado).forEach(e=>{ const k=dataCurta(e.criado); const n=(dia.get(k)||0)+1; dia.set(k,n); e.num=e.ordem||n; });
+  return lista;
+}
+function nPedido(n){ return '#'+String(n||1).padStart(2,'0')+' Pedido'; }
+function cartao(e, semChip){
+  const ch=semChip?'':chip(e.status);
+  if(S.user==='ana'){ // a Ana vê só a ordem do pedido e a data, sem total de peças
+    return '<button class="ecard" onclick="location.hash=\'#/e/'+e.id+'\'"><div class="l1"><span class="t">'+esc(e.titulo)+'</span>'+ch+'</div>'+
+      '<div class="l2"><b class="np">'+nPedido(e.num)+'</b></div><div class="l3">Solicitado em '+dataCurta(e.criado)+'</div></button>';
+  }
   const linhas=[];
   linhas.push(plural(e.codigos,'código','códigos')+' · '+e.ped+' pç pedidas');
   if(e.sep!=null) linhas.push('separou '+e.sep+' pç'+(e.faltas?' · '+plural(e.faltas,'falta','faltas'):''));
   if(e.rec!=null) linhas.push('loja recebeu '+e.rec+' pç'+(e.div?' · '+plural(e.div,'diferença','diferenças'):''));
-  return '<button class="ecard" onclick="location.hash=\'#/e/'+e.id+'\'"><div class="l1"><span class="t">'+esc(e.titulo)+'</span>'+chip(e.status)+'</div>'+
+  return '<button class="ecard" onclick="location.hash=\'#/e/'+e.id+'\'"><div class="l1"><span class="t">'+esc(e.titulo)+'</span>'+ch+'</div>'+
     '<div class="l2">'+linhas.map(esc).join('<br>')+'</div>'+(e.transf?'<div class="tcard">Transferência Nº <b>'+esc(e.transf)+'</b></div>':'')+'<div class="l3">criado '+hora(e.criado)+(ETAPA[e.status].quem?' · agora com '+ETAPA[e.status].quem:'')+'</div></button>';
 }
 function telaInicio(){
@@ -392,18 +447,66 @@ function telaInicio(){
     h+='<div class="tabs"><button class="tab on">Envios</button><button class="tab" onclick="location.hash=\'#/novo\'">+ Novo envio</button><button class="tab" onclick="location.hash=\'#/faltas\'">Faltas'+(nf?'<span class="n">'+nf+'</span>':'')+'</button></div>';
   }
   if(!L){ return h+'<div class="carreg">carregando...</div></div>'; }
-  if(S.user==='taty'){
-    const and=L.filter(e=>e.status!=='CONCLUIDO'), fim=L.filter(e=>e.status==='CONCLUIDO');
-    h+='<h2>Em andamento</h2>'+(and.length?and.map(cartao).join(''):'<div class="vazio"><b>Nenhum envio rodando</b>Cole o envio do dia em "Novo envio".</div>');
-    if(fim.length) h+='<h2>Concluídos</h2>'+fim.slice(0,20).map(cartao).join('');
-  } else {
-    const meus=L.filter(e=>(MINHAS[S.user]||[]).includes(e.status));
-    const txt={ana:'separar',dai:'transferir ou corrigir',gi:'conferir'}[S.user];
-    h+='<h2>Pra você '+txt+'</h2>'+(meus.length?meus.map(cartao).join(''):'<div class="vazio"><b>Nada por agora</b>Quando chegar um envio pra você, ele aparece aqui.</div>');
-    const outros=L.filter(e=>!meus.includes(e)&&e.status!=='RASCUNHO').slice(0,8);
-    if(outros.length) h+='<h2>Últimos envios</h2>'+outros.map(cartao).join('');
+  return h+filtroEtapas(L)+'</div>';
+}
+
+// ── filtro por etapa ──
+function gruposVisiveis(){ return GRUPOS.filter(g=>!g.so||g.so===S.user); }
+function doGrupo(L,g){
+  let l=L.filter(e=>g.st.includes(e.status));
+  if(g.k==='concluidos'){
+    l.sort((a,b)=>(b.atualizado||b.criado)-(a.atualizado||a.criado));
+    if(!ESTADO.verAntigos){ const lim=Date.now()-DIAS_CONCL*864e5; l=l.filter(e=>(e.atualizado||e.criado)>=lim); }
   }
-  return h+'</div>';
+  return l;
+}
+function filtroAtual(){
+  const salvo=ls.get('envio_etapa_'+S.user);
+  const ok=['todos','voce',...gruposVisiveis().map(g=>g.k)];
+  if(salvo&&ok.includes(salvo)&&!(salvo==='voce'&&S.user==='taty')) return salvo;
+  return S.user==='taty'?'todos':'voce';
+}
+function escolherEtapa(k){ ls.set('envio_etapa_'+S.user,k); pintar(); window.scrollTo(0,0); }
+function verAntigos(){ ESTADO.verAntigos=true; pintar(); }
+function nChip(n){ return '<span class="n'+(n?'':' z')+'">'+n+'</span>'; }
+function filtroEtapas(L){
+  if(S.user!=='taty') L=L.filter(e=>e.status!=='RASCUNHO');
+  const G=gruposVisiveis(), f=filtroAtual();
+  const meus=MINHAS[S.user]||[];
+  const pend=L.filter(e=>e.status!=='CONCLUIDO');
+  const cnt={}; G.forEach(g=>cnt[g.k]=doGrupo(L,g).length);
+  // celular: botões no topo
+  let h='<div class="so-cel"><div class="fchips" id="fchips">';
+  if(S.user!=='taty'){ const nv=L.filter(e=>meus.includes(e.status)).length; h+='<button class="fchip'+(f==='voce'?' on':'')+'" onclick="escolherEtapa(\'voce\')">Pra você '+nChip(nv)+'</button>'; }
+  h+='<button class="fchip'+(f==='todos'?' on':'')+'" onclick="escolherEtapa(\'todos\')">Todos '+nChip(pend.length)+'</button>';
+  G.forEach(g=>{ h+='<button class="fchip'+(f===g.k?' on':'')+'" onclick="escolherEtapa(\''+g.k+'\')">'+g.l+' '+(cnt[g.k]?'<span class="n st-'+g.st[0]+'">'+cnt[g.k]+'</span>':nChip(0))+'</button>'; });
+  h+='</div>';
+  if(f==='todos'){
+    let algum=false;
+    G.filter(g=>g.k!=='concluidos').forEach(g=>{ const l=doGrupo(L,g); if(!l.length) return; algum=true; h+='<h2>'+g.l+' ('+l.length+')</h2>'+l.map(e=>cartao(e)).join(''); });
+    if(!algum) h+='<div class="vazio" style="margin-top:18px"><b>Nenhum envio rodando</b>'+(S.user==='taty'?'Cole o envio do dia em "Novo envio".':'Quando chegar um envio, ele aparece aqui.')+'</div>';
+  } else if(f==='voce'){
+    const l=L.filter(e=>meus.includes(e.status));
+    const txt={ana:'separar',dai:'transferir ou corrigir',gi:'conferir'}[S.user];
+    h+='<h2>Pra você '+txt+'</h2>'+(l.length?l.map(e=>cartao(e)).join(''):'<div class="vazio"><b>Nada por agora</b>Quando chegar um envio pra você, ele aparece aqui.</div>');
+  } else {
+    const g=G.find(x=>x.k===f), l=doGrupo(L,g);
+    h+='<h2>'+g.l+(g.k==='concluidos'?(ESTADO.verAntigos?'':' nos últimos '+DIAS_CONCL+' dias'):' · agora com '+g.quem)+'</h2>';
+    h+=l.length?l.map(e=>cartao(e,g.st.length===1)).join(''):'<div class="vazio"><b>Nenhum envio aqui</b>Toque em outra etapa lá em cima.</div>';
+    if(g.k==='concluidos'&&!ESTADO.verAntigos&&L.some(e=>e.status==='CONCLUIDO')) h+='<button class="mais" onclick="verAntigos()">Ver concluídos mais antigos</button>';
+  }
+  h+='</div>';
+  // computador: uma coluna por etapa
+  h+='<div class="so-pc quadro">';
+  G.forEach(g=>{
+    const l=doGrupo(L,g), minha=g.st.some(st=>meus.includes(st));
+    h+='<section class="col'+(minha?' minha':'')+'"><div class="col-h"><div><b>'+g.l+'</b><small>'+(minha?'pra você':esc(g.quem))+'</small></div>'+(l.length?'<span class="chip st-'+g.st[0]+'">'+l.length+'</span>':'<span class="chip st-RASCUNHO">0</span>')+'</div><div class="cards">';
+    h+=l.length?l.map(e=>cartao(e,g.st.length===1)).join(''):'<div class="vz">Nenhum envio</div>';
+    if(g.k==='concluidos'&&!ESTADO.verAntigos&&L.some(e=>e.status==='CONCLUIDO')) h+='<button class="mais" onclick="verAntigos()">Ver mais antigos</button>';
+    h+='</div></section>';
+  });
+  h+='</div>';
+  return h;
 }
 
 // ── NOVO ENVIO (Taty) ──
@@ -478,7 +581,7 @@ async function salvarNovo(aprovar){
   const separar=R.porCodigo!==false; // mesmo com 1 código só, o nome leva peça e código
   if(aprovar && !await modal('Mandar pra Ana?', (separar?esc(plural(grupos.length,'envio','envios'))+' (um por código), ':esc(plural(itens.length,'linha','linhas'))+', ')+pecas+' peças. A lista aparece no celular dela na hora.','Mandar','Voltar')) return;
   if(!separar){
-    try { const j=await api('criar',{titulo:base,itens,aprovar}); ESTADO.rascunho=null; ESTADO.lista=null; toast(aprovar?'Enviado pra Ana':'Rascunho salvo'); location.hash='#/e/'+j.envio.id; }
+    try { const j=await api('criar',{titulo:base,itens,aprovar,ordem:1}); ESTADO.rascunho=null; ESTADO.lista=null; toast(aprovar?'Enviado pra Ana':'Rascunho salvo'); location.hash='#/e/'+j.envio.id; }
     catch(e){ toast(e.message); }
     return;
   }
@@ -489,7 +592,7 @@ async function salvarNovo(aprovar){
     for(let k=grupos.length-1;k>=0;k--){
       const g=grupos[k];
       progresso('Salvando '+(grupos.length-k)+' de '+grupos.length+'...');
-      await api('criar',{titulo:base+' - '+(g.desc?g.desc+' ':'')+g.cod,itens:g.itens,aprovar});
+      await api('criar',{titulo:base+' - '+(g.desc?g.desc+' ':'')+g.cod,itens:g.itens,aprovar,ordem:k+1});
       feitos++;
       R.itens=R.itens.filter(i=>i.cod!==g.cod); // se cair no meio, o que falta continua na tela
     }
@@ -542,9 +645,10 @@ function estadoSep(it){ if(it.sep==null) return ''; if(it.sep===it.ped) return '
 function rotSep(it){ if(it.sep==null) return ''; if(it.sep===it.ped) return 'completo'; if(it.sep===0) return 'não tem'; return it.sep<it.ped?'faltou '+(it.ped-it.sep):(it.sep-it.ped)+' a mais'; }
 function telaSeparar(E){
   const pend=E.itens.filter(i=>i.sep==null).length, tot=E.itens.length;
-  const sep=E.itens.reduce((s,i)=>s+(i.sep||0),0);
   let itens=E.itens; if(ESTADO.filtro==='pend') itens=itens.filter(i=>i.sep==null);
+  const doLista=(ESTADO.lista||[]).find(x=>x.id===E.id);
   let h=topo(E.titulo,true,'<span class="save" id="salvo"></span>')+'<div class="wrap">';
+  h+='<div class="pedido"><b>'+nPedido(E.ordem||(doLista&&doLista.num))+'</b><span>Solicitado em '+dataCurta(E.criado)+'</span></div>';
   h+='<div class="filtro"><button class="tab '+(ESTADO.filtro==='todos'?'on':'')+'" onclick="filtro(\'todos\')">Tudo ('+tot+')</button><button class="tab '+(ESTADO.filtro==='pend'?'on':'')+'" onclick="filtro(\'pend\')" id="fpend">Falta separar ('+pend+')</button></div>';
   h+='<p class="mini" style="margin-bottom:12px">Digite quantas peças você separou. <b>✓</b> = separou tudo. <b>0</b> = não tem.</p>';
   if(!itens.length) h+='<div class="vazio"><b>Tudo separado</b>Confira e aperte "Terminei".</div>';
@@ -553,7 +657,7 @@ function telaSeparar(E){
       '<div class="lin '+estadoSep(it)+'" id="l-'+it.id+'"><div class="tm">'+esc(it.tam)+'</div><div class="pd">pediu <b>'+it.ped+'</b><small>'+rotSep(it)+'</small></div>'+
       '<input inputmode="numeric" pattern="[0-9]*" aria-label="Separado '+esc(it.cod+' '+it.cor+' '+it.tam)+'" value="'+(it.sep==null?'':it.sep)+'" onchange="digSep(\''+it.id+'\',this.value)">'+
       '<button class="qb ok" aria-label="Separou tudo" onclick="digSep(\''+it.id+'\','+it.ped+',true)">✓</button><button class="qb no" aria-label="Não tem" onclick="digSep(\''+it.id+'\',0,true)">0</button></div>').join('')+'</div>').join('')+'</div>').join('');
-  h+='</div><div class="bar"><div class="wrap"><div class="pr"><b>'+(tot-pend)+' de '+tot+' linhas</b>'+sep+' de '+E.itens.reduce((s,i)=>s+i.ped,0)+' peças</div><button class="btn" onclick="fimSep()">Terminei</button></div></div>';
+  h+='</div><div class="bar"><div class="wrap"><div class="pr"><b>'+(tot-pend)+' de '+tot+' linhas</b>separadas</div><button class="btn" onclick="fimSep()">Terminei</button></div></div>';
   return h;
 }
 function filtro(f){ ESTADO.filtro=f; pintar(); }
@@ -571,7 +675,7 @@ function atualizaLinha(it,campo){
   else { el.className='lin '+estadoRec(it); el.querySelector('small').textContent=rotRec(it); el.querySelector('input').value=it.rec==null?'':it.rec; }
   const E=ESTADO.envio; const bar=document.querySelector('.bar .pr'); const fp=document.getElementById('fpend');
   if(fp) fp.textContent=campo==='sep'?'Falta separar ('+E.itens.filter(i=>i.sep==null).length+')':'Falta conferir ('+visRec(E).filter(i=>i.rec==null).length+')';
-  if(bar && campo==='sep'){ const pend=E.itens.filter(i=>i.sep==null).length; bar.innerHTML='<b>'+(E.itens.length-pend)+' de '+E.itens.length+' linhas</b>'+E.itens.reduce((s,i)=>s+(i.sep||0),0)+' de '+E.itens.reduce((s,i)=>s+i.ped,0)+' peças'; }
+  if(bar && campo==='sep'){ const pend=E.itens.filter(i=>i.sep==null).length; bar.innerHTML='<b>'+(E.itens.length-pend)+' de '+E.itens.length+' linhas</b>separadas'; }
   if(bar && campo==='rec'){ const vis=visRec(E); const pend=vis.filter(i=>i.rec==null).length; bar.innerHTML='<b>'+(vis.length-pend)+' de '+vis.length+' conferidas</b>'+vis.reduce((s,i)=>s+(i.rec||0),0)+' de '+vis.reduce((s,i)=>s+(i.sep||0),0)+' peças'; }
 }
 async function fimSep(){
@@ -579,7 +683,7 @@ async function fimSep(){
   const faltas=E.itens.filter(i=>i.sep!=null&&i.sep<i.ped).length;
   let txt='';
   if(pend) txt+='<b>'+plural(pend,'linha está','linhas estão')+' sem número</b> e '+(pend===1?'vai':'vão')+' contar como NÃO TEM.<br><br>';
-  txt+='Separado: '+E.itens.reduce((s,i)=>s+(i.sep||0),0)+' peças.'+(faltas?' '+plural(faltas,'linha','linhas')+' com falta.':'')+' A lista vai pra Dai fazer a transferência.';
+  txt+=(faltas?plural(faltas,'linha','linhas')+' com falta. ':'')+'A lista vai pra Dai fazer a transferência.';
   if(!await modal('Terminou a separação?',txt,'Terminei','Voltar')) return;
   if(!await esperarFila()){ toast('Sem internet. Espere salvar e tente de novo.'); return; }
   try { await api('fimSeparacao',{id:E.id}); toast('Pronto! Foi pra Dai.'); ESTADO.lista=null; location.hash=''; } catch(e){ toast(e.message); }
@@ -791,12 +895,21 @@ async function verif(envio,item,ok){
 function pintar(){
   const app=$('#app');
   const foco=document.activeElement&&document.activeElement.id;
-  if(!S){ app.innerHTML=telaLogin(); return; }
+  if(!S){ document.body.classList.remove('pg-inicio'); app.innerHTML=telaLogin(); return; }
   const r=rota();
+  const fc=$('#fchips'), sx=fc?fc.scrollLeft:0;
+  const sc=[...document.querySelectorAll('.col .cards')].map(c=>c.scrollTop);
   if(r.tela==='e' && r.id) app.innerHTML=telaEnvio(r.id);
   else if(r.tela==='novo' && S.user==='taty') app.innerHTML=telaNovo();
   else if(r.tela==='faltas' && S.user==='taty') app.innerHTML=telaFaltas();
   else app.innerHTML=telaInicio();
+  const ini=!(r.tela==='e'&&r.id)&&!(r.tela==='novo'&&S.user==='taty')&&!(r.tela==='faltas'&&S.user==='taty');
+  document.body.classList.toggle('pg-inicio',ini);
+  if(ini){
+    const f2=$('#fchips');
+    if(f2){ if(fc) f2.scrollLeft=sx; else { const on=f2.querySelector('.on'); if(on) f2.scrollLeft=Math.max(0,on.offsetLeft-16); } }
+    document.querySelectorAll('.col .cards').forEach((c,i)=>{ if(sc[i]) c.scrollTop=sc[i]; });
+  }
   marcaSalvo();
   if(foco&&document.getElementById(foco)&&foco!=='txt') document.getElementById(foco).focus();
 }

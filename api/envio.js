@@ -110,7 +110,7 @@ function marcar(d, user, status, nota) {
 
 function resumo(d) {
   const r = { id: d.id, titulo: d.titulo, status: d.status, criado: d.criado, atualizado: d.atualizado,
-    linhas: d.itens.length, codigos: new Set(d.itens.map((i) => i.cod)).size,
+    ordem: d.ordem || null, linhas: d.itens.length, codigos: new Set(d.itens.map((i) => i.cod)).size,
     ped: 0, sep: null, rec: null, faltas: 0, div: 0, nota: d.notaTransf || '', transf: d.notaTransf || '', hist: d.hist || [] };
   r.ped = d.itens.reduce((s, i) => s + i.ped, 0);
   if (d.itens.some((i) => i.sep != null)) {
@@ -156,6 +156,8 @@ const ACOES = {
     // sufixo aleatório: quando a lista vira um envio por código, vários são criados no mesmo instante
     const d = { id: 'e' + agora.toString(36) + Math.random().toString(36).slice(2, 6), titulo: txt(b.titulo, 80) || 'Envio', criado: agora,
       origem: txt(b.origem, 20) || 'manual', itens: limparItens(b.itens), hist: [] };
+    const ordem = Math.round(Number(b.ordem)); // posição do código na lista do dia (#01 = mais importante)
+    if (ordem >= 1 && ordem <= 999) d.ordem = ordem;
     marcar(d, user, b.aprovar ? 'SEPARAR' : 'RASCUNHO');
     await gravarDoc(d);
     return { envio: d, resumo: resumo(d) };
