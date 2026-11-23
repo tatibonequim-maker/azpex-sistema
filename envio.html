@@ -209,6 +209,16 @@ h2{font-size:13px;font-weight:600;color:var(--mt);text-transform:uppercase;lette
 .mod .bts .btn{flex:1}
 .toast{position:fixed;left:50%;bottom:calc(96px + env(safe-area-inset-bottom));transform:translateX(-50%);background:var(--tx);color:#fff;padding:10px 16px;border-radius:12px;font-size:14px;z-index:60;max-width:90vw}
 .carreg{padding:40px 0;text-align:center;color:var(--mt)}
+/* urgência */
+.urg{display:inline-block;font-size:11px;font-weight:700;letter-spacing:.05em;padding:3px 8px;border-radius:6px;background:#B42318;color:#fff;vertical-align:middle}
+.ecard.u{border:2px solid #B42318;box-shadow:inset 4px 0 0 #B42318}
+.ecard .urg{margin-bottom:6px}
+.urg-b{display:flex;align-items:center;gap:10px;margin:14px 0 4px;padding:10px 14px;border-radius:12px;background:#FEF3F2;border:2px solid #B42318;color:#B42318;font-weight:700}
+.urg-b .urg{font-size:13px}
+.btn-urg{display:block;width:100%;margin:14px 0 4px;padding:12px;border-radius:12px;border:2px solid #B42318;background:var(--sf);color:#B42318;font-weight:700;font-size:15px}
+.btn-urg.on{border-color:var(--bd2);color:var(--mt)}
+.chk.u{color:#B42318;font-weight:700}
+.chk.u input{accent-color:#B42318}
 
 /* filtro por etapa: botões no celular, colunas no computador */
 .fchips{display:flex;gap:6px;overflow-x:auto;margin:12px -16px 0;padding:2px 16px 4px;scrollbar-width:none}
@@ -289,6 +299,15 @@ function hora(ms){ const d=new Date(ms); return dataCurta(ms)+' '+String(d.getHo
 function progresso(msg){ let t=document.getElementById('prog'); if(!msg){ if(t) t.remove(); return; } if(!t){ t=document.createElement('div'); t.id='prog'; t.className='toast'; document.body.appendChild(t); } t.textContent=msg; }
 function toast(msg){ const t=document.createElement('div'); t.className='toast'; t.textContent=msg; document.body.appendChild(t); setTimeout(()=>t.remove(),2600); }
 function chip(st){ return '<span class="chip st-'+st+'">'+esc(ETAPA[st]?.l||st)+'</span>'; }
+const RE_URG=/URGENTE|DAR PRIORIDADE/i;
+function ehUrg(e){ return e.urgente==null ? RE_URG.test(e.titulo||'') : !!e.urgente; }
+function selo(){ return '<span class="urg">URGENTE</span>'; }
+function faixaUrg(E){ return ehUrg(E)?'<div class="urg-b">'+selo()+'<span>Este envio é urgente: vai primeiro</span></div>':''; }
+// urgentes primeiro; dentro de cada nível, o dia mais antigo primeiro e, no mesmo dia, pela ordem do pedido (#01, #02...)
+function ordenar(l){
+  const dia=ms=>{ const d=new Date(ms); return d.getFullYear()*1e4+d.getMonth()*100+d.getDate(); };
+  return [...l].sort((a,b)=>(ehUrg(b)-ehUrg(a))||(dia(a.criado)-dia(b.criado))||((a.num||a.ordem||999)-(b.num||b.ordem||999))||(a.criado-b.criado));
+}
 function plural(n,s,p){ return n+' '+(n===1?s:p); }
 
 function modal(titulo, texto, sim, nao, perigo){
@@ -427,15 +446,16 @@ function numerar(lista){
 function nPedido(n){ return '#'+String(n||1).padStart(2,'0')+' Pedido'; }
 function cartao(e, semChip){
   const ch=semChip?'':chip(e.status);
+  const u=ehUrg(e), uc=u?' u':'', us=u?selo()+'<br>':'';
   if(S.user==='ana'){ // a Ana vê só a ordem do pedido e a data, sem total de peças
-    return '<button class="ecard" onclick="location.hash=\'#/e/'+e.id+'\'"><div class="l1"><span class="t">'+esc(e.titulo)+'</span>'+ch+'</div>'+
+    return '<button class="ecard'+uc+'" onclick="location.hash=\'#/e/'+e.id+'\'"><div class="l1"><span class="t">'+us+esc(e.titulo)+'</span>'+ch+'</div>'+
       '<div class="l2"><b class="np">'+nPedido(e.num)+'</b></div><div class="l3">Solicitado em '+dataCurta(e.criado)+'</div></button>';
   }
   const linhas=[];
   linhas.push(plural(e.codigos,'código','códigos')+' · '+e.ped+' pç pedidas');
   if(e.sep!=null) linhas.push('separou '+e.sep+' pç'+(e.faltas?' · '+plural(e.faltas,'falta','faltas'):''));
   if(e.rec!=null) linhas.push('loja recebeu '+e.rec+' pç'+(e.div?' · '+plural(e.div,'diferença','diferenças'):''));
-  return '<button class="ecard" onclick="location.hash=\'#/e/'+e.id+'\'"><div class="l1"><span class="t">'+esc(e.titulo)+'</span>'+ch+'</div>'+
+  return '<button class="ecard'+uc+'" onclick="location.hash=\'#/e/'+e.id+'\'"><div class="l1"><span class="t">'+us+esc(e.titulo)+'</span>'+ch+'</div>'+
     '<div class="l2">'+linhas.map(esc).join('<br>')+'</div>'+(e.transf?'<div class="tcard">Transferência Nº <b>'+esc(e.transf)+'</b></div>':'')+'<div class="l3">criado '+hora(e.criado)+(ETAPA[e.status].quem?' · agora com '+ETAPA[e.status].quem:'')+'</div></button>';
 }
 function telaInicio(){
@@ -453,7 +473,7 @@ function telaInicio(){
 // ── filtro por etapa ──
 function gruposVisiveis(){ return GRUPOS.filter(g=>!g.so||g.so===S.user); }
 function doGrupo(L,g){
-  let l=L.filter(e=>g.st.includes(e.status));
+  let l=ordenar(L.filter(e=>g.st.includes(e.status)));
   if(g.k==='concluidos'){
     l.sort((a,b)=>(b.atualizado||b.criado)-(a.atualizado||a.criado));
     if(!ESTADO.verAntigos){ const lim=Date.now()-DIAS_CONCL*864e5; l=l.filter(e=>(e.atualizado||e.criado)>=lim); }
@@ -479,14 +499,14 @@ function filtroEtapas(L){
   let h='<div class="so-cel"><div class="fchips" id="fchips">';
   if(S.user!=='taty'){ const nv=L.filter(e=>meus.includes(e.status)).length; h+='<button class="fchip'+(f==='voce'?' on':'')+'" onclick="escolherEtapa(\'voce\')">Pra você '+nChip(nv)+'</button>'; }
   h+='<button class="fchip'+(f==='todos'?' on':'')+'" onclick="escolherEtapa(\'todos\')">Todos '+nChip(pend.length)+'</button>';
-  G.forEach(g=>{ h+='<button class="fchip'+(f===g.k?' on':'')+'" onclick="escolherEtapa(\''+g.k+'\')">'+g.l+' '+(cnt[g.k]?'<span class="n st-'+g.st[0]+'">'+cnt[g.k]+'</span>':nChip(0))+'</button>'; });
+  G.forEach(g=>{ const nu=g.k==='concluidos'?0:doGrupo(L,g).filter(ehUrg).length; h+='<button class="fchip'+(f===g.k?' on':'')+'" onclick="escolherEtapa(\''+g.k+'\')">'+g.l+' '+(nu?'<span class="n" style="background:#B42318;color:#fff">'+nu+'!</span>':'')+(cnt[g.k]?'<span class="n st-'+g.st[0]+'">'+cnt[g.k]+'</span>':nChip(0))+'</button>'; });
   h+='</div>';
   if(f==='todos'){
     let algum=false;
     G.filter(g=>g.k!=='concluidos').forEach(g=>{ const l=doGrupo(L,g); if(!l.length) return; algum=true; h+='<h2>'+g.l+' ('+l.length+')</h2>'+l.map(e=>cartao(e)).join(''); });
     if(!algum) h+='<div class="vazio" style="margin-top:18px"><b>Nenhum envio rodando</b>'+(S.user==='taty'?'Cole o envio do dia em "Novo envio".':'Quando chegar um envio, ele aparece aqui.')+'</div>';
   } else if(f==='voce'){
-    const l=L.filter(e=>meus.includes(e.status));
+    const l=ordenar(L.filter(e=>meus.includes(e.status)));
     const txt={ana:'separar',dai:'transferir ou corrigir',gi:'conferir'}[S.user];
     h+='<h2>Pra você '+txt+'</h2>'+(l.length?l.map(e=>cartao(e)).join(''):'<div class="vazio"><b>Nada por agora</b>Quando chegar um envio pra você, ele aparece aqui.</div>');
   } else {
@@ -523,6 +543,8 @@ function telaNovo(){
     if(R.porCodigo==null) R.porCodigo=true;
     const ncod=new Set(R.itens.filter(i=>i.ped>0).map(i=>i.cod)).size;
     h+='<label class="campo"><span>Nome do envio</span><input id="titulo" value="'+esc(baseTitulo(R.titulo))+'" oninput="ESTADO.rascunho.titulo=this.value"></label>';
+    if(R.urgente==null) R.urgente=RE_URG.test(R.titulo||'')||RE_URG.test(R.texto||'');
+    h+='<label class="chk'+(R.urgente?' u':'')+'"><input type="checkbox" '+(R.urgente?'checked':'')+' onchange="ESTADO.rascunho.urgente=this.checked;pintar()"> URGENTE (vai primeiro na fila da Ana)</label>';
     h+='<label class="chk"><input type="checkbox" '+(R.porCodigo?'checked':'')+' onchange="ESTADO.rascunho.porCodigo=this.checked;pintar()"> Separar um envio por código'+(R.porCodigo?' ('+plural(ncod,'envio','envios')+')':'')+'</label>';
     if(R.porCodigo) h+='<div class="mini" style="margin:-4px 0 10px">Cada código vira um envio com o nome "'+esc(baseTitulo(R.titulo))+' - NOME DA PEÇA CÓDIGO".</div>';
     h+='<h2>Conferir: '+plural(R.itens.length,'linha','linhas')+' · '+tot+' peças</h2>';
@@ -547,6 +569,7 @@ function lerColado(){
   const r=lerTexto(R.texto);
   r.itens.forEach(n=>{ const ja=R.itens.find(i=>i.cod===n.cod&&i.cor===n.cor&&i.tam===n.tam); if(ja) ja.ped=n.ped; else R.itens.push(n); });
   if(r.titulo) R.titulo=r.titulo;
+  if(RE_URG.test(R.texto)) R.urgente=true;
   R.erros=r.erros;
   if(!r.itens.length && !r.erros.length) R.erros=['Não achei nenhum item no texto'];
   pintar();
@@ -581,7 +604,7 @@ async function salvarNovo(aprovar){
   const separar=R.porCodigo!==false; // mesmo com 1 código só, o nome leva peça e código
   if(aprovar && !await modal('Mandar pra Ana?', (separar?esc(plural(grupos.length,'envio','envios'))+' (um por código), ':esc(plural(itens.length,'linha','linhas'))+', ')+pecas+' peças. A lista aparece no celular dela na hora.','Mandar','Voltar')) return;
   if(!separar){
-    try { const j=await api('criar',{titulo:base,itens,aprovar,ordem:1}); ESTADO.rascunho=null; ESTADO.lista=null; toast(aprovar?'Enviado pra Ana':'Rascunho salvo'); location.hash='#/e/'+j.envio.id; }
+    try { const j=await api('criar',{titulo:base,itens,aprovar,ordem:1,urgente:!!R.urgente}); ESTADO.rascunho=null; ESTADO.lista=null; toast(aprovar?'Enviado pra Ana':'Rascunho salvo'); location.hash='#/e/'+j.envio.id; }
     catch(e){ toast(e.message); }
     return;
   }
@@ -592,7 +615,7 @@ async function salvarNovo(aprovar){
     for(let k=grupos.length-1;k>=0;k--){
       const g=grupos[k];
       progresso('Salvando '+(grupos.length-k)+' de '+grupos.length+'...');
-      await api('criar',{titulo:base+' - '+(g.desc?g.desc+' ':'')+g.cod,itens:g.itens,aprovar,ordem:k+1});
+      await api('criar',{titulo:base+' - '+(g.desc?g.desc+' ':'')+g.cod,itens:g.itens,aprovar,ordem:k+1,urgente:!!R.urgente});
       feitos++;
       R.itens=R.itens.filter(i=>i.cod!==g.cod); // se cair no meio, o que falta continua na tela
     }
@@ -647,7 +670,7 @@ function telaSeparar(E){
   const pend=E.itens.filter(i=>i.sep==null).length, tot=E.itens.length;
   let itens=E.itens; if(ESTADO.filtro==='pend') itens=itens.filter(i=>i.sep==null);
   const doLista=(ESTADO.lista||[]).find(x=>x.id===E.id);
-  let h=topo(E.titulo,true,'<span class="save" id="salvo"></span>')+'<div class="wrap">';
+  let h=topo(E.titulo,true,'<span class="save" id="salvo"></span>')+'<div class="wrap">'+faixaUrg(E);
   h+='<div class="pedido"><b>'+nPedido(E.ordem||(doLista&&doLista.num))+'</b><span>Solicitado em '+dataCurta(E.criado)+'</span></div>';
   h+='<div class="filtro"><button class="tab '+(ESTADO.filtro==='todos'?'on':'')+'" onclick="filtro(\'todos\')">Tudo ('+tot+')</button><button class="tab '+(ESTADO.filtro==='pend'?'on':'')+'" onclick="filtro(\'pend\')" id="fpend">Falta separar ('+pend+')</button></div>';
   h+='<p class="mini" style="margin-bottom:12px">Digite quantas peças você separou. <b>✓</b> = separou tudo. <b>0</b> = não tem.</p>';
@@ -697,7 +720,7 @@ function bannerTransf(E, texto){
 function telaTransferir(E){
   const vai=E.itens.filter(i=>(i.sep||0)>0); const tot=vai.reduce((s,i)=>s+i.sep,0);
   const feitos=ls.get('envio_tr_'+E.id)||{};
-  let h=topo(E.titulo,true)+'<div class="wrap">';
+  let h=topo(E.titulo,true)+'<div class="wrap">'+faixaUrg(E);
   h+='<p class="mini" style="margin:14px 0">Faça a transferência no Miré com estas quantidades (o que a Ana separou de verdade). Toque em <b>lancei</b> pra ir marcando.</p>';
   h+=agrupar(vai).map(c=>'<div class="cod '+(feitos[c.cod]?'feito':'')+'"><div class="cod-h"><button class="marca" onclick="marcaCod(\''+E.id+'\',\''+esc(c.cod)+'\')">'+(feitos[c.cod]?'✓ lancei':'lancei')+'</button><div class="c">'+esc(c.cod)+'</div>'+(c.desc?'<div class="d">'+esc(c.desc)+'</div>':'')+'</div>'+
     c.cores.map(co=>'<div class="cmp"><div class="n">'+esc(co.cor)+'</div><div class="q">'+co.itens.map(it=>'<span>'+esc(it.tam)+': <b>'+it.sep+'</b></span>').join('')+'</div></div>').join('')+'</div>').join('');
@@ -726,7 +749,7 @@ function linhasCorrecao(E){
 }
 function telaDivergencia(E){
   const d=E.itens.filter(i=>i.rec!=null&&i.rec!==(i.sep||0));
-  let h=topo(E.titulo,true)+'<div class="wrap">';
+  let h=topo(E.titulo,true)+'<div class="wrap">'+faixaUrg(E);
   h+=bannerTransf(E,'Editar a transferência');
   if(E.notaGi) h+='<div class="aviso erro"><b>A Gi conferiu de novo e disse:</b> '+esc(E.notaGi)+'</div>';
   h+='<div class="aviso erro">A Gi conferiu e '+plural(d.length,'linha veio diferente','linhas vieram diferentes')+'. Edite essa transferência no Miré pra ficar igual ao que chegou. O que precisa mudar está destacado.</div>';
@@ -748,7 +771,7 @@ function rotRec(it){ if(it.rec==null) return ''; if(it.extra) return 'não estav
 function telaReceber(E){
   const vis=visRec(E); const pend=vis.filter(i=>i.rec==null).length;
   let itens=vis; if(ESTADO.filtro==='pend') itens=itens.filter(i=>i.rec==null);
-  let h=topo(E.titulo,true,'<span class="save" id="salvo"></span>')+'<div class="wrap">';
+  let h=topo(E.titulo,true,'<span class="save" id="salvo"></span>')+'<div class="wrap">'+faixaUrg(E);
   h+=bannerTransf(E);
   h+='<div class="filtro"><button class="tab '+(ESTADO.filtro==='todos'?'on':'')+'" onclick="filtro(\'todos\')">Tudo ('+vis.length+')</button><button class="tab '+(ESTADO.filtro==='pend'?'on':'')+'" onclick="filtro(\'pend\')" id="fpend">Falta conferir ('+pend+')</button></div>';
   h+='<p class="mini" style="margin-bottom:12px">Confira cada linha. <b>✓</b> = chegou certo. Se veio diferente, digite quanto chegou de verdade.</p>';
@@ -797,7 +820,7 @@ async function fimRec(){
   try { await api('fimRecebimento',{id:E.id}); toast(d?'Foi pra Dai corrigir.':'Envio concluído!'); ESTADO.lista=null; location.hash=''; } catch(e){ toast(e.message); }
 }
 function telaConfCorrecao(E){
-  let h=topo(E.titulo,true)+'<div class="wrap">';
+  let h=topo(E.titulo,true)+'<div class="wrap">'+faixaUrg(E);
   h+=bannerTransf(E);
   h+='<div class="aviso">A Dai corrigiu essa transferência no Miré. Abra a transferência e confira se ficou como abaixo.'+(E.notaCorrecao?'<br><b>Dai:</b> '+esc(E.notaCorrecao):'')+'</div>';
   h+=linhasCorrecao(E);
@@ -813,8 +836,17 @@ async function confCorr(ok){
 }
 
 // Taty: rascunho e resumo
+function botaoUrg(E){
+  if(S.user!=='taty') return '';
+  return ehUrg(E)?'<button class="btn-urg on" onclick="mudaUrg(false)">Voltar para NORMAL</button>':'<button class="btn-urg" onclick="mudaUrg(true)">Marcar como URGENTE</button>';
+}
+async function mudaUrg(v){
+  const E=ESTADO.envio;
+  try { const j=await api('urgencia',{id:E.id,urgente:v}); E.urgente=v; E.hist=j.envio.hist; E.atualizado=j.envio.atualizado; ESTADO.lista=null; toast(v?'Marcado como URGENTE':'Voltou para NORMAL'); pintar(); }
+  catch(e){ toast(e.message); }
+}
 function telaRascunho(E){
-  let h=topo(E.titulo,true)+'<div class="wrap">'+trilha(E.status);
+  let h=topo(E.titulo,true)+'<div class="wrap">'+trilha(E.status)+faixaUrg(E)+botaoUrg(E);
   h+='<label class="campo"><span>Nome do envio</span><input id="titulo" value="'+esc(E.titulo)+'" oninput="ESTADO.envioSujo=true"></label>';
   h+='<h2>'+plural(E.itens.length,'linha','linhas')+' · '+E.itens.reduce((s,i)=>s+i.ped,0)+' peças</h2>';
   h+=blocosEdicao(E.itens,'e');
@@ -843,7 +875,7 @@ async function voltarEtapa(){
 }
 function telaResumo(E){
   const st=E.status;
-  let h=topo(E.titulo,true)+'<div class="wrap">'+trilha(st);
+  let h=topo(E.titulo,true)+'<div class="wrap">'+trilha(st)+faixaUrg(E)+(st!=='CONCLUIDO'?botaoUrg(E):'');
   h+='<div style="margin:14px 0">'+chip(st)+(ETAPA[st].quem?' <span class="mini">agora com '+ETAPA[st].quem+'</span>':'')+'</div>';
   if(E.notaTransf) h+=bannerTransf(E);
   const temSep=E.itens.some(i=>i.sep!=null), temRec=E.itens.some(i=>i.rec!=null);
