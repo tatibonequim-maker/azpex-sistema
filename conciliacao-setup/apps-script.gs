@@ -78,6 +78,51 @@ function prepararAba(ss, nome, cols, colsTexto, colsData) {
   return sh;
 }
 
+// ── ARRUMAR LINHAS ANTIGAS ──────────────────────────────────────────────
+// Linhas gravadas pela versão antiga do script (antes da coluna LOCAL) ficam
+// uma coluna fora do lugar. Esta função coloca o LOCAL em cada uma e empurra
+// o resto pra direita. Pode rodar mais de uma vez: linhas já certas ficam
+// como estão. Tudo que veio da versão antiga era da Fábrica.
+function migrarLocal() {
+  const sh = abas();
+  const STATUS = Object.keys(ST).map(function (k) { return ST[k]; });
+  const sem = function (s) { return String(s == null ? '' : s).normalize('NFD').replace(/[̀-ͯ]/g, '').trim().toUpperCase(); };
+  const localPorId = {};
+  let nc = 0, ni = 0;
+
+  const n = sh.c.getLastRow() - 1;
+  if (n > 0) {
+    const rng = sh.c.getRange(2, 1, n, COLS_C.length);
+    const out = rng.getValues().map(function (r) {
+      if (LOCAIS.indexOf(String(r[2])) >= 0) { localPorId[String(r[0])] = String(r[2]); return r; }
+      if (STATUS.indexOf(String(r[2])) < 0) return r; // não reconhecida: não mexe
+      const velha = r.slice(0, COLS_C.length - 1);
+      let local = 'FABRICA';
+      if (LOCAIS.indexOf(sem(velha[6])) >= 0) { local = sem(velha[6]); velha[6] = ''; } // lugar escrito na observação
+      localPorId[String(velha[0])] = local; nc++;
+      return [velha[0], velha[1], local].concat(velha.slice(2));
+    });
+    sh.c.getRange(2, 1, n, 3).setNumberFormat('@');
+    rng.setValues(out);
+  }
+
+  const m = sh.i.getLastRow() - 1;
+  if (m > 0) {
+    const rng = sh.i.getRange(2, 1, m, COLS_I.length);
+    const out = rng.getValues().map(function (r) {
+      if (LOCAIS.indexOf(String(r[2])) >= 0) return r;
+      if (STATUS.indexOf(String(r[9])) < 0) return r;
+      const velha = r.slice(0, COLS_I.length - 1);
+      ni++;
+      return [velha[0], velha[1], localPorId[String(velha[0])] || 'FABRICA'].concat(velha.slice(2));
+    });
+    sh.i.getRange(2, 1, m, 4).setNumberFormat('@');
+    rng.setValues(out);
+  }
+  Logger.log('Arrumei ' + nc + ' contagens e ' + ni + ' linhas de cor.');
+  return { contagens: nc, itens: ni };
+}
+
 // ── ENTRADA ─────────────────────────────────────────────────────────────
 function doGet() { return saida({ ok: true, app: 'conciliacao' }); }
 
