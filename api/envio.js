@@ -108,8 +108,12 @@ function marcar(d, user, status, nota) {
   d.hist.push({ st: status, por: user, em: Date.now(), nota: nota ? txt(nota, 200) : undefined });
 }
 
+// URGENTE ou NORMAL. Envio antigo sem marcação: urgente se o nome tiver "URGENTE" ou "DAR PRIORIDADE"
+const RE_URG = /URGENTE|DAR PRIORIDADE/i;
+function ehUrgente(d) { return d.urgente == null ? RE_URG.test(d.titulo || '') : !!d.urgente; }
+
 function resumo(d) {
-  const r = { id: d.id, titulo: d.titulo, status: d.status, criado: d.criado, atualizado: d.atualizado,
+  const r = { id: d.id, titulo: d.titulo, status: d.status, criado: d.criado, atualizado: d.atualizado, urgente: ehUrgente(d),
     ordem: d.ordem || null, linhas: d.itens.length, codigos: new Set(d.itens.map((i) => i.cod)).size,
     ped: 0, sep: null, rec: null, faltas: 0, div: 0, nota: d.notaTransf || '', transf: d.notaTransf || '', hist: d.hist || [] };
   r.ped = d.itens.reduce((s, i) => s + i.ped, 0);
@@ -158,6 +162,7 @@ const ACOES = {
       origem: txt(b.origem, 20) || 'manual', itens: limparItens(b.itens), hist: [] };
     const ordem = Math.round(Number(b.ordem)); // posição do código na lista do dia (#01 = mais importante)
     if (ordem >= 1 && ordem <= 999) d.ordem = ordem;
+    d.urgente = b.urgente == null ? RE_URG.test(d.titulo) : !!b.urgente;
     marcar(d, user, b.aprovar ? 'SEPARAR' : 'RASCUNHO');
     await gravarDoc(d);
     return { envio: d, resumo: resumo(d) };
@@ -168,6 +173,17 @@ const ACOES = {
     const d = await lerDoc(txt(b.id, 40)); naEtapa(d, 'RASCUNHO');
     if (b.titulo != null) d.titulo = txt(b.titulo, 80) || d.titulo;
     if (b.itens) d.itens = limparItens(b.itens);
+    await gravarDoc(d);
+    return { envio: d, resumo: resumo(d) };
+  },
+
+  async urgencia(user, b) {
+    exige(user, 'taty');
+    const d = await lerDoc(txt(b.id, 40));
+    if (d.status === 'CONCLUIDO') throw falha('Envio já concluído');
+    d.urgente = !!b.urgente;
+    d.hist = d.hist || [];
+    d.hist.push({ st: d.status, por: user, em: Date.now(), nota: d.urgente ? 'marcou URGENTE' : 'voltou para NORMAL' });
     await gravarDoc(d);
     return { envio: d, resumo: resumo(d) };
   },
