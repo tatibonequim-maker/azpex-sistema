@@ -302,6 +302,21 @@ const ACOES = {
     return { resumo: resumo(d) };
   },
 
+  async numTransf(user, b) {
+    // corrigir o número da transferência depois que já foi mandada (quando foi digitado errado)
+    exige(user, 'dai', 'gi', 'taty');
+    const d = await lerDoc(txt(b.id, 40));
+    if (['RASCUNHO', 'SEPARAR', 'TRANSFERIR'].includes(d.status)) throw falha('Este envio ainda não foi transferido');
+    const n = txt(b.nota, 30);
+    if (!n) throw falha('Digite o número da transferência do Miré');
+    const antes = d.notaTransf || '';
+    if (n === antes) return { envio: d, resumo: resumo(d) };
+    d.notaTransf = n;
+    d.hist = d.hist || [];
+    d.hist.push({ st: d.status, por: user, em: Date.now(), nota: 'nº da transferência mudou de ' + (antes || 'vazio') + ' para ' + n });
+    await gravarDoc(d);
+    return { envio: d, resumo: resumo(d) };
+  },
   async corrigido(user, b) {
     exige(user, 'dai', 'taty');
     const d = await lerDoc(txt(b.id, 40)); naEtapa(d, 'DIVERGENCIA');

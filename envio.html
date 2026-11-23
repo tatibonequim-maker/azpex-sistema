@@ -75,6 +75,7 @@ h2{font-size:13px;font-weight:600;color:var(--mt);text-transform:uppercase;lette
 .tnum span{display:block;font-size:12px;font-weight:600;text-transform:uppercase;letter-spacing:.05em}
 .tnum b{display:block;font-family:var(--mono);font-size:30px;line-height:1.15;color:var(--tx);letter-spacing:.03em;word-break:break-all}
 .tnum.vazio-n b{font-size:16px;font-family:inherit;color:var(--al)}
+.ed-t{float:right;margin:-4px -6px 0 8px;padding:6px 10px;border-radius:999px;border:1.5px solid var(--in);background:var(--sf);color:var(--in);font-size:13px;font-weight:600}
 .tcard{display:inline-block;margin-top:6px;padding:3px 9px;border-radius:8px;background:var(--inb);color:var(--in);font-size:13px;font-weight:600}
 .tcard b{font-family:var(--mono);font-size:15px;color:var(--tx)}
 .campo.forte span{font-size:15px;color:var(--tx)}
@@ -713,9 +714,32 @@ async function fimSep(){
 }
 
 // Dai
+function podeEditarTransf(E){ return ['dai','gi','taty'].includes(S.user) && !['RASCUNHO','SEPARAR','TRANSFERIR'].includes(E.status); }
 function bannerTransf(E, texto){
-  return E.notaTransf ? '<div class="tnum"><span>'+esc(texto||'Transferência')+' Nº</span><b>'+esc(E.notaTransf)+'</b></div>'
-    : '<div class="tnum vazio-n"><span>'+esc(texto||'Transferência')+'</span><b>sem número</b></div>';
+  const ed=podeEditarTransf(E)?'<button class="ed-t" onclick="editarTransf()">Corrigir número</button>':'';
+  return E.notaTransf ? '<div class="tnum">'+ed+'<span>'+esc(texto||'Transferência')+' Nº</span><b>'+esc(E.notaTransf)+'</b></div>'
+    : '<div class="tnum vazio-n">'+ed+'<span>'+esc(texto||'Transferência')+'</span><b>sem número</b></div>';
+}
+function editarTransf(){
+  const E=ESTADO.envio;
+  const m=document.createElement('div'); m.className='mod';
+  m.innerHTML='<div class="box" role="dialog" aria-modal="true"><h3>Corrigir o número da transferência</h3>'+
+    '<p>Número que está no app agora: <b>'+esc(E.notaTransf||'sem número')+'</b></p>'+
+    '<label class="campo forte"><span>Número certo no Miré</span><input id="ntc" inputmode="numeric" autocomplete="off" value="'+esc(E.notaTransf||'')+'"></label>'+
+    '<div class="bts"><button class="btn sec" data-r="0">Voltar</button><button class="btn" data-r="1">Salvar</button></div></div>';
+  const fecha=()=>m.remove();
+  m.addEventListener('click',async(e)=>{
+    if(e.target===m){ fecha(); return; }
+    const b=e.target.closest('[data-r]'); if(!b) return;
+    if(b.dataset.r==='0'){ fecha(); return; }
+    const n=(m.querySelector('#ntc').value||'').trim();
+    if(!n){ toast('Digite o número'); return; }
+    b.disabled=true;
+    try { const j=await api('numTransf',{id:E.id,nota:n}); E.notaTransf=j.envio.notaTransf; E.hist=j.envio.hist; ESTADO.lista=null; fecha(); toast('Número corrigido: '+n); pintar(); }
+    catch(er){ b.disabled=false; toast(er.message); }
+  });
+  document.body.appendChild(m);
+  setTimeout(()=>{ const i=m.querySelector('#ntc'); if(i){ i.focus(); i.select(); } },50);
 }
 function telaTransferir(E){
   const vai=E.itens.filter(i=>(i.sep||0)>0); const tot=vai.reduce((s,i)=>s+i.sep,0);
